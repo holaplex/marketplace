@@ -11,5 +11,5 @@ Tech Stack:
 ## Getting Started
 
 ```
-$ npm run dev
+$ NEXT_PUBLIC_GRAPHQL_ENDPOINT=<> npm run dev
 ```
