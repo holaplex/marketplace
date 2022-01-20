@@ -28,7 +28,7 @@ const Home: NextPage = () => {
     <>Loading</>
   ) : (
     <>
-      <Header />
+      <Header title="AwesomeDAO" />
       <ul>
         {data?.nfts.map(({ name, uri }) => (
           <li key={name}>

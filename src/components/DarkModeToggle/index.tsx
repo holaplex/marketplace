@@ -1,22 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export const DarkModeToggle = () => {
-  const [isLightMode, setIsLightMode] = useState(
-    document.body.classList.contains('light-mode')
+  const [isDarkMode, setIsDarkMode] = useState(
+    JSON.parse(localStorage.getItem('darkMode') || 'true')
   )
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark')
+    } else {
+      document.body.classList.remove('dark')
+    }
+  }, [isDarkMode])
+
+  const toggle = () => {
+    setIsDarkMode(!isDarkMode)
+    localStorage.setItem('darkMode', JSON.stringify(!isDarkMode))
+  }
 
   return (
     <button
       onClick={() => {
-        isLightMode
-          ? document.body.classList.remove('light-mode')
-          : document.body.classList.add('light-mode')
-        setIsLightMode(!isLightMode)
+        isDarkMode
+          ? document.body.classList.remove('dark')
+          : document.body.classList.add('dark')
+        setIsDarkMode(!isDarkMode)
       }}
       className="flex items-center"
     >
       <span className="material-icons">
-        {isLightMode ? 'light_mode' : 'dark_mode'}
+        {isDarkMode ? 'light_mode' : 'dark_mode'}
       </span>
     </button>
   )
