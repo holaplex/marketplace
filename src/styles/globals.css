@@ -1,10 +1,14 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
 :root {
   --base-bg: #292929;
   --base-fg: #efefef;
+}
+.light-mode {
+  --base-fg: #292929;
+  --base-bg: #efefef;
 }
 
 * {
@@ -19,8 +23,13 @@ body {
   background: var(--base-bg);
   color: var(--base-fg);
   height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
 }
 
-.mono {
+.pubkey {
   font-family: 'JetBrains Mono', monospace;
+  word-break: break-all;
 }
