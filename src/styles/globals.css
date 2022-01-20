@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --base-bg: #292929;
+  --base-fg: #efefef;
+}
+
+* {
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  height: 100%;
+}
+
+.outer-app-wrapper {
+  background: var(--base-bg);
+  color: var(--base-fg);
+  height: 100vh;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}

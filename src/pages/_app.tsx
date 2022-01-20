@@ -1,12 +1,17 @@
 import '../styles/globals.css'
+import '@fontsource/inter/300.css'
+import '@fontsource/inter/600.css'
+import '@fontsource/jetbrains-mono/200.css'
 import type { AppProps } from 'next/app'
 import { ApolloProvider } from '@apollo/client'
-import client from './../client';
+import client from '../client'
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <ApolloProvider client={client}>
-      <Component {...pageProps} />
+      <div className="outer-app-wrapper">
+        <Component {...pageProps} />
+      </div>
     </ApolloProvider>
   )
 }

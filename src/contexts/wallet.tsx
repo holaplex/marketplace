@@ -5,6 +5,7 @@ import {
   Transaction,
   clusterApiUrl,
 } from '@solana/web3.js'
+import { Button } from '../components/Button'
 
 type DisplayEncoding = 'utf8' | 'hex'
 type PhantomEvent = 'disconnect' | 'connect' | 'accountChanged'
@@ -105,9 +106,11 @@ export const Wallet = () => {
     <div>
       {provider && publicKey ? (
         <>
-          <div>Connected as {publicKey.toBase58()}</div>
+          <div>
+            Connected as <span className="mono">{publicKey.toBase58()}</span>
+          </div>
 
-          <button
+          <Button
             onClick={async () => {
               try {
                 await provider.disconnect()
@@ -118,11 +121,11 @@ export const Wallet = () => {
             }}
           >
             Disconnect
-          </button>
+          </Button>
         </>
       ) : (
         <>
-          <button
+          <Button
             onClick={async () => {
               try {
                 await provider.connect()
@@ -133,7 +136,7 @@ export const Wallet = () => {
             }}
           >
             Connect to Phantom
-          </button>
+          </Button>
         </>
       )}
     </div>

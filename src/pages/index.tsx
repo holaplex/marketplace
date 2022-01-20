@@ -5,12 +5,12 @@ import { gql, useQuery } from '@apollo/client'
 import { Wallet } from '../contexts/wallet'
 
 interface Nft {
-  name: string;
-  uri: string;
+  name: string
+  uri: string
 }
 
 interface GetNftsData {
-  nfts: Nft[];
+  nfts: Nft[]
 }
 
 const GET_NFTS = gql`
@@ -20,19 +20,23 @@ const GET_NFTS = gql`
       uri
     }
   }
-`;
+`
 const Home: NextPage = () => {
-  const { data, loading } = useQuery<GetNftsData>(GET_NFTS);
+  const { data, loading } = useQuery<GetNftsData>(GET_NFTS)
 
-  return (
-    loading ? (
-      <>Loading</>
-    ) : (
-      <><Wallet />
+  return loading ? (
+    <>Loading</>
+  ) : (
+    <>
+      <Wallet />
       <ul>
-        {data?.nfts.map(({ name, uri }) => (<li key={name}>{name} - {uri}</li>))}
-      </ul></>
-    )
+        {data?.nfts.map(({ name, uri }) => (
+          <li key={name}>
+            {name} - {uri}
+          </li>
+        ))}
+      </ul>
+    </>
   )
 }
 
