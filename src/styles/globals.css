@@ -20,7 +20,7 @@ body {
   height: 100%;
 }
 
-.outer-app-wrapper {
+.app-wrapper {
   background: var(--base-bg);
   color: var(--base-fg);
   height: 100vh;

@@ -6,12 +6,11 @@ import '@fontsource/material-icons'
 import type { AppProps } from 'next/app'
 import { ApolloProvider } from '@apollo/client'
 import client from '../client'
-import { useEffect } from 'React'
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <ApolloProvider client={client}>
-      <div className="outer-app-wrapper">
+      <div className="app-wrapper">
         <Component {...pageProps} />
       </div>
     </ApolloProvider>
