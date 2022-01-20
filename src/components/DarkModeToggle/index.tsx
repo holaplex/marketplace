@@ -24,7 +24,7 @@ export const DarkModeToggle = () => {
         isDarkMode
           ? document.body.classList.remove('dark')
           : document.body.classList.add('dark')
-        setIsDarkMode(!isDarkMode)
+        toggle()
       }}
       className="flex items-center"
     >
