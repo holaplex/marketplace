@@ -1,4 +1,4 @@
-import { Wallet } from '../../contexts/wallet'
+import { WalletConnect } from '../../components/WalletConnect'
 import { DarkModeToggle } from '../DarkModeToggle'
 
 type Props = {
@@ -11,7 +11,7 @@ export const Header = ({ title }: Props) => {
       <h1 className="text-xl font-semibold">{title}</h1>
       <div className="flex items-center justify-end gap-6">
         <DarkModeToggle />
-        <Wallet />
+        <WalletConnect />
       </div>
     </div>
   )
