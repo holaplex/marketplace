@@ -19,15 +19,7 @@ export const DarkModeToggle = () => {
   }
 
   return (
-    <button
-      onClick={() => {
-        isDarkMode
-          ? document.body.classList.remove('dark')
-          : document.body.classList.add('dark')
-        toggle()
-      }}
-      className="flex items-center"
-    >
+    <button onClick={toggle} className="flex items-center">
       <span className="material-icons">
         {isDarkMode ? 'light_mode' : 'dark_mode'}
       </span>
