@@ -1,8 +1,5 @@
 import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
 import { gql, useQuery } from '@apollo/client'
-import { Header } from '../components/Header'
 
 interface Nft {
   name: string
@@ -28,7 +25,6 @@ const Home: NextPage = () => {
     <>Loading</>
   ) : (
     <>
-      <Header title="AwesomeDAO" />
       <ul>
         {data?.nfts.map(({ name, uri }) => (
           <li key={name}>
