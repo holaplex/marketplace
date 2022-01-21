@@ -1,0 +1,39 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+:root {
+  --base-fg: #292929;
+  --base-bg: #efefef;
+  --overlay-1: #7773;
+}
+.dark {
+  --base-bg: #292929;
+  --base-fg: #efefef;
+}
+
+* {
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  height: 100%;
+}
+
+.app-wrapper {
+  background: var(--base-bg);
+  color: var(--base-fg);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pubkey {
+  font-family: 'JetBrains Mono', monospace;
+  word-break: break-all;
+}
+
+.overlay-1 {
+  background: var(--overlay-1);
+}
