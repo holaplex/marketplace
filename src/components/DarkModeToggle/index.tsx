@@ -21,7 +21,7 @@ export const DarkModeToggle = () => {
   return (
     <button onClick={toggle} className="flex items-center">
       <span className="material-icons">
-        {isDarkMode ? 'light_mode' : 'dark_mode'}
+        {isDarkMode ? 'dark_mode' : 'light_mode'}
       </span>
     </button>
   )
