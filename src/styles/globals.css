@@ -2,13 +2,13 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-:root {
+.light {
   --base-fg: #292929;
   --base-bg: #efefef;
   --overlay-1: #7773;
 }
-.dark {
-  --base-bg: #292929;
+:root {
+  --base-bg: #171717;
   --base-fg: #efefef;
 }
 

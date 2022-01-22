@@ -3,6 +3,7 @@ import { NextPage } from 'next'
 import Head from 'next/head'
 import { gql, useQuery } from '@apollo/client'
 import { isCompositeType } from 'graphql'
+
 import { NFTCard } from '../components/NFTCard'
 interface Nft {
   name: String
@@ -43,13 +44,6 @@ const Home: NextPage = () => {
   const [walletSelected, setWalletSelected] = useState<String>('')
   const [searchString, setSearchString] = useState<String>('')
 
-  const buttonStyle = {
-    padding: '0.5em',
-    color: 'white',
-    backgroundColor: 'purple',
-    width: '100%',
-    marginTop: '1em',
-  }
 
   return loading ? (
     <>Loading</>
@@ -58,9 +52,8 @@ const Home: NextPage = () => {
     <div className='md:container md:mx-auto'>
       <div id='bodyContainer' className='grid grid-cols-5 gap-3'>
         <div id='mainLeft'>
-          <h1>Some stuff here</h1>
           <div id='buttonContainer' className='w-full'>
-            <button className='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center mb-2'>
+            <button className='w-full bg-[#292929] hover:bg-gray-400 text-white-600 font-bold py-2 px-4 rounded inline-flex items-center mb-2'>
               <svg
                 className='fill-current w-4 h-4 mr-2'
                 xmlns='http://www.w3.org/2000/svg'
@@ -71,7 +64,7 @@ const Home: NextPage = () => {
               <span>Download</span>
             </button>
 
-            <button className='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center mb-2'>
+            <button className='bg-[#171717] w-full bg-gray-300 hover:bg-gray-400 text-white-600 font-bold py-2 px-4 rounded inline-flex items-center mb-2'>
               <svg
                 className='fill-current w-4 h-4 mr-2'
                 xmlns='http://www.w3.org/2000/svg'
@@ -82,7 +75,7 @@ const Home: NextPage = () => {
               <span>Download</span>
             </button>
 
-            <button className='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center mb-2'>
+            <button className='bg-[#171717] w-full bg-gray-300 hover:bg-gray-400 text-white-600 font-bold py-2 px-4 rounded inline-flex items-center mb-2'>
               <svg
                 className='fill-current w-4 h-4 mr-2'
                 xmlns='http://www.w3.org/2000/svg'
@@ -94,35 +87,30 @@ const Home: NextPage = () => {
             </button>
           </div>
           <div id='creatorsFilterContainer'>
-            <h3>Creators</h3>
+
             <div id='buttonContainer' className='w-full'>
               <div
+              className='w-full'
                 id={'div_'}
                 style={{ marginBottom: '5px' }}
                 onClick={e => {
                   setWalletSelected(e.currentTarget.id.split('_')[1])
                 }}
               >
-                <button className='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center mb-2'>
-                  <img
-                    src='https://st4.depositphotos.com/1000507/24488/v/600/depositphotos_244889634-stock-illustration-user-profile-picture-isolate-background.jpg'
-                    width={50}
-                    height={50}
-                    style={{ display: 'inline-block', marginRight: '2px' }}
-                    className='rounded-full'
-                  />
-                  <span>All Creators</span>
+                <button className='w-full bg-[#383838]  hover:bg-gray-400 text-white-600 font-bold py-2 px-4 rounded inline-flex items-center  mb-2'>
+                  <span className='text-sm'>All Creators</span>
                 </button>
               </div>
               {creators_list.map(c => (
                 <div
+                  className='w-full'
                   id={'div_' + c}
                   style={{ marginBottom: '5px' }}
                   onClick={e => {
                     setWalletSelected(e.currentTarget.id.split('_')[1])
                   }}
                 >
-                  <button className='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center mb-2'>
+                  <button className='w-full bg-[#171717] hover:bg-[#383838]   font-bold py-2 px-4 rounded inline-flex items-center mb-2'>
                     <img
                       src='https://st4.depositphotos.com/1000507/24488/v/600/depositphotos_244889634-stock-illustration-user-profile-picture-isolate-background.jpg'
                       width={50}
@@ -130,7 +118,10 @@ const Home: NextPage = () => {
                       style={{ display: 'inline-block', marginRight: '2px' }}
                       className='rounded-full'
                     />
-                    <span>{c.substring(0, 4) + '...' + c.slice(-4)}</span>
+                    <div className=''>
+                      <div className='text-sm text-white-600'>{c.substring(0, 4) + '...' + c.slice(-4)}</div>
+                      <div className='text-xs text-white-300'>1 collection - 11 NFTs</div>
+                    </div>
                   </button>
                 </div>
               ))}
@@ -139,7 +130,7 @@ const Home: NextPage = () => {
         </div>
         <div id='mainRight' className='col-span-4'>
           {/* Search, options, buttons */}
-          <form className='w-full'>
+          <div className='w-full' >
             <div className='relative text-gray-600 focus-within:text-gray-400'>
               <span className='absolute inset-y-0 left-0 flex items-center pl-2'>
                 <button className='p-1 focus:outline-none focus:shadow-outline'>
@@ -157,31 +148,53 @@ const Home: NextPage = () => {
                 </button>
               </span>
               <input
-                type='search'
-                name='q'
-                className='py-2 w-8/12 text-sm text-gray-900 bg-white rounded-md pl-10 focus:outline-none '
+                className='py-2 w-8/12 text-sm text-gray-900 bg-[#171717] border-[#373737] rounded-md pl-10 focus:outline-none '
                 placeholder='Search...'
-                autoComplete='off'
               />
               <select
-                className='form-select px-3 py-2 ml-1 mr-1 rounded-md text-sm text-gray-900 bg-white bg-clip-padding bg-no-repeat rounded transition ease-in-out m-0'
+                className='bg-[#222222] form-select px-3 py-2 ml-1 mr-1 rounded-md text-sm  border-[#292929] bg-clip-padding bg-no-repeat rounded transition ease-in-out m-0'
                 aria-label='Default select example'
               >
-                <option>Recently Added</option>
-                <option>Recently Added</option>
+                <option className='text-white-600'>Recently Added</option>
+                <option className='text-white-600'>Recently Added</option>
               </select>
-            
 
-            <span>
-              <button className='bg-white hover:bg-gray-400 text-gray-800 font-bold py-1.5 px-4 rounded-l'>
-                1
-              </button>
-              <button className='bg-white hover:bg-gray-400 text-gray-800 font-bold py-1.5 px-4 rounded-r'>
-                2
-              </button>
-            </span>
+              <span>
+                <button className='bg-[#222222] border-[#292929] color-white-600 hover:bg-gray-400 font-bold py-1.5 px-4 rounded-l'>
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    className='h-6 w-6'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                    stroke='currentColor'
+                  >
+                    <path
+                      stroke-linecap='round'
+                      stroke-linejoin='round'
+                      stroke-width='2'
+                      d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7'
+                    />
+                  </svg>
+                </button>
+                <button className='bg-[#222222] color-white-600 border-[#292929] hover:bg-gray-400  font-bold py-1.5 px-4 rounded-r'>
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    className='h-6 w-6'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                    stroke='currentColor'
+                  >
+                    <path
+                      stroke-linecap='round'
+                      stroke-linejoin='round'
+                      stroke-width='2'
+                      d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7'
+                    />
+                  </svg>
+                </button>
+              </span>
             </div>
-          </form>
+          </div>
 
           {/* This is where the body cards load */}
           <div className='pt-4 grid grid-cols-4 gap-4'>
