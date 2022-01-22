@@ -12,12 +12,10 @@ export const NFTCard = ({ name, creators }: Props) => (
         className='content bg-cover bg-center h-64 rounded-2xl'
         style={{backgroundImage: 'url(http://placekitten.com/200/200)'}}
       >
-        <div className='flex items-end w-full h-full bg-black bg-opacity-20 text-white text-sm font-bold  p-4 rounded-2xl'>
-
-        </div>
+        <div className='flex items-end w-full h-full bg-black bg-opacity-20 text-white text-sm font-bold  p-4 rounded-2xl'></div>
         <div>
-            <p><b>{name}</b></p>
-            {creators.map((c: string)=>(<p>{c.substring(0,4) + "..." + c.slice(-4)}</p>))}
+            <span><b>{name}</b></span><br/>
+            {creators.map((c: String)=>(<span>{c.substring(0,4) + "..." + c.slice(-4)}</span>))}
         </div>
 
       </section>
