@@ -16,19 +16,6 @@
   font-family: 'Inter', sans-serif;
 }
 
-body {
-  height: 100%;
-}
-
-.app-wrapper {
-  background: var(--base-bg);
-  color: var(--base-fg);
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
 .pubkey {
   font-family: 'JetBrains Mono', monospace;
   word-break: break-all;
