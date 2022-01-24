@@ -107,17 +107,35 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           <p>{storefront.description}</p>
         </div>
       </div>
-      {loading ? (
-        <>Loading</>
-      ) : (
-        <ul>
-          {data?.nfts.map(({ name, uri }) => (
-            <li key={name}>
-              {name}
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="flex container">
+        <div className="flex-none flex-col space-y-2 px-6 w-72">
+          <button className="flex rounded-md p-2  w-full justify-between">
+            <h4>Current listings</h4>
+            <span>0</span>
+          </button>
+          <button className="flex rounded-md p-2 w-full justify-between">
+            <h4>Owned by me</h4>
+            <span>0</span>
+          </button>
+          <button className="flex rounded-md p-2 w-full justify-between bg-gray-800">
+            <h4>Unlisted</h4>
+            <span>0</span>
+          </button>
+        </div>
+        <div className="grow">
+          {loading ? (
+            <>Loading</>
+          ) : (
+            <ul className="grid grid-cols-4 gap-4">
+              {data?.nfts.map(({ name, uri }) => (
+                <li key={name}>
+                  {name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
