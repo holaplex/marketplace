@@ -4,7 +4,4 @@ module.exports = {
   env: {
     NEXT_PUBLIC_GRAPH_ENDPOINT: process.env.NEXT_PUBLIC_GRAPH_ENDPOINT,
   },
-  images: {
-    domains: ['placekitten.com'],
-  },
 }
