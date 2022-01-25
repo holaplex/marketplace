@@ -13,16 +13,13 @@ import client from '../../client';
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
 interface Nft {
-  name: string
-  address: string
+  name: String
+  address: String
   details: {
-      image: string
-      description: string
-      creators: [string]
-      properties: {
-          name: string
-          value: string
-      }
+      image: String
+      description: String
+      creators: [String]
+      properties: {[key: string]:String}
   }
 }
 
