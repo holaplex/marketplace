@@ -13,10 +13,16 @@ import client from '../client';
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
+interface NftDetails {
+  description: string;
+  image: string;
+}
 interface Nft {
   name: string;
+  address: string;
   uri: string;
   creators: string[];
+  details?: NftDetails;
 }
 
 interface GetNftsData {
@@ -26,8 +32,12 @@ interface GetNftsData {
 const GET_NFTS = gql`
   query GetNfts($creators: [String!]) {
     nfts(creators: $creators) {
+      address
       name
-      uri
+      details {
+        description
+        image
+      }
     }
   }
 `
@@ -126,9 +136,10 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           {loading ? (
             <>Loading</>
           ) : (
-            <ul className="grid grid-cols-4 gap-4">
-              {data?.nfts.map(({ name, uri }) => (
+            <ul className="grid grid-cols-4 gap-6">
+              {data?.nfts.map(({ name, uri, address, details }) => (
                 <li key={name}>
+                  <img src={details?.image as string} alt="nft image" className="aspect-square rounded-lg" />
                   {name}
                 </li>
               ))}
