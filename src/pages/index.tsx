@@ -1,4 +1,6 @@
-import type { NextPage } from 'next'
+import { useState } from 'react'
+import { NextPage } from 'next'
+import Head from 'next/head'
 import { gql, useQuery } from '@apollo/client'
 import {
   WalletDisconnectButton,
@@ -11,20 +13,31 @@ import client from '../client';
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
+interface NftDetails {
+  description: string;
+  image: string;
+}
 interface Nft {
-  name: string
-  uri: string
+  name: string;
+  address: string;
+  uri: string;
+  creators: string[];
+  details?: NftDetails;
 }
 
 interface GetNftsData {
-  nfts: Nft[]
+  nfts: Nft[];
 }
 
 const GET_NFTS = gql`
   query GetNfts($creators: [String!]) {
     nfts(creators: $creators) {
+      address
       name
-      uri
+      details {
+        description
+        image
+      }
     }
   }
 `
@@ -104,17 +117,36 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           <p>{storefront.description}</p>
         </div>
       </div>
-      {loading ? (
-        <>Loading</>
-      ) : (
-        <ul>
-          {data?.nfts.map(({ name, uri }) => (
-            <li key={name}>
-              {name}
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="flex container">
+        <div className="flex-none flex-col space-y-2 px-6 w-72">
+          <button className="flex rounded-md p-2  w-full justify-between">
+            <h4>Current listings</h4>
+            <span>0</span>
+          </button>
+          <button className="flex rounded-md p-2 w-full justify-between">
+            <h4>Owned by me</h4>
+            <span>0</span>
+          </button>
+          <button className="flex rounded-md p-2 w-full justify-between bg-gray-800">
+            <h4>Unlisted</h4>
+            <span>0</span>
+          </button>
+        </div>
+        <div className="grow">
+          {loading ? (
+            <>Loading</>
+          ) : (
+            <ul className="grid grid-cols-4 gap-6">
+              {data?.nfts.map(({ name, uri, address, details }) => (
+                <li key={name}>
+                  <img src={details?.image as string} alt="nft image" className="aspect-square rounded-lg" />
+                  {name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
