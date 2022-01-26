@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NextPage } from 'next'
 import Head from 'next/head'
+import { RadioGroup } from '@headlessui/react'
 import { gql, useQuery } from '@apollo/client'
 import {
   WalletDisconnectButton,
@@ -10,6 +11,9 @@ import { isNil } from 'ramda';
 import { AppProps } from 'next/app';
 import Link from 'next/link'
 import client from '../client';
+import * as Collapsible from '@radix-ui/react-collapsible';
+import * as Checkbox from '@radix-ui/react-checkbox';
+import { CheckIcon } from '@radix-ui/react-icons';
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
@@ -27,10 +31,11 @@ interface Nft {
 
 interface GetNftsData {
   nfts: Nft[];
+  creator: Creator;
 }
 
 const GET_NFTS = gql`
-  query GetNfts($creators: [String!]) {
+  query GetNfts($creators: [String!], $address: String!) {
     nfts(creators: $creators) {
       address
       name
@@ -39,13 +44,23 @@ const GET_NFTS = gql`
         image
       }
     }
+
+    creator(address: $address) {
+      attributeGroups {
+        name
+        variants {
+          name
+          count
+        }
+      }
+    }
   }
 `
 
 export async function getServerSideProps() {
   const { data: { storefront } } = await client.query<GetStorefront>({
     query: gql`
-      query GetStorefront($subdomain: String!) {
+     query GetStorefront($subdomain: String!) {
         storefront(subdomain: $subdomain) {
           title
           description
@@ -84,8 +99,23 @@ interface Storefront {
   ownerAddress: string;
 }
 
+interface AttributeVariant {
+  name: string;
+  count: number;
+}
+interface AttributeGroup {
+  name: string;
+  variants: AttributeVariant[];
+}
+
+interface Creator {
+  addresss: string;
+  attributeGroups: AttributeGroup[];
+}
+
 interface GetStorefront {
   storefront: Storefront | null;
+
 }
 
 interface HomePageProps extends AppProps {
@@ -96,6 +126,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
   const { data, loading } = useQuery<GetNftsData>(GET_NFTS, {
     variables: {
       creators: [storefront.ownerAddress],
+      address: storefront.ownerAddress,
     }
   });
 
@@ -119,25 +150,49 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
       </div>
       <div className="flex container">
         <div className="flex-none flex-col space-y-2 px-6 w-72">
-          <button className="flex rounded-md p-2  w-full justify-between">
-            <h4>Current listings</h4>
-            <span>0</span>
-          </button>
-          <button className="flex rounded-md p-2 w-full justify-between">
-            <h4>Owned by me</h4>
-            <span>0</span>
-          </button>
-          <button className="flex rounded-md p-2 w-full justify-between bg-gray-800">
-            <h4>Unlisted</h4>
-            <span>0</span>
-          </button>
+          <div className="flex flex-grow flex-col mb-6">
+            <button className="flex rounded-md p-2  w-full justify-between">
+              <h4>Current listings</h4>
+              <span>0</span>
+            </button>
+            <button className="flex rounded-md p-2 w-full justify-between">
+              <h4>Owned by me</h4>
+              <span>0</span>
+            </button>
+            <button className="flex rounded-md p-2 w-full justify-between bg-gray-800">
+              <h4>Unlisted</h4>
+              <span>0</span>
+            </button>
+          </div>
+          <div className="flex flex-grow flex-col">
+            {data?.creator.attributeGroups.map(({ name: group, variants }) => (
+              <Collapsible.Root key={group} defaultOpen className="mb-4">
+                <Collapsible.Trigger className="flex rounded-md p-2 w-full justify-between bg-gray-800">{group}</Collapsible.Trigger>
+                <Collapsible.Content>
+                  {variants.map(({ name, count }) => (
+                    <div className="flex flex-grow py-2" key={name}>
+                      <Checkbox.Root id={`${group}-${name}`}>
+                        <Checkbox.Indicator>
+                          <CheckIcon />
+                        </Checkbox.Indicator>
+                      </Checkbox.Root>
+                      <label htmlFor={`${group}-${name}`} className="flex flex-grow flex-row gap-2">
+                        <span>{name}</span>
+                        <span>{count}</span>
+                      </label>
+                    </div>
+                  ))}
+                </Collapsible.Content>
+              </Collapsible.Root>
+            ))}
+          </div>
         </div>
         <div className="grow">
           {loading ? (
             <>Loading</>
           ) : (
             <ul className="grid grid-cols-4 gap-6">
-              {data?.nfts.map(({ name, uri, address, details }) => (
+              {data?.nfts.map(({ name, details }) => (
                 <li key={name}>
                   <img src={details?.image as string} alt="nft image" className="aspect-square rounded-lg" />
                   {name}
