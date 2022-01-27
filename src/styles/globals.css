@@ -1,12 +1,13 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 .light {
   --base-fg: #292929;
   --base-bg: #efefef;
   --overlay-1: #7773;
 }
+
 :root {
   --base-bg: #171717;
   --base-fg: #efefef;
@@ -23,4 +24,37 @@
 
 .overlay-1 {
   background: var(--overlay-1);
+}
+
+
+.select-base-theme .base__control {
+  @apply bg-slate-800 border-slate-800 text-white
+}
+
+.select-base-theme .base__control.base__control--is-focused {
+  @apply border-slate-900;
+}
+
+.select-base-them .base__value-container {}
+
+.select-base-theme .base__indicators {}
+
+.select-base-theme .base__menu {
+  @apply bg-slate-800 border-0
+}
+
+.select-base-theme .base__menu-list {}
+
+.select-base-theme .base__option {}
+
+.select-base-theme .base__option.base__option--is-focused {
+  @apply bg-slate-600
+}
+
+.select-base-theme .base__multi-value {
+  @apply bg-slate-600 text-white
+}
+
+.select-base-theme .base__multi-value__label {
+  @apply text-white
 }
