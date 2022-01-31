@@ -11,6 +11,7 @@ import Link from 'next/link'
 import Select, { OptionsType, ValueType } from 'react-select';
 import { useForm, Controller } from "react-hook-form";
 import client from '../client';
+import { NftCard } from '../components/NftCard';
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
@@ -235,10 +236,9 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
             <>Loading</>
           ) : (
             <ul className="grid grid-cols-4 gap-6">
-              {nfts.data?.nfts.map(({ name, details, address }) => (
-                <li key={address}>
-                  <img src={details?.image as string} alt="nft image" className="aspect-square rounded-lg" />
-                  {name}
+              {nfts.data?.nfts.map((n) => (
+                <li key={n.address}> 
+                  <NftCard address={n.address} nft={n}/>
                 </li>
               ))}
             </ul>

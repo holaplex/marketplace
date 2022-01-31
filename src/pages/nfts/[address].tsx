@@ -112,45 +112,15 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
             </p>
           </div>
           <div className='mt-8 grid gap-6 grid-cols-2'>
-            <div className='px-4 py-4 rounded border border-[#383838]'>
+            
+            {/* Throw the NFT attributes list here */}
+            {[...Array(8)].map(()=>(
+              <div className='px-4 py-4 rounded border border-[#383838]'>
               <h1 className='text-gray-400 uppercase'>Trait</h1>
               <p>Attribute</p>
             </div>
-
-            <div className='px-4 py-4 rounded-lg border border-[#383838]'>
-              <h1 className='text-gray-400 uppercase'>Trait</h1>
-              <p>Attribute</p>
-            </div>
-
-            <div className='px-4 py-4 rounded border border-[#383838]'>
-              <h1 className='text-gray-400 uppercase'>Trait</h1>
-              <p>Attribute</p>
-            </div>
-
-            <div className='px-4 py-4 rounded-lg border border-[#383838]'>
-              <h1 className='text-gray-400 uppercase'>Trait</h1>
-              <p>Attribute</p>
-            </div>
-
-            <div className='px-4 py-4 rounded border border-[#383838]'>
-              <h1 className='text-gray-400 uppercase'>Trait</h1>
-              <p>Attribute</p>
-            </div>
-
-            <div className='px-4 py-4 rounded-lg border border-[#383838]'>
-              <h1 className='text-gray-400 uppercase'>Trait</h1>
-              <p>Attribute</p>
-            </div>
-
-            <div className='px-4 py-4 rounded border border-[#383838]'>
-              <h1 className='text-gray-400 uppercase'>Trait</h1>
-              <p>Attribute</p>
-            </div>
-
-            <div className='px-4 py-4 rounded border border-[#383838]'>
-              <h1 className='text-gray-400 uppercase'>Trait</h1>
-              <p>Attribute</p>
-            </div>
+            ))}
+            
           </div>
         </div>
       </div>
