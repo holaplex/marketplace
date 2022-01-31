@@ -1,15 +1,13 @@
 import { NextPage } from 'next'
 import { AppProps } from 'next/app';
-import { gql, useQuery } from '@apollo/client'
-import { isNil, modify, map, filter, pipe, prop, isEmpty, not } from 'ramda';
-
-
+import { gql } from '@apollo/client'
+import { isNil } from 'ramda';
 import client from '../../client';
 
 const solSymbol = '◎'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
-export async function getServerSideProps(ctx) {
+export async function getServerSideProps(ctx: any) {
   const { data: { storefront, nft } } = await client.query<GetNftPage>({
     query: gql`
      query GetNftPage($subdomain: String!, $address: String!) {
@@ -53,6 +51,7 @@ export async function getServerSideProps(ctx) {
 
 interface GetNftPage {
   storefront: Storefront | null;
+  nft: NftData | null;
 }
 
 interface Storefront {
