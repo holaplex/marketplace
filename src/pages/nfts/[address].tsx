@@ -123,9 +123,8 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
       {/* Make offer buy now */}
       <div className='flex justify-center mx-4 mt-10 mb-10'>
         <div className='w-full rounded-lg md:flex lg:flex 2xl:flex xl:flex items-stretch bg-[#282828]'>
-          <div className='p-4 md:w-7/12 lg:w-7/12 xl:w-7/12 2xl:w-7/12 grow'>
+          <div className='p-4 md:w-5/12 lg:w-6/12 xl:w-5/12 2xl:w-5/12 grow'>
             <div className='flex grid-cols-2 gap-2'>
-              <div className='flex w-full grid-cols-1 mt-1'>
                 
                 <div className='grow'>
                   <p className='text-gray-400'>OWNER</p>
@@ -144,14 +143,13 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
                     <b>{solSymbol} 1.5</b>
                   </p>
                 </div>
-              </div>
             </div>
           </div>
-          <div className='p-4 text-center grow'>
-            <button className='h-10 px-10 mb-2 text-sm text-white transition-colors duration-150 bg-black rounded-full md:h-16 lg:h-16 w-52 lg:mb-0 sm:mr-4 md:text-xl focus:shadow-outline hover:bg-black'>
+          <div className='p-4 text-center md:mx-0 md:px-0 grow'>
+            <button className='h-10 px-10 mb-2 text-sm text-white transition-colors duration-150 bg-black rounded-full md:h-14 lg:h-24 lg:w-60 lg:text-xl w-52 lg:mb-0 sm:mr-4 md:w-36 md:text-base focus:shadow-outline hover:bg-black'>
               Make Offer
             </button>
-            <button className='h-10 px-10 text-sm text-black transition-colors duration-150 bg-white rounded-full md:h-16 lg:h-16 w-52 md:text-xl focus:shadow-outline hover:bg-white'>
+            <button className='h-10 px-10 text-sm text-black transition-colors duration-150 bg-white rounded-full md:h-14 lg:h-24 lg:w-60 lg:text-xl w-52 md:text-base md:w-36 focus:shadow-outline hover:bg-white'>
               Buy Now
             </button>
           </div>
