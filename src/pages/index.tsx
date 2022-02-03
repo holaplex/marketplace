@@ -251,7 +251,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
               {nfts.data?.nfts.map(n => (
                 <li key={n.address}>
                   <div className='p-4 h-68 overflow-clip hover:bg-gray'>
-                    <Link href={'/nfts/' + n.address}>
+                    <Link href={`/nfts/${n.address}`}>
                     <a>
                       <img
                         src={n.image as string}
