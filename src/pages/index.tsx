@@ -17,16 +17,13 @@ const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
 type OptionType = { label: string; value: number };
 
-interface NftDetails {
-  description: string;
-  image: string;
-}
 interface Nft {
   name: string;
   address: string;
   uri: string;
   creators: string[];
-  details?: NftDetails;
+  description: string;
+  image: string;
 }
 
 interface GetNftsData {
@@ -39,10 +36,8 @@ const GET_NFTS = gql`
     nfts(creators: $creators, attributes: $attributes) {
       address
       name
-      details {
-        description
-        image
-      }
+      description
+      image
     }
   }
 `
@@ -169,14 +164,14 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
   }, [watch]);
 
   return (
-    <div className="app-wrapper bg-black text-white">
-      <div className="relative flex justify-end items-start p-6 h-60 bg-cover bg-center" style={{ backgroundImage: `url(${storefront.bannerUrl})` }}>
+    <div className="text-white bg-black app-wrapper">
+      <div className="relative flex items-start justify-end p-6 bg-center bg-cover h-60" style={{ backgroundImage: `url(${storefront.bannerUrl})` }}>
         <div className="flex items-center justify-end gap-6">
           <WalletMultiButton />
           <WalletDisconnectButton />
         </div>
         <Link href="/">
-          <a className="absolute h-20 -bottom-10 left-6 rounded-full aspect-square bg-black bg-cover bg-center" style={{ backgroundImage: `url(${storefront.logoUrl})` }}>
+          <a className="absolute h-20 bg-black bg-center bg-cover rounded-full -bottom-10 left-6 aspect-square" style={{ backgroundImage: `url(${storefront.logoUrl})` }}>
           </a>
         </Link>
       </div>
@@ -186,26 +181,26 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           <p>{storefront.description}</p>
         </div>
       </div>
-      <div className="flex container">
-        <div className="flex-none flex-col space-y-2 px-6 w-72">
+      <div className="container flex">
+        <div className="flex-col flex-none px-6 space-y-2 w-72">
           <form onSubmit={(e) => { e.preventDefault(); }}>
-            <div className="flex flex-grow flex-col mb-6">
-              <div className="flex rounded-md p-2  w-full justify-between">
+            <div className="flex flex-col flex-grow mb-6">
+              <div className="flex justify-between w-full p-2 rounded-md">
                 <h4>Current listings</h4>
                 <span>0</span>
               </div>
-              <div className="flex rounded-md p-2 w-full justify-between">
+              <div className="flex justify-between w-full p-2 rounded-md">
                 <h4>Owned by me</h4>
                 <span>0</span>
               </div>
-              <div className="flex rounded-md p-2 w-full justify-between bg-gray-800">
+              <div className="flex justify-between w-full p-2 bg-gray-800 rounded-md">
                 <h4>Unlisted</h4>
                 <span>0</span>
               </div>
             </div>
-            <div className="flex flex-grow flex-col gap-4">
+            <div className="flex flex-col flex-grow gap-4">
               {sidebar.data?.creator.attributeGroups.map(({ name: group, variants }, index) => (
-                <div className="flex flex-grow flex-col gap-2" key={group}>
+                <div className="flex flex-col flex-grow gap-2" key={group}>
                   <label>{group}</label>
                   <Controller
                     control={control}

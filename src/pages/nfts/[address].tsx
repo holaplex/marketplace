@@ -24,10 +24,8 @@ export async function getServerSideProps (ctx: any) {
         nft(address: $address) {
           name
           address
-          details {
             image
             description
-          }
         }
       }
     `,
@@ -66,16 +64,11 @@ interface Storefront {
   ownerAddress: string
 }
 
-interface NftDetail {
-  description: string
-  image: string
-}
-
-// will become flat in the future, be aware.
 interface NftData {
   name: string
   address: string
-  details: NftDetail
+  description: string
+  image: string
 }
 
 interface NftPageProps extends AppProps {
@@ -93,10 +86,10 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
             <h1 className='text-2xl lg:text-4xl md:text-3xl'>
               <b>{nft.name}</b>
             </h1>
-            <p className='text-lg'>{nft.details.description}</p>
+            <p className='text-lg'>{nft.description}</p>
           </div>
           <img
-            src={nft.details.image}
+            src={nft.image}
             className='block h-auto max-w-full border-none rounded-lg shadow'
           ></img>
         </div>
@@ -105,7 +98,7 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
             <h1 className='text-2xl lg:text-4xl md:text-3xl'>
               <b>{nft.name}</b>
             </h1>
-            <p className='text-lg'>{nft.details.description}</p>
+            <p className='text-lg'>{nft.description}</p>
           </div>
           <div className='grid grid-cols-2 gap-6 mt-8'>
             {/* Throw the NFT attributes list here */}
@@ -124,7 +117,7 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
       <div className='flex justify-center mx-4 mt-10 mb-10'>
         <div className='w-full rounded-lg md:flex lg:flex 2xl:flex xl:flex items-stretch bg-[#282828]'>
           <div className='p-4 md:w-5/12 lg:w-6/12 xl:w-5/12 2xl:w-5/12 grow'>
-            <div className='flex grid-cols-2 gap-2'>
+            <div className='flex grid-cols-2'>
                 
                 <div className='grow'>
                   <p className='text-gray-400'>OWNER</p>

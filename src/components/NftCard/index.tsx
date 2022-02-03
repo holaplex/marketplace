@@ -9,7 +9,8 @@ interface Nft {
   address: string
   uri: string
   creators: string[]
-  details?: NftDetails
+  image: string
+  description: string
 }
 
 type Props = {
@@ -19,11 +20,12 @@ type Props = {
 
 export const NftCard = ({ address, nft }: Props) => (
   <div className="p-4 h-68 overflow-clip hover:bg-gray">
+    {/* change this to a next/link */}
     <a href={'/nfts/' + address}>
       <img
-        src={nft.details?.image as string}
+        src={nft.image as string}
         alt='nft image'
-        className='object-fill rounded-lg pb-2 h-56'
+        className='object-fill h-56 pb-2 rounded-lg'
       />
       <div className="grid grid-cols-2 gap-2">
           <div>
