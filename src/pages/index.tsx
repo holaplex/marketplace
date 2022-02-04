@@ -11,7 +11,6 @@ import Link from 'next/link'
 import Select, { OptionsType, ValueType } from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
 import client from '../client'
-import { NftCard } from '../components/NftCard'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 

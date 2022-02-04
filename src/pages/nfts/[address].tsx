@@ -24,8 +24,12 @@ export async function getServerSideProps (ctx: any) {
         nft(address: $address) {
           name
           address
-            image
-            description
+          image
+          description
+          attributes {
+            traitType
+            value
+          }
         }
       }
     `,
@@ -64,11 +68,17 @@ interface Storefront {
   ownerAddress: string
 }
 
+interface NftAttribute {
+  value: string
+  traitType: string
+}
+
 interface NftData {
   name: string
   address: string
   description: string
   image: string
+  attributes: NftAttribute[]
 }
 
 interface NftPageProps extends AppProps {
@@ -102,10 +112,10 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
           </div>
           <div className='grid grid-cols-2 gap-6 mt-8'>
             {/* Throw the NFT attributes list here */}
-            {[...Array(8)].map(() => (
+            {nft.attributes.map((a) => (
               <div className='px-4 py-4 rounded border border-[#383838]'>
-                <h1 className='text-gray-400 uppercase'>Trait</h1>
-                <p>Attribute</p>
+                <h1 className='text-gray-400 uppercase'>{a.traitType}</h1>
+                <p>{a.value}</p>
               </div>
             ))}
           </div>
