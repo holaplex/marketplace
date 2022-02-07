@@ -17,6 +17,10 @@
   font-family: 'Inter', sans-serif;
 }
 
+html, body {
+  @apply bg-black;
+}
+
 .pubkey {
   font-family: 'JetBrains Mono', monospace;
   word-break: break-all;
@@ -26,6 +30,26 @@
   background: var(--overlay-1);
 }
 
+.icon-sol::before {
+  content: "◎";
+  @apply inline-block text-gray-500;
+}
+
+.prefix-input {
+  @apply relative;
+}
+.prefix-icon-sol:before {
+  content: "◎";
+  @apply inline-block absolute text-lg top-2 left-2 text-gray-500;
+}
+
+.wallet-adapter-button.wallet-adapter-button-trigger, .wallet-adapter-button:not([disabled]):hover {
+  @apply bg-white text-black hover:bg-gray-100 font-normal rounded-full h-14;
+
+}
+.wallet-adapter-button[disabled].wallet-adapter-button-trigger {
+  @apply text-black bg-gray-100;
+}
 
 .select-base-theme .base__control {
   @apply bg-slate-800 border-slate-800 text-white
