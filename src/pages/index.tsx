@@ -164,53 +164,52 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
   }, [watch])
 
   return (
-    <div className='text-white bg-black app-wrapper'>
+    <div className="text-white bg-black">
       <div
-        className='relative flex items-start justify-end p-6 bg-center bg-cover h-60'
+        className="relative flex items-start justify-end p-6 bg-center bg-cover h-60"
         style={{ backgroundImage: `url(${storefront.bannerUrl})` }}
       >
-        <div className='flex items-center justify-end gap-6'>
-          <WalletMultiButton />
-          <WalletDisconnectButton />
+        <div className="flex items-center justify-end gap-6">
+          <WalletMultiButton>Connect</WalletMultiButton>
         </div>
-        <Link href='/'>
+        <Link href="/">
           <a
-            className='absolute h-20 bg-black bg-center bg-cover rounded-full -bottom-10 left-6 aspect-square'
+            className="absolute h-20 bg-black bg-center bg-cover rounded-full -bottom-10 left-6 aspect-square"
             style={{ backgroundImage: `url(${storefront.logoUrl})` }}
           ></a>
         </Link>
       </div>
-      <div className='flex justify-between px-6 mt-20 mb-10'>
-        <div className='flex-col'>
-          <h1 className='text-2xl'>{storefront.title}</h1>
+      <div className="flex justify-between px-6 mt-20 mb-10">
+        <div className="flex-col">
+          <h1 className="text-2xl">{storefront.title}</h1>
           <p>{storefront.description}</p>
         </div>
       </div>
-      <div className='container flex'>
-        <div className='flex-col flex-none px-6 space-y-2 w-72'>
+      <div className="container flex">
+        <div className="flex-col flex-none px-6 space-y-2 w-72">
           <form
             onSubmit={e => {
               e.preventDefault()
             }}
           >
-            <div className='flex flex-col flex-grow mb-6'>
-              <div className='flex justify-between w-full p-2 rounded-md'>
+            <div className="flex flex-col flex-grow mb-6">
+              <div className="flex justify-between w-full p-2 rounded-md">
                 <h4>Current listings</h4>
                 <span>0</span>
               </div>
-              <div className='flex justify-between w-full p-2 rounded-md'>
+              <div className="flex justify-between w-full p-2 rounded-md">
                 <h4>Owned by me</h4>
                 <span>0</span>
               </div>
-              <div className='flex justify-between w-full p-2 bg-gray-800 rounded-md'>
+              <div className="flex justify-between w-full p-2 bg-gray-800 rounded-md">
                 <h4>Unlisted</h4>
                 <span>0</span>
               </div>
             </div>
-            <div className='flex flex-col flex-grow gap-4'>
+            <div className="flex flex-col flex-grow gap-4">
               {sidebar.data?.creator.attributeGroups.map(
                 ({ name: group, variants }, index) => (
-                  <div className='flex flex-col flex-grow gap-2' key={group}>
+                  <div className="flex flex-col flex-grow gap-2" key={group}>
                     <label>{group}</label>
                     <Controller
                       control={control}
@@ -221,8 +220,8 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                           <Select
                             value={value.values}
                             isMulti
-                            className='select-base-theme'
-                            classNamePrefix='base'
+                            className="select-base-theme"
+                            classNamePrefix="base"
                             onChange={(next: ValueType<OptionType>) => {
                               onChange({ traitType: group, values: next })
                             }}
@@ -242,28 +241,30 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
             </div>
           </form>
         </div>
-        <div className='grow'>
+        <div className="grow">
           {nfts.loading ? (
             <>Loading</>
           ) : (
-            <ul className='grid grid-cols-4 gap-6'>
+            <ul className="grid grid-cols-4 gap-6">
               {nfts.data?.nfts.map(n => (
                 <li key={n.address}>
-                  <div className='p-4 h-68 overflow-clip hover:bg-gray'>
-                    <Link href={`/nfts/${n.address}`}>
+                  <div className="p-4 h-68 overflow-clip hover:bg-gray">
+                    <Link
+                      href={`/nfts/${n.address}`}
+                    >
                     <a>
                       <img
                         src={n.image as string}
-                        alt='nft image'
-                        className='object-fill h-56 pb-2 rounded-lg'
+                        alt="nft image"
+                        className="object-fill h-56 pb-2 rounded-lg"
                       />
-                      <div className='grid grid-cols-2 gap-2'>
+                      <div className="grid grid-cols-2 gap-2">
                         <div>
                           <p>{n.name}</p>
                         </div>
-                        <div className=''>
-                          <p className='text-right'>55 {solSymbol}</p>
-                          <p className='text-right'>Buy Now</p>
+                        <div>
+                          <p className="text-right">55 {solSymbol}</p>
+                          <p className="text-right">Buy Now</p>
                         </div>
                       </div>
                     </a>
