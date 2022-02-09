@@ -210,7 +210,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
               {sidebar.data?.creator.attributeGroups.map(
                 ({ name: group, variants }, index) => (
                   <div className="flex flex-col flex-grow gap-2" key={group}>
-                    <label>{group}</label>
+                    <label>{group.charAt(0).toUpperCase() + group.slice(1) }</label>
                     <Controller
                       control={control}
                       name={`attributes.${index}`}
