@@ -185,8 +185,8 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           <p>{storefront.description}</p>
         </div>
       </div>
-      <div className='container flex'>
-        <div className='flex-col flex-none px-6 space-y-2 w-72'>
+      <div className='container flex mr-0'>
+        <div className='flex-row flex-none px-6 space-y-2 w-72'>
           <form
             onSubmit={e => {
               e.preventDefault()
@@ -247,17 +247,17 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           {nfts.loading ? (
             <>Loading</>
           ) : (
-            <ul className='grid content-around w-full grid-cols-4 gap-4'>
+            <div className='grid items-center grid-cols-4 gap-2'>
               {nfts.data?.nfts.map(n => (
-                <li key={n.address} className='min-h-full '>
+                <div key={n.address} className='h-[450px]'>
                   <Link href={`/nfts/${n.address}`}>
-                    <div className='p-4 m-0 transition duration-500 transform overflow-clip hover:scale-105'>
+                    <div className='h-full p-4 m-0 transition duration-500 transform hover:scale-[1.02]' >
                       <a>
-                        <div className='w-full border border-b-0 border-[#262626]'>
+                        <div className='w-full border border-b-0 border-[#262626] h-[250px] overflow-clip'>
                           <img
                             src={n.image as string}
                             alt='nft image'
-                            className='object-cover pb-2 rounded-lg'
+                            className='w-full h-full pb-2 rounded-lg'
                           />
                         </div>
                         <div className='p-4 border border-t-0 border-b-0 border-[#262626]'>
@@ -267,7 +267,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                               {' '}
                               <img
                                 src='https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg'
-                                className='object-contain rounded-sm inline-block h-[20px] mr-2'
+                                className='object-fill rounded-sm inline-block h-[20px] mr-2'
                               />
                             </span>
                             {storefront.title}
@@ -290,9 +290,9 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                       </a>
                     </div>
                   </Link>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>
