@@ -149,6 +149,9 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
   })
 
   const { control, watch } = useForm<NFTFilterForm>({})
+  const [showProfilePopover, setShowProfilePopover] = useState(false)
+  const {connected, publicKey} = useWallet()
+
 
   useEffect(() => {
     const subscription = watch(({ attributes }) => {
@@ -165,7 +168,6 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
     return () => subscription.unsubscribe()
   }, [watch])
 
-  const [showProfilePopover, setShowProfilePopover] = useState(false)
 
   return (
     <div className='text-white bg-black'>
@@ -183,9 +185,10 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                 className='object-contain rounded-full inline-block h-[75px]'
               />
             </div>
-            <Link href='/profile'>
+            
               <div className="text-lg" style={{ textAlign: 'right' }}>
-                View profile{' '}
+              <Link href={'https://holaplex.com/profiles/' + publicKey?.toString()}>View profile</Link>
+              <Link href={'https://holaplex.com/profiles/' + publicKey?.toString()}>
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
                   width='24'
@@ -200,17 +203,18 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                 >
                   <polyline points='9 18 15 12 9 6'></polyline>
                 </svg>
+                </Link>
               </div>
-            </Link>
+            
           </div>
           <div className='grid grid-cols-2 p-2 '>
             <div className='text-lg text-bold'>10.34 SOL</div>
-            <div className='pt-[6px] text-xs' style={{ textAlign: 'right' }}>
-              🟢 1234...4567
+            <div className='pt-[6px] text-xs font-mono tracking-wider' style={{ textAlign: 'right' }}>
+              <div className='w-[8px] h-[8px] bg-green-500 rounded-lg inline-block'></div>{" " + publicKey?.toString().substring(0,4) + "..." + publicKey?.toString().slice(-4)}
             </div>
           </div>
           <div className='py-3'>
-            <WalletDisconnectButton className='w-full'>
+            <WalletDisconnectButton className='w-full' onClick={()=>(setShowProfilePopover(!showProfilePopover))}>
               Disconnect
             </WalletDisconnectButton>
           </div>
@@ -221,18 +225,21 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
         style={{ backgroundImage: `url(${storefront.bannerUrl})` }}
       >
         <div className='flex items-center justify-end gap-6'>
+          {!connected &&
           <WalletMultiButton>Connect</WalletMultiButton>
+          }
+          {connected &&
+
+         <img
+         src='https://www.holaplex.com/_next/image?url=%2Fimages%2Fgradients%2Fgradient-3.png&w=256&q=75'
+         className='object-contain rounded-full inline-block h-[75px] border border-white'
+         onClick={() => {
+          setShowProfilePopover(!showProfilePopover)
+        }}
+       />
+          }
         </div>
-        <div className='flex items-center justify-end gap-6'>
-          <button
-            className='h-24 text-black border border-white rounded-full'
-            onClick={() => {
-              setShowProfilePopover(!showProfilePopover)
-            }}
-          >
-            PRofile
-          </button>
-        </div>
+
         <Link href='/'>
           <a
             className='absolute h-20 bg-black bg-center bg-cover rounded-full -bottom-10 left-6 aspect-square'
