@@ -5,6 +5,7 @@ import {
   WalletDisconnectButton,
   WalletMultiButton,
 } from '@solana/wallet-adapter-react-ui'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { isNil, modify, map, filter, pipe, prop, isEmpty, not } from 'ramda'
 import { AppProps } from 'next/app'
 import Link from 'next/link'
@@ -170,45 +171,48 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
     <div className='text-white bg-black'>
       {showProfilePopover && (
         <div
-          className='absolute z-10 top-14 right-14 bg-[#282828] h-[240px] w-[277px] rounded-lg p-4 flex flex-col'
+          className='absolute z-10 top-20 right-14 bg-[#242424] h-[240px] w-[325px] rounded-lg p-4 flex flex-col '
           onBlur={() => {
             setShowProfilePopover(false)
           }}
         >
-          <div className='p-2'>
-            <img
-              src='https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg'
-              className='object-contain rounded-full inline-block h-[75px]'
-            />
-            <span className='ml-4'>
-              <Link href='#'>
-                <span>View Profile{' '}
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    width='24'
-                    height='24'
-                    viewBox='0 0 24 24'
-                    fill='none'
-                    stroke='currentColor'
-                    stroke-width='2'
-                    stroke-linecap='round'
-                    stroke-linejoin='round'
-                    className='inline-block'
-                  >
-                    <polyline points='9 18 15 12 9 6'></polyline>
-                  </svg>
-                </span>
-              </Link>
-            </span>
+          <div className='grid items-center grid-cols-2 p-2'>
+            <div>
+              <img
+                src='https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg'
+                className='object-contain rounded-full inline-block h-[75px]'
+              />
+            </div>
+            <Link href='/profile'>
+              <div className="text-lg" style={{ textAlign: 'right' }}>
+                View profile{' '}
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  width='24'
+                  height='24'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  strokeWidth='2'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  className='inline-block'
+                >
+                  <polyline points='9 18 15 12 9 6'></polyline>
+                </svg>
+              </div>
+            </Link>
           </div>
-          <div className='grid grid-cols-2 p-2'>
+          <div className='grid grid-cols-2 p-2 '>
             <div className='text-lg text-bold'>10.34 SOL</div>
-            <div className='pt-[6px] text-xs'>🟢 1234...4567</div>
+            <div className='pt-[6px] text-xs' style={{ textAlign: 'right' }}>
+              🟢 1234...4567
+            </div>
           </div>
           <div className='py-3'>
-            <button className='w-full h-12 text-sm text-white transition-colors duration-150 bg-black rounded-full lg:text-xl md:text-base focus:shadow-outline hover:bg-black'>
+            <WalletDisconnectButton className='w-full'>
               Disconnect
-            </button>
+            </WalletDisconnectButton>
           </div>
         </div>
       )}
