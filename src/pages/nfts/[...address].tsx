@@ -1,4 +1,4 @@
-import { NextPage } from "next"
+import { NextPage, NextPageContext } from "next"
 import { AppProps } from 'next/app'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
@@ -15,7 +15,13 @@ import SellNft from '../../components/SellNft';
 const solSymbol = '◎'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
-export async function getServerSideProps(ctx: any) {
+interface NextPageContextWithParams extends NextPageContext {
+  params: any;
+}
+
+export async function getServerSideProps({ req, query }: NextPageContext) {
+  const subdomain = req?.headers['x-holaplex-subdomain'];
+  
   const {
     data: { storefront, nft },
   } = await client.query<GetNftPage>({
@@ -44,8 +50,8 @@ export async function getServerSideProps(ctx: any) {
       }
     `,
     variables: {
-      subdomain: SUBDOMAIN,
-      address: ctx.params.address[0],
+      subdomain: (subdomain || SUBDOMAIN),
+      address: (query?.address || [])[0],
     },
   })
 

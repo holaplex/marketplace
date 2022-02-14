@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import next, { NextPage } from 'next'
+import next, { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
 import {
   WalletDisconnectButton,
@@ -57,7 +57,9 @@ const GET_SIDEBAR = gql`
   }
 `
 
-export async function getServerSideProps () {
+export async function getServerSideProps({ req }: NextPageContext) {
+  const subdomain = req?.headers['x-holaplex-subdomain'];
+
   const {
     data: { storefront },
   } = await client.query<GetStorefront>({
@@ -74,7 +76,7 @@ export async function getServerSideProps () {
       }
     `,
     variables: {
-      subdomain: SUBDOMAIN,
+      subdomain: (subdomain || SUBDOMAIN),
     },
   })
 
@@ -257,20 +259,20 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           </form>
         </div>
       )}
-      
+
       <div className='w-full relative'>
         <div className="absolute right-8 top-8">
           <WalletMultiButton>Connect</WalletMultiButton>
         </div>
 
-        <img src={storefront.bannerUrl} alt={storefront.title} className='w-full h-80 object-cover'/>
+        <img src={storefront.bannerUrl} alt={storefront.title} className='w-full h-80 object-cover' />
       </div>
 
       <div className='w-full max-w-[1800px] px-8'>
-        
+
         <div className='flex flex-col justify-between mt-20 mb-20 w-full relative'>
-          <img 
-            src={storefront.logoUrl} 
+          <img
+            src={storefront.logoUrl}
             alt={storefront.title}
             className='w-28 h-28 rounded-full border-4 border-gray-900 absolute -top-32'
           />
@@ -285,7 +287,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           >
             Filter
           </button>
-          
+
           <div className='flex-row flex-none hidden space-y-2 w-64 mr-10 sm:block'>
             <form
               onSubmit={e => {
@@ -360,7 +362,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
               <>Loading</>
             ) : (
               <div className='container md:mx-auto lg:mx-auto'>
-                {nfts.data?.nfts.length === 0 && 
+                {nfts.data?.nfts.length === 0 &&
                   <div className='w-full p-10 border border-gray-800 rounded-lg text-center'>
                     <h3>No NFTs found</h3>
                     <p className='mt-2 text-gray-500'>No NFTs found matching these criteria.</p>
@@ -368,44 +370,46 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                 }
                 <div className='grid grid-cols-1 gap-8 2xl:gap-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4'>
                   {nfts.data?.nfts.map(n => (
-                    <Link href={'/nfts/' + n.address}>
-                      <article className='overflow-hidden rounded-lg transition duration-100 transform cursor-pointer bg-gray-900 shadow-card	hover:scale-[1.02]'>
-                        <img
-                          alt='Placeholder'
-                          className='block w-full aspect-square'
-                          src={n.image as string}
-                        />
-                        <header className='p-4'>
-                          <p className='lg:text-base mb-2 text-sm truncate ...'>
-                            {n.name}
-                          </p>
-                          <p className='text-sm text-[#a8a8a8]'>
-                            <span>
-                              {' '}
-                              <img
-                                src={storefront.logoUrl}
-                                className='object-fill rounded-full inline-block h-[16px] mr-1'
-                              />
-                            </span>
-                            {storefront.title}
-                          </p>
-                        </header>
+                    <Link passHref href={`/nfts/${n.address}`} key={n.address}>
+                      <a>
+                        <article className='overflow-hidden rounded-lg transition duration-100 transform cursor-pointer bg-gray-900 shadow-card	hover:scale-[1.02]'>
+                          <img
+                            alt='Placeholder'
+                            className='block w-full aspect-square'
+                            src={n.image as string}
+                          />
+                          <header className='p-4'>
+                            <p className='lg:text-base mb-2 text-sm truncate ...'>
+                              {n.name}
+                            </p>
+                            <p className='text-sm text-[#a8a8a8]'>
+                              <span>
+                                {' '}
+                                <img
+                                  src={storefront.logoUrl}
+                                  className='object-fill rounded-full inline-block h-[16px] mr-1'
+                                />
+                              </span>
+                              {storefront.title}
+                            </p>
+                          </header>
 
-                        <footer className='grid grid-cols-2 gap-2 p-4 bg-[#262626] rounded-t-none rounded-b-lg'>
-                          <div>
-                            <p className='text-[#a8a8a8] text-sm'>
-                              Current Bid
-                            </p>
-                            <p className='text-sm'>{solSymbol} 33</p>
-                          </div>
-                          <div>
-                            <p className='text-right text-[#a8a8a8] text-sm'>
-                              Ends In
-                            </p>
-                            <p className='text-sm text-right '>19h 48m 53s</p>
-                          </div>
-                        </footer>
-                      </article>
+                          <footer className='grid grid-cols-2 gap-2 p-4 bg-[#262626] rounded-t-none rounded-b-lg'>
+                            <div>
+                              <p className='text-[#a8a8a8] text-sm'>
+                                Current Bid
+                              </p>
+                              <p className='text-sm'>{solSymbol} 33</p>
+                            </div>
+                            <div>
+                              <p className='text-right text-[#a8a8a8] text-sm'>
+                                Ends In
+                              </p>
+                              <p className='text-sm text-right '>19h 48m 53s</p>
+                            </div>
+                          </footer>
+                        </article>
+                      </a>
                     </Link>
                   ))}
                 </div>
