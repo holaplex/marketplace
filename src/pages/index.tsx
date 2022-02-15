@@ -269,7 +269,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                               <span>
                                 {' '}
                                 <img
-                                  src='https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg'
+                                  src={storefront.logoUrl}
                                   className='object-fill rounded-sm inline-block h-[20px] mr-2'
                                 />
                               </span>
