@@ -11,7 +11,7 @@ import Link from 'next/link'
 import Select, { OptionsType, ValueType } from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
 import client from '../client'
-import {useState} from 'react'
+import { useState } from 'react'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -164,71 +164,99 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
     return () => subscription.unsubscribe()
   }, [watch])
 
-
-  const [showXsFilter, setShowXsFilter] = useState(false);
-
+  const [showXsFilter, setShowXsFilter] = useState(false)
 
   return (
     <div className='text-white bg-black'>
-      { showXsFilter && <div className="z-20 fixed h-full bg-black w-full px-4 py-4 pt-24">
-          <button className="fixed z-30 right-[5%] top-[5%] bg-white text-black rounded-full w-6" onClick={()=>(setShowXsFilter(false))}>x</button>
-          <form
-              onSubmit={e => {
-                e.preventDefault()
-              }}
+      {showXsFilter && (
+        <div className='z-20 fixed h-full bg-black w-full px-4 py-4 pt-24'>
+          <button
+            className='fixed z-30 right-[10%] top-[4%] bg-black text-white rounded-full w-6'
+            onClick={() => setShowXsFilter(false)}
+          >
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              width='50'
+              height='50'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='0.5'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              className='feather feather-x-circle'
             >
-              <div className='flex flex-col flex-grow mb-6'>
-                <div className='flex justify-between w-full p-2 rounded-md'>
-                  <h4>Current listings</h4>
-                  <span>0</span>
-                </div>
-                <div className='flex justify-between w-full p-2 rounded-md'>
-                  <h4>Owned by me</h4>
-                  <span>0</span>
-                </div>
-                <div className='flex justify-between w-full p-2 bg-gray-800 rounded-md'>
-                  <h4>Unlisted</h4>
-                  <span>0</span>
-                </div>
+              <circle cx='12' cy='12' r='10'></circle>
+              <line x1='15' y1='9' x2='9' y2='15'></line>
+              <line x1='9' y1='9' x2='15' y2='15'></line>
+            </svg>
+          </button>
+          <form
+            onSubmit={e => {
+              e.preventDefault()
+            }}
+          >
+            <div className='flex flex-col flex-grow mb-6'>
+              <div className='flex justify-between w-full p-2 rounded-md'>
+                <h4>Current listings</h4>
+                <span>0</span>
               </div>
-              <div className='flex flex-col flex-grow gap-4'>
-                {sidebar.data?.creator.attributeGroups.map(
-                  ({ name: group, variants }, index) => (
-                    <div className='flex flex-col flex-grow gap-2' key={group}>
-                      <label>
-                        {group.charAt(0).toUpperCase() + group.slice(1)}
-                      </label>
-                      
-                      <Controller
-                        control={control}
-                        name={`attributes.${index}`}
-                        defaultValue={{ traitType: group, values: [] }}
-                        render={({ field: { onChange, value } }) => {
-                          return (
-                            <Select
-                              value={value.values}
-                              isMulti
-                              className='select-base-theme'
-                              classNamePrefix='base'
-                              onChange={(next: ValueType<OptionType>) => {
-                                onChange({ traitType: group, values: next })
-                              }}
-                              options={
-                                variants.map(({ name, count }) => ({
-                                  value: name,
-                                  label: `${name} ${count}`,
-                                })) as OptionsType<OptionType>
-                              }
-                            />
-                          )
-                        }}
-                      />
-                    </div>
-                  )
-                )}
+              <div className='flex justify-between w-full p-2 rounded-md'>
+                <h4>Owned by me</h4>
+                <span>0</span>
               </div>
-            </form>
-      </div> }
+              <div className='flex justify-between w-full p-2 bg-gray-800 rounded-md'>
+                <h4>Unlisted</h4>
+                <span>0</span>
+              </div>
+            </div>
+            <div className='flex flex-col flex-grow gap-4'>
+              {sidebar.data?.creator.attributeGroups.map(
+                ({ name: group, variants }, index) => (
+                  <div className='flex flex-col flex-grow gap-2' key={group}>
+                    <label>
+                      {group.charAt(0).toUpperCase() + group.slice(1)}
+                    </label>
+                    <Controller
+                      control={control}
+                      name={`attributes.${index}`}
+                      defaultValue={{ traitType: group, values: [] }}
+                      render={({ field: { onChange, value } }) => {
+                        return (
+                          <Select
+                            value={value.values}
+                            isMulti
+                            className='select-base-theme'
+                            classNamePrefix='base'
+                            onChange={(next: ValueType<OptionType>) => {
+                              onChange({ traitType: group, values: next })
+                            }}
+                            formatOptionLabel={(elem: ValueType<OptionType>) =>
+                              elem.label
+                                .split(' ')
+                                .slice(0, -1)
+                                .join(' ') +
+                              ' (' +
+                              elem.label.split(' ').at(-1) +
+                              ')'
+                            }
+                            options={
+                              variants.map(({ name, count }) => ({
+                                value: name,
+                                label: `${name} ${count}`,
+                              })) as OptionsType<OptionType>
+                            }
+                          />
+                        )
+                      }}
+                    />
+                  </div>
+                )
+              )}
+            </div>
+          </form>
+        </div>
+      )}
       <div
         className='relative flex items-start justify-end p-6 bg-center bg-cover h-60'
         style={{ backgroundImage: `url(${storefront.bannerUrl})` }}
@@ -251,7 +279,31 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
       </div>
       <div className='w-full pr-4 md:pr-8 lg:pr-8'>
         <div className='flex'>
-        <button className="fixed text-black rounded-full h-10 left-[25%] w-[50%] z-10 block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden bottom-4 bg-white" onClick={()=>(setShowXsFilter(true))}>Filter</button>
+          <button
+            className='fixed rounded-full h-10 right-[0%] z-10 block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden bottom-5 bg-transparent'
+            onClick={() => setShowXsFilter(true)}
+          >
+            <svg
+              width='64'
+              height='64'
+              viewBox='0 0 30 30'
+              xmlns='http://www.w3.org/2000/svg'
+            >
+              <g
+                fill='none'
+                fillRule='evenodd'
+                stroke='currentColor'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={0.6}
+              >
+                <circle cx='10.5' cy='10.5' r='8' />
+                <path d='m6.5 8.5h8' />
+                <path d='m8.5 10.5h4' />
+                <path d='m9.5 12.5h2' />
+              </g>
+            </svg>
+          </button>
           <div className='flex-row flex-none px-6 space-y-2 w-72 hidden sm:block md:block lg:block xl:block 2xl:block'>
             <form
               onSubmit={e => {
@@ -279,7 +331,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                       <label>
                         {group.charAt(0).toUpperCase() + group.slice(1)}
                       </label>
-                      
+
                       <Controller
                         control={control}
                         name={`attributes.${index}`}
@@ -294,6 +346,17 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                               onChange={(next: ValueType<OptionType>) => {
                                 onChange({ traitType: group, values: next })
                               }}
+                              formatOptionLabel={(
+                                elem: ValueType<OptionType>
+                              ) =>
+                                elem.label
+                                  .split(' ')
+                                  .slice(0, -1)
+                                  .join(' ') +
+                                ' (' +
+                                elem.label.split(' ').at(-1) +
+                                ')'
+                              }
                               options={
                                 variants.map(({ name, count }) => ({
                                   value: name,
@@ -321,11 +384,11 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                       <Link href={'/profiles/' + storefront.ownerAddress}>
                         <article className='overflow-hidden rounded-lg transition duration-300 transform hover:scale-[1.02]'>
                           <div className='h-[300px] overflow-hidden'>
-                          <img
-                            alt='Placeholder'
-                            className='block h-full w-full'
-                            src={n.image as string}
-                          />
+                            <img
+                              alt='Placeholder'
+                              className='block h-full w-full'
+                              src={n.image as string}
+                            />
                           </div>
                           <header className='p-4 border border-t-0 border-b-0 border-[#262626]'>
                             <p className='lg:text-base mb-2 text-sm truncate ...'>
@@ -348,17 +411,13 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                               <p className='text-[#a8a8a8] text-sm'>
                                 Current Bid
                               </p>
-                              <p className='text-sm'>
-                                {solSymbol} 33
-                              </p>
+                              <p className='text-sm'>{solSymbol} 33</p>
                             </div>
                             <div>
                               <p className='text-right text-[#a8a8a8] text-sm'>
                                 Ends In
                               </p>
-                              <p className='text-right text-sm '>
-                                19h 48m 53s
-                              </p>
+                              <p className='text-right text-sm '>19h 48m 53s</p>
                             </div>
                           </footer>
                         </article>
