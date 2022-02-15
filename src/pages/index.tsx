@@ -169,7 +169,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
   return (
     <div className='text-white bg-black'>
       {showXsFilter && (
-        <div className='z-20 fixed h-full bg-black w-full px-4 py-4 pt-24'>
+        <div className='fixed z-20 w-full h-full px-4 py-4 pt-24 bg-black'>
           <button
             className='fixed z-30 right-[7%] top-[3%] bg-black text-white rounded-full w-6'
             onClick={() => setShowXsFilter(false)}
@@ -285,7 +285,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           >
             Filter
           </button>
-          <div className='flex-row flex-none px-6 space-y-2 w-72 hidden sm:block md:block lg:block xl:block 2xl:block'>
+          <div className='flex-row flex-none hidden px-6 space-y-2 w-72 sm:block md:block lg:block xl:block 2xl:block'>
             <form
               onSubmit={e => {
                 e.preventDefault()
@@ -354,20 +354,20 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
               </div>
             </form>
           </div>
-          <div className='grow ml-4'>
+          <div className='ml-4 grow'>
             {nfts.loading ? (
               <>Loading</>
             ) : (
               <div className='container md:mx-auto lg:mx-auto'>
                 <div className='flex flex-wrap -mx-1 lg:-mx-4'>
                   {nfts.data?.nfts.map(n => (
-                    <div className='w-full my-1 px-1 md:w-1/2 md:pb-2 md:px-2 lg:mb-4 lg:px-2 lg:w-1/3 xl:w-1/4 2xl:w-1/5'>
-                      <Link href={'/profiles/' + storefront.ownerAddress}>
+                    <div className='w-full px-1 my-1 md:w-1/2 md:pb-2 md:px-2 lg:mb-4 lg:px-2 lg:w-1/3 xl:w-1/4 2xl:w-1/5'>
+                      <Link href={'/nfts/' + n.address}>
                         <article className='overflow-hidden rounded-lg transition duration-300 transform hover:scale-[1.02]'>
                           <div className='h-[300px] overflow-hidden'>
                             <img
                               alt='Placeholder'
-                              className='block h-full w-full'
+                              className='block w-full h-full'
                               src={n.image as string}
                             />
                           </div>
@@ -398,7 +398,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                               <p className='text-right text-[#a8a8a8] text-sm'>
                                 Ends In
                               </p>
-                              <p className='text-right text-sm '>19h 48m 53s</p>
+                              <p className='text-sm text-right '>19h 48m 53s</p>
                             </div>
                           </footer>
                         </article>
