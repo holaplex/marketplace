@@ -171,7 +171,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
       {showXsFilter && (
         <div className='z-20 fixed h-full bg-black w-full px-4 py-4 pt-24'>
           <button
-            className='fixed z-30 right-[10%] top-[4%] bg-black text-white rounded-full w-6'
+            className='fixed z-30 right-[7%] top-[3%] bg-black text-white rounded-full w-6'
             onClick={() => setShowXsFilter(false)}
           >
             <svg
@@ -277,32 +277,13 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           <p>{storefront.description}</p>
         </div>
       </div>
-      <div className='w-full pr-4 md:pr-8 lg:pr-8'>
+      <div className='w-full pr-4 md:pr-8 lg:pr-8  xs:mb-[75px]'>
         <div className='flex'>
           <button
-            className='fixed rounded-full h-10 right-[0%] z-10 block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden bottom-5 bg-transparent'
+            className='fixed rounded-full text-black bg-white h-10 right-[25%] w-[50%] z-10 block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden bottom-5'
             onClick={() => setShowXsFilter(true)}
           >
-            <svg
-              width='64'
-              height='64'
-              viewBox='0 0 30 30'
-              xmlns='http://www.w3.org/2000/svg'
-            >
-              <g
-                fill='none'
-                fillRule='evenodd'
-                stroke='currentColor'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={0.6}
-              >
-                <circle cx='10.5' cy='10.5' r='8' />
-                <path d='m6.5 8.5h8' />
-                <path d='m8.5 10.5h4' />
-                <path d='m9.5 12.5h2' />
-              </g>
-            </svg>
+            Filter
           </button>
           <div className='flex-row flex-none px-6 space-y-2 w-72 hidden sm:block md:block lg:block xl:block 2xl:block'>
             <form
