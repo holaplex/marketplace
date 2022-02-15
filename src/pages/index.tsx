@@ -187,7 +187,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
       </div>
       <div className='w-full pr-4'>
         <div className='flex'>
-          <div className='flex-row flex-none px-6 space-y-2 w-72'>
+          <div className='flex-row flex-none px-6 space-y-2 w-72 hidden sm:block md:block lg:block xl:block 2xl:block'>
             <form
               onSubmit={e => {
                 e.preventDefault()
@@ -244,14 +244,14 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
               </div>
             </form>
           </div>
-          <div className='grow'>
+          <div className='grow ml-4'>
             {nfts.loading ? (
               <>Loading</>
             ) : (
-              <div className='container mx-auto px-4 md:px-0'>
+              <div className='container md:mx-auto lg:mx-auto'>
                 <div className='flex flex-wrap -mx-1 lg:-mx-4'>
                   {nfts.data?.nfts.map(n => (
-                    <div className='my-1 px-1 md:w-1/2 md:pb-2 md:px-2 lg:mb-4 lg:px-4 lg:w-1/3 xl:w-1/4'>
+                    <div className='w-full my-1 px-1 md:w-1/2 md:pb-2 md:px-2 lg:mb-4 lg:px-2 lg:w-1/3 xl:w-1/4 2xl:w-1/5'>
                       <Link href={'/profiles/' + storefront.ownerAddress}>
                         <article className='overflow-hidden rounded-lg transition duration-300 transform hover:scale-[1.02]'>
                           <div className='h-[300px] overflow-hidden'>
