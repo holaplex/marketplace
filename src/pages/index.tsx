@@ -11,6 +11,7 @@ import Link from 'next/link'
 import Select, { OptionsType, ValueType } from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
 import client from '../client'
+import { useState } from 'react'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -163,54 +164,59 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
     return () => subscription.unsubscribe()
   }, [watch])
 
+  const [showXsFilter, setShowXsFilter] = useState(false)
+
   return (
-    <div className="text-white bg-black">
-      <div
-        className="relative flex items-start justify-end p-6 bg-center bg-cover h-60"
-        style={{ backgroundImage: `url(${storefront.bannerUrl})` }}
-      >
-        <div className="flex items-center justify-end gap-6">
-          <WalletMultiButton>Connect</WalletMultiButton>
-        </div>
-        <Link href="/">
-          <a
-            className="absolute h-20 bg-black bg-center bg-cover rounded-full -bottom-10 left-6 aspect-square"
-            style={{ backgroundImage: `url(${storefront.logoUrl})` }}
-          ></a>
-        </Link>
-      </div>
-      <div className="flex justify-between px-6 mt-20 mb-10">
-        <div className="flex-col">
-          <h1 className="text-2xl">{storefront.title}</h1>
-          <p>{storefront.description}</p>
-        </div>
-      </div>
-      <div className="container flex">
-        <div className="flex-col flex-none px-6 space-y-2 w-72">
+    <div className='text-white bg-black'>
+      {showXsFilter && (
+        <div className='z-20 fixed h-full bg-black w-full px-4 py-4 pt-24'>
+          <button
+            className='fixed z-30 right-[7%] top-[3%] bg-black text-white rounded-full w-6'
+            onClick={() => setShowXsFilter(false)}
+          >
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              width='50'
+              height='50'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='0.5'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              className='feather feather-x-circle'
+            >
+              <circle cx='12' cy='12' r='10'></circle>
+              <line x1='15' y1='9' x2='9' y2='15'></line>
+              <line x1='9' y1='9' x2='15' y2='15'></line>
+            </svg>
+          </button>
           <form
             onSubmit={e => {
               e.preventDefault()
             }}
           >
-            <div className="flex flex-col flex-grow mb-6">
-              <div className="flex justify-between w-full p-2 rounded-md">
+            <div className='flex flex-col flex-grow mb-6'>
+              <div className='flex justify-between w-full p-2 rounded-md'>
                 <h4>Current listings</h4>
                 <span>0</span>
               </div>
-              <div className="flex justify-between w-full p-2 rounded-md">
+              <div className='flex justify-between w-full p-2 rounded-md'>
                 <h4>Owned by me</h4>
                 <span>0</span>
               </div>
-              <div className="flex justify-between w-full p-2 bg-gray-800 rounded-md">
+              <div className='flex justify-between w-full p-2 bg-gray-800 rounded-md'>
                 <h4>Unlisted</h4>
                 <span>0</span>
               </div>
             </div>
-            <div className="flex flex-col flex-grow gap-4">
+            <div className='flex flex-col flex-grow gap-4'>
               {sidebar.data?.creator.attributeGroups.map(
                 ({ name: group, variants }, index) => (
-                  <div className="flex flex-col flex-grow gap-2" key={group}>
-                    <label>{group.charAt(0).toUpperCase() + group.slice(1) }</label>
+                  <div className='flex flex-col flex-grow gap-2' key={group}>
+                    <label>
+                      {group.charAt(0).toUpperCase() + group.slice(1)}
+                    </label>
                     <Controller
                       control={control}
                       name={`attributes.${index}`}
@@ -220,11 +226,20 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                           <Select
                             value={value.values}
                             isMulti
-                            className="select-base-theme"
-                            classNamePrefix="base"
+                            className='select-base-theme'
+                            classNamePrefix='base'
                             onChange={(next: ValueType<OptionType>) => {
                               onChange({ traitType: group, values: next })
                             }}
+                            formatOptionLabel={(elem: ValueType<OptionType>) =>
+                              elem.label
+                                .split(' ')
+                                .slice(0, -1)
+                                .join(' ') +
+                              ' (' +
+                              elem.label.split(' ').at(-1) +
+                              ')'
+                            }
                             options={
                               variants.map(({ name, count }) => ({
                                 value: name,
@@ -241,39 +256,159 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
             </div>
           </form>
         </div>
-        <div className="grow">
-          {nfts.loading ? (
-            <>Loading</>
-          ) : (
-            <ul className="grid grid-cols-4 gap-6">
-              {nfts.data?.nfts.map(n => (
-                <li key={n.address}>
-                  <div className="p-4 h-68 overflow-clip hover:bg-gray">
-                    <Link
-                      href={`/nfts/${n.address}`}
-                    >
-                    <a>
-                      <img
-                        src={n.image as string}
-                        alt="nft image"
-                        className="object-fill h-56 pb-2 rounded-lg"
+      )}
+      <div
+        className='relative flex items-start justify-end p-6 bg-center bg-cover h-60'
+        style={{ backgroundImage: `url(${storefront.bannerUrl})` }}
+      >
+        <div className='flex items-center justify-end gap-6'>
+          <WalletMultiButton>Connect</WalletMultiButton>
+        </div>
+        <Link href='/'>
+          <a
+            className='absolute h-20 bg-black bg-center bg-cover rounded-full -bottom-10 left-6 aspect-square'
+            style={{ backgroundImage: `url(${storefront.logoUrl})` }}
+          ></a>
+        </Link>
+      </div>
+      <div className='flex justify-between px-6 mt-20 mb-10'>
+        <div className='flex-col'>
+          <h1 className='text-2xl'>{storefront.title}</h1>
+          <p>{storefront.description}</p>
+        </div>
+      </div>
+      <div className='w-full pr-4 md:pr-8 lg:pr-8  xs:mb-[75px]'>
+        <div className='flex'>
+          <button
+            className='fixed rounded-full text-black bg-white h-10 right-[25%] w-[50%] z-10 block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden bottom-5'
+            onClick={() => setShowXsFilter(true)}
+          >
+            Filter
+          </button>
+          <div className='flex-row flex-none px-6 space-y-2 w-72 hidden sm:block md:block lg:block xl:block 2xl:block'>
+            <form
+              onSubmit={e => {
+                e.preventDefault()
+              }}
+            >
+              <div className='flex flex-col flex-grow mb-6'>
+                <div className='flex justify-between w-full p-2 rounded-md'>
+                  <h4>Current listings</h4>
+                  <span>0</span>
+                </div>
+                <div className='flex justify-between w-full p-2 rounded-md'>
+                  <h4>Owned by me</h4>
+                  <span>0</span>
+                </div>
+                <div className='flex justify-between w-full p-2 bg-gray-800 rounded-md'>
+                  <h4>Unlisted</h4>
+                  <span>0</span>
+                </div>
+              </div>
+              <div className='flex flex-col flex-grow gap-4'>
+                {sidebar.data?.creator.attributeGroups.map(
+                  ({ name: group, variants }, index) => (
+                    <div className='flex flex-col flex-grow gap-2' key={group}>
+                      <label>
+                        {group.charAt(0).toUpperCase() + group.slice(1)}
+                      </label>
+
+                      <Controller
+                        control={control}
+                        name={`attributes.${index}`}
+                        defaultValue={{ traitType: group, values: [] }}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <Select
+                              value={value.values}
+                              isMulti
+                              className='select-base-theme'
+                              classNamePrefix='base'
+                              onChange={(next: ValueType<OptionType>) => {
+                                onChange({ traitType: group, values: next })
+                              }}
+                              formatOptionLabel={(
+                                elem: ValueType<OptionType>
+                              ) =>
+                                elem.label
+                                  .split(' ')
+                                  .slice(0, -1)
+                                  .join(' ') +
+                                ' (' +
+                                elem.label.split(' ').at(-1) +
+                                ')'
+                              }
+                              options={
+                                variants.map(({ name, count }) => ({
+                                  value: name,
+                                  label: `${name} ${count}`,
+                                })) as OptionsType<OptionType>
+                              }
+                            />
+                          )
+                        }}
                       />
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <p>{n.name}</p>
-                        </div>
-                        <div>
-                          <p className="text-right">55 {solSymbol}</p>
-                          <p className="text-right">Buy Now</p>
-                        </div>
-                      </div>
-                    </a>
-                    </Link>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                    </div>
+                  )
+                )}
+              </div>
+            </form>
+          </div>
+          <div className='grow ml-4'>
+            {nfts.loading ? (
+              <>Loading</>
+            ) : (
+              <div className='container md:mx-auto lg:mx-auto'>
+                <div className='flex flex-wrap -mx-1 lg:-mx-4'>
+                  {nfts.data?.nfts.map(n => (
+                    <div className='w-full my-1 px-1 md:w-1/2 md:pb-2 md:px-2 lg:mb-4 lg:px-2 lg:w-1/3 xl:w-1/4 2xl:w-1/5'>
+                      <Link href={'/profiles/' + storefront.ownerAddress}>
+                        <article className='overflow-hidden rounded-lg transition duration-300 transform hover:scale-[1.02]'>
+                          <div className='h-[300px] overflow-hidden'>
+                            <img
+                              alt='Placeholder'
+                              className='block h-full w-full'
+                              src={n.image as string}
+                            />
+                          </div>
+                          <header className='p-4 border border-t-0 border-b-0 border-[#262626]'>
+                            <p className='lg:text-base mb-2 text-sm truncate ...'>
+                              {n.name}
+                            </p>
+                            <p className='text-sm text-[#a8a8a8]'>
+                              <span>
+                                {' '}
+                                <img
+                                  src={storefront.logoUrl}
+                                  className='object-fill rounded-sm inline-block h-[20px] mr-2'
+                                />
+                              </span>
+                              {storefront.title}
+                            </p>
+                          </header>
+
+                          <footer className='grid grid-cols-2 gap-2 p-4 bg-[#262626] rounded-t-none rounded-b-lg'>
+                            <div>
+                              <p className='text-[#a8a8a8] text-sm'>
+                                Current Bid
+                              </p>
+                              <p className='text-sm'>{solSymbol} 33</p>
+                            </div>
+                            <div>
+                              <p className='text-right text-[#a8a8a8] text-sm'>
+                                Ends In
+                              </p>
+                              <p className='text-right text-sm '>19h 48m 53s</p>
+                            </div>
+                          </footer>
+                        </article>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
