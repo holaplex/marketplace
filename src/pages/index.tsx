@@ -185,8 +185,9 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           <p>{storefront.description}</p>
         </div>
       </div>
-      <div className='w-full pr-4'>
+      <div className='w-full pr-4 md:pr-8 lg:pr-8'>
         <div className='flex'>
+        <button className="fixed text-black rounded-full h-10 left-[25%] w-[50%] z-10 block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden bottom-4 bg-white">Filter</button>
           <div className='flex-row flex-none px-6 space-y-2 w-72 hidden sm:block md:block lg:block xl:block 2xl:block'>
             <form
               onSubmit={e => {
@@ -214,6 +215,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                       <label>
                         {group.charAt(0).toUpperCase() + group.slice(1)}
                       </label>
+                      
                       <Controller
                         control={control}
                         name={`attributes.${index}`}
