@@ -185,115 +185,124 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           <p>{storefront.description}</p>
         </div>
       </div>
-      <div className='container flex mr-0'>
-        <div className='flex-row flex-none px-6 space-y-2 w-72'>
-          <form
-            onSubmit={e => {
-              e.preventDefault()
-            }}
-          >
-            <div className='flex flex-col flex-grow mb-6'>
-              <div className='flex justify-between w-full p-2 rounded-md'>
-                <h4>Current listings</h4>
-                <span>0</span>
+      <div className='w-full pr-4'>
+        <div className='flex'>
+          <div className='flex-row flex-none px-6 space-y-2 w-72'>
+            <form
+              onSubmit={e => {
+                e.preventDefault()
+              }}
+            >
+              <div className='flex flex-col flex-grow mb-6'>
+                <div className='flex justify-between w-full p-2 rounded-md'>
+                  <h4>Current listings</h4>
+                  <span>0</span>
+                </div>
+                <div className='flex justify-between w-full p-2 rounded-md'>
+                  <h4>Owned by me</h4>
+                  <span>0</span>
+                </div>
+                <div className='flex justify-between w-full p-2 bg-gray-800 rounded-md'>
+                  <h4>Unlisted</h4>
+                  <span>0</span>
+                </div>
               </div>
-              <div className='flex justify-between w-full p-2 rounded-md'>
-                <h4>Owned by me</h4>
-                <span>0</span>
+              <div className='flex flex-col flex-grow gap-4'>
+                {sidebar.data?.creator.attributeGroups.map(
+                  ({ name: group, variants }, index) => (
+                    <div className='flex flex-col flex-grow gap-2' key={group}>
+                      <label>
+                        {group.charAt(0).toUpperCase() + group.slice(1)}
+                      </label>
+                      <Controller
+                        control={control}
+                        name={`attributes.${index}`}
+                        defaultValue={{ traitType: group, values: [] }}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <Select
+                              value={value.values}
+                              isMulti
+                              className='select-base-theme'
+                              classNamePrefix='base'
+                              onChange={(next: ValueType<OptionType>) => {
+                                onChange({ traitType: group, values: next })
+                              }}
+                              options={
+                                variants.map(({ name, count }) => ({
+                                  value: name,
+                                  label: `${name} ${count}`,
+                                })) as OptionsType<OptionType>
+                              }
+                            />
+                          )
+                        }}
+                      />
+                    </div>
+                  )
+                )}
               </div>
-              <div className='flex justify-between w-full p-2 bg-gray-800 rounded-md'>
-                <h4>Unlisted</h4>
-                <span>0</span>
-              </div>
-            </div>
-            <div className='flex flex-col flex-grow gap-4'>
-              {sidebar.data?.creator.attributeGroups.map(
-                ({ name: group, variants }, index) => (
-                  <div className='flex flex-col flex-grow gap-2' key={group}>
-                    <label>
-                      {group.charAt(0).toUpperCase() + group.slice(1)}
-                    </label>
-                    <Controller
-                      control={control}
-                      name={`attributes.${index}`}
-                      defaultValue={{ traitType: group, values: [] }}
-                      render={({ field: { onChange, value } }) => {
-                        return (
-                          <Select
-                            value={value.values}
-                            isMulti
-                            className='select-base-theme'
-                            classNamePrefix='base'
-                            onChange={(next: ValueType<OptionType>) => {
-                              onChange({ traitType: group, values: next })
-                            }}
-                            options={
-                              variants.map(({ name, count }) => ({
-                                value: name,
-                                label: `${name} ${count}`,
-                              })) as OptionsType<OptionType>
-                            }
-                          />
-                        )
-                      }}
-                    />
-                  </div>
-                )
-              )}
-            </div>
-          </form>
-        </div>
-        <div className='grow'>
-          {nfts.loading ? (
-            <>Loading</>
-          ) : (
-            <div className='grid items-center grid-cols-4 gap-2'>
-              {nfts.data?.nfts.map(n => (
-                <div key={n.address} className='h-[450px]'>
-                  <Link href={`/nfts/${n.address}`}>
-                    <div className='h-full p-4 m-0 transition duration-500 transform hover:scale-[1.02]' >
-                      <a>
-                        <div className='w-full border border-b-0 border-[#262626] h-[250px] overflow-clip'>
+            </form>
+          </div>
+          <div className='grow'>
+            {nfts.loading ? (
+              <>Loading</>
+            ) : (
+              <div className='container mx-auto px-4 md:px-0'>
+                <div className='flex flex-wrap -mx-1 lg:-mx-4'>
+                  {nfts.data?.nfts.map(n => (
+                    <div className='my-1 px-1 md:w-1/2 md:pb-2 md:px-2 lg:mb-4 lg:px-4 lg:w-1/3 xl:w-1/4'>
+                      <Link href={'/profiles/' + storefront.ownerAddress}>
+                        <article className='overflow-hidden rounded-lg transition duration-300 transform hover:scale-[1.02]'>
+                          <div className='h-[300px] overflow-hidden'>
                           <img
+                            alt='Placeholder'
+                            className='block h-full w-full'
                             src={n.image as string}
-                            alt='nft image'
-                            className='w-full h-full pb-2 rounded-lg'
                           />
-                        </div>
-                        <div className='p-4 border border-t-0 border-b-0 border-[#262626]'>
-                          <p className='text-lg'>{n.name}</p>
-                          <p className='text-sm text-[#a8a8a8]'>
-                            <span>
-                              {' '}
-                              <img
-                                src='https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg'
-                                className='object-fill rounded-sm inline-block h-[20px] mr-2'
-                              />
-                            </span>
-                            {storefront.title}
-                          </p>
-                        </div>
-                        <div className='grid grid-cols-2 gap-2 p-4 bg-[#262626] rounded-t-none rounded-b-lg'>
-                          <div>
+                          </div>
+                          <header className='p-4 border border-t-0 border-b-0 border-[#262626]'>
+                            <p className='lg:text-base mb-2 text-sm truncate ...'>
+                              {n.name}
+                            </p>
+                            <p className='text-sm text-[#a8a8a8]'>
+                              <span>
+                                {' '}
+                                <img
+                                  src='https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg'
+                                  className='object-fill rounded-sm inline-block h-[20px] mr-2'
+                                />
+                              </span>
+                              {storefront.title}
+                            </p>
+                          </header>
+
+                          <footer className='grid grid-cols-2 gap-2 p-4 bg-[#262626] rounded-t-none rounded-b-lg'>
+                            <div>
                               <p className='text-[#a8a8a8] text-sm'>
                                 Current Bid
                               </p>
-                            <p className=''>{solSymbol} 33</p>
-                          </div>
-                          <div>
-                            <p className='text-right text-[#a8a8a8] text-sm'>
-                              Ends In
-                            </p>
-                            <p className='text-right'>19h 48m 53s</p>
-                          </div>
-                        </div>
-                      </a>
+                              <p className='text-sm'>
+                                {solSymbol} 33
+                              </p>
+                            </div>
+                            <div>
+                              <p className='text-right text-[#a8a8a8] text-sm'>
+                                Ends In
+                              </p>
+                              <p className='text-right text-sm '>
+                                19h 48m 53s
+                              </p>
+                            </div>
+                          </footer>
+                        </article>
+                      </Link>
                     </div>
-                  </Link>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
