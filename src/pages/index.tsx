@@ -228,6 +228,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                               onChange={(next: ValueType<OptionType>) => {
                                 onChange({ traitType: group, values: next })
                               }}
+                              formatOptionLabel={(elem: ValueType<OptionType>)=>elem.label.split(" ").slice(0,-1).join(" ") + " (" + elem.label.split(" ").at(-1) + ")"}
                               options={
                                 variants.map(({ name, count }) => ({
                                   value: name,
