@@ -101,18 +101,18 @@ interface NftPageProps extends AppProps {
 const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
   return (
     <>
-      <div className="sticky top-0 z-10 bg-black text-white flex grow justify-between items-center p-6">
+      <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-black grow">
         <NextLink href="/">
           <a>
-            <button className="flex align justify-between gap-2 h-14 items-center bg-gray-800 hover:bg-gray-600 px-4 py-2 rounded-full">
-              <img className="aspect-square rounded-full w-8 h-8" src={storefront.logoUrl} />
+            <button className="flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 rounded-full align h-14 hover:bg-gray-600">
+              <img className="w-8 h-8 rounded-full aspect-square" src={storefront.logoUrl} />
               {storefront.title}
               </button>
           </a>
         </NextLink>
         <WalletMultiButton>Connect</WalletMultiButton>
       </div>
-      <div className="pb-10 text-white container mx-auto">
+      <div className="container pb-10 mx-auto text-white">
         <div className="grid grid-cols-1 mt-12 mb-10 lg:grid-cols-2">
           <div className="block px-4 mb-4 lg:mb-0 lg:flex lg:items-center lg:justify-center ">
             <div className="block mb-6 lg:hidden">
@@ -145,16 +145,16 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
         </div>
 
         <div className="w-full md:flex p-6 rounded-lg bg-[#282828]">
-          <div className="w-12/12 md:w-5/12 lg:w-7/12 mb-6 md:mb-0">
+          <div className="mb-6 w-12/12 md:w-5/12 lg:w-7/12 md:mb-0">
             <div className="flex grid-cols-2">
 
               <div className="grow">
                 <p className="text-gray-400">OWNER</p>
                 <img
-                  src="https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg"
-                  className="object-contain rounded-full inline-block h-[24px]"
+                  src={storefront.logoUrl}
+                  className="object-contain rounded-full inline-block h-[24px] mr-2"
                 />
-                <span className="font-mono text-lg">1234...1234</span>
+                <span className="font-mono text-lg tracking-wider">{storefront.ownerAddress.slice(0,4) + "..." + storefront.ownerAddress.slice(-4) }</span>
               </div>
 
               <div className="grow">
@@ -172,18 +172,18 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
               <Route
                 path={`/nfts/${nft.address}`}
                 element={(
-                  <div className="grid grid-cols-2 flex-grow gap-4">
+                  <div className="grid flex-grow grid-cols-2 gap-4">
                     <Link to={`/nfts/${nft.address}/offers/new`} className="w-full">
-                      <button className="px-10 text-sm text-white w-full transition-colors duration-150 bg-black rounded-full h-14 lg:text-xl md:text-base focus:shadow-outline hover:bg-black">
+                      <button className="w-full px-10 text-sm text-white transition-colors duration-150 bg-black rounded-full h-14 lg:text-xl md:text-base focus:shadow-outline hover:bg-black">
                         Make Offer
                       </button>
                     </Link>
                     <Link to={`/nfts/${nft.address}/listings/new`} className="w-full">
-                      <button className="px-10 text-sm text-black w-full transition-colors duration-150 bg-white hover:bg-gray-100 rounded-full h-14 lg:text-xl md:text-base focus:shadow-outline">
+                      <button className="w-full px-10 text-sm text-black transition-colors duration-150 bg-white rounded-full hover:bg-gray-100 h-14 lg:text-xl md:text-base focus:shadow-outline">
                         Sell NFT
                       </button>
                     </Link>
-                    <button className="px-10 text-sm text-black w-full transition-colors duration-150 bg-white rounded-full h-14 lg:text-xl md:text-base focus:shadow-outline hover:bg-gray-100">
+                    <button className="w-full px-10 text-sm text-black transition-colors duration-150 bg-white rounded-full h-14 lg:text-xl md:text-base focus:shadow-outline hover:bg-gray-100">
                       Buy Now
                     </button>
                   </div>
