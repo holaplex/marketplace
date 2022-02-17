@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { LAMPORTS_PER_SOL, PublicKey, Transaction } from '@solana/web3.js';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { NATIVE_MINT } from '@solana/spl-token';
-import { AuctionHouseProgram } from '@holaplex/mpl-auction-house';
+import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house';
 import BN from 'bn.js';
 
 const { createBuyInstruction } = AuctionHouseProgram.instructions;
@@ -112,16 +112,16 @@ const Offer = ({ nft }: OfferProps) => {
     <form
       className="text-left"
       onSubmit={handleSubmit(onSubmit)}>
-      <h3 className="text-xl md:text-2xl font-bold mb-6">Make an offer</h3>
-      <label className="mb-1 block">Price in SOL</label>
+      <h3 className="mb-6 text-xl font-bold md:text-2xl">Make an offer</h3>
+      <label className="block mb-1">Price in SOL</label>
       <div className="prefix-input prefix-icon-sol">
-        <input autoFocus className="bg-transparent focus:outline-none mb-4 pl-8 border-gray-500 border-2 w-full h-10 rounded-md" {...register("price")} />
+        <input autoFocus className="w-full h-10 pl-8 mb-4 bg-transparent border-2 border-gray-500 rounded-md focus:outline-none" {...register("price")} />
       </div>
-      <div className="grid grid-cols-2 flex-grow gap-4">
+      <div className="grid flex-grow grid-cols-2 gap-4">
         <Link to={`/nfts/${nft.address}`}>
-          <button className="text-sm text-white w-full transition-colors duration-150 bg-black rounded-full h-12 lg:text-xl md:text-base focus:shadow-outline hover:bg-black">Cancel</button>
+          <button className="w-full h-12 text-sm text-white transition-colors duration-150 bg-black rounded-full lg:text-xl md:text-base focus:shadow-outline hover:bg-black">Cancel</button>
         </Link>
-        <button className="text-sm text-black transition-colors duration-150 bg-white rounded-full h-12 lg:text-xl md:text-base focus:shadow-outline hover:bg-white">Place offer</button>
+        <button className="h-12 text-sm text-black transition-colors duration-150 bg-white rounded-full lg:text-xl md:text-base focus:shadow-outline hover:bg-white">Place offer</button>
       </div>
     </form>
   )
