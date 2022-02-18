@@ -1,21 +1,29 @@
-import { NextPage } from "next"
+import { NextPage } from 'next'
 import { AppProps } from 'next/app'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
 import client from '../../client'
-import { Link } from 'react-router-dom';
-import {
-  WalletMultiButton,
-} from '@solana/wallet-adapter-react-ui'
+import { Link } from 'react-router-dom'
+import * as anchor from '@project-serum/anchor'
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import NextLink from 'next/link'
 import { Route, Routes } from 'react-router-dom'
-import Offer from '../../components/Offer';
-import SellNft from '../../components/SellNft';
+import Offer from '../../components/Offer'
+import SellNft from '../../components/SellNft'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import { Transaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { NATIVE_MINT } from '@solana/spl-token'
+
+const {
+  createBuyInstruction,
+  createExecuteSaleInstruction,
+} = AuctionHouseProgram.instructions
 
 const solSymbol = '◎'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
-export async function getServerSideProps(ctx: any) {
+export async function getServerSideProps (ctx: any) {
   const {
     data: { storefront, nft },
   } = await client.query<GetNftPage>({
@@ -99,44 +107,228 @@ interface NftPageProps extends AppProps {
 }
 
 const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
+  const { publicKey, signTransaction } = useWallet()
+  const { connection } = useConnection()
+  const buyThisNft = async () => {
+    if (!publicKey || !signTransaction) {
+      return
+    }
+
+    // TO DO: get price from NFT
+    const buyerPrice = String(Number(0) * LAMPORTS_PER_SOL)
+
+    // setup addresses and pubkeys
+    const tokenMint = new PublicKey(nft.mintAddress)
+
+    // TODO: read authority from auction house record (auctionHouse.authority)
+    const authority = new PublicKey(
+      'BXUEBP3meoskWuU6aksqKKAcvRNLPzhjqL5RFeUd5vAR'
+    )
+
+    // TODO: read auction house from indexer
+    const auctionHouse = new PublicKey(
+      'BXUEBP3meoskWuU6aksqKKAcvRNLPzhjqL5RFeUd5vAR'
+    )
+
+    const auctionHouseFeeAccount = new PublicKey(
+      'BXUEBP3meoskWuU6aksqKKAcvRNLPzhjqL5RFeUd5vAR'
+    )
+
+    // setup function call parameters
+
+    // create buy
+    const associatedTokenAccount = (
+      await AuctionHouseProgram.getAtaForMint(tokenMint, publicKey)
+    )[0] //new PublicKey(nft.owwner.address))
+
+    const metadata = await AuctionHouseProgram.getMetadata(tokenMint)
+
+    const [
+      escrowPaymentAccount,
+      escrowPaymentBump,
+    ] = await AuctionHouseProgram.findEscrowPaymentAccount(
+      auctionHouse,
+      publicKey
+    )
+
+    const [
+      buyerTradeState,
+      tradeStateBump,
+    ] = await AuctionHouseProgram.findTradeStateAccount(
+      publicKey,
+      auctionHouse,
+      associatedTokenAccount,
+      NATIVE_MINT,
+      tokenMint,
+      buyerPrice,
+      '1' // token size
+    )
+
+    // Find TradeState Account
+    const [
+      sellerTradeState,
+      sellerTradeStateBump,
+    ] = await AuctionHouseProgram.findTradeStateAccount(
+      publicKey, // NFT OWNER ACCOUNT
+      auctionHouse,
+      associatedTokenAccount,
+      NATIVE_MINT,
+      tokenMint,
+      buyerPrice,
+      '1'
+    )
+
+    // ❌ Get AuctionHouse Trade State
+    // https://github.com/metaplex-foundation/metaplex/blob/master/js/packages/cli/src/helpers/accounts.ts#L504
+    const [freeTradeState, freeTradeBump] = [publicKey, '1']
+    // await AuctionHouseProgram.getAuctionHouseTradeState(
+    //   auctionHouse,
+    //   publicKey,
+    //   associatedTokenAccount,
+    //   NATIVE_MINT,
+    //   tokenMint,
+    //   new anchor.BN(1),
+    //   new anchor.BN(0)
+    // )
+
+    const [
+      programAsSigner,
+      programAsSignerBump,
+    ] = await AuctionHouseProgram.getAuctionHouseProgramAsSigner()
+
+    const buyInstructionAccounts = {
+      wallet: publicKey,
+      paymentAccount: publicKey, // TODO: new PublicKey(nft.owner.address)
+      transferAuthority: publicKey,
+      treasuryMint: NATIVE_MINT,
+      tokenAccount: associatedTokenAccount,
+      metadata: metadata,
+      escrowPaymentAccount: escrowPaymentAccount,
+      authority: authority,
+      auctionHouse: auctionHouse,
+      auctionHouseFeeAccount: auctionHouseFeeAccount,
+      buyerTradeState: buyerTradeState,
+    }
+
+    const buyInstructionArgs = {
+      tradeStateBump: tradeStateBump,
+      escrowPaymentBump: escrowPaymentBump,
+      buyerPrice: Number(buyerPrice),
+      tokenSize: new anchor.BN(1),
+    }
+
+    const [
+      treasuryAccount,
+      treasuryBump,
+    ] = await AuctionHouseProgram.getAuctionHouseTreasuryAcct(auctionHouse)
+
+    const buyInstruction = createBuyInstruction(
+      buyInstructionAccounts,
+      buyInstructionArgs
+    )
+
+    // execute sale
+    const executeSaleInstructionAccounts = {
+      buyer: publicKey,
+      seller: publicKey, // TODO: Update to NFT Owner
+      tokenAccount: associatedTokenAccount,
+      tokenMint: tokenMint,
+      metadata: metadata,
+      treasuryMint: NATIVE_MINT,
+      escrowPaymentAccount: escrowPaymentAccount,
+      // sellerPaymentReceiptAccount: web3.PublicKey;
+      // buyerReceiptTokenAccount: web3.PublicKey;
+      authority: authority,
+      auctionHouse: auctionHouse,
+      auctionHouseFeeAccount: auctionHouseFeeAccount,
+      auctionHouseTreasury: treasuryAccount,
+      buyerTradeState: buyerTradeState,
+      // sellerTradeState: web3.PublicKey;
+      freeTradeState: freeTradeState,
+      programAsSigner: programAsSigner,
+    }
+
+    const executeSaleInstructionArgs = {
+      escrowPaymentBump: escrowPaymentBump,
+      freeTradeStateBump: freeTradeBump,
+      programAsSignerBump: programAsSignerBump,
+      // buyerPrice: beet.bignum;
+      tokenSize: new anchor.BN(1),
+    }
+
+    // create instruction calls
+    const saleInstruction = createExecuteSaleInstruction(
+      executeSaleInstructionAccounts,
+      executeSaleInstructionArgs
+    )
+
+    // create tx
+    const txt = new Transaction()
+
+    // add instructions to tx
+    txt.add(buyInstruction)
+    txt.add(saleInstruction)
+
+    // add block hash
+    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+
+    // assign fee payer
+    txt.feePayer = publicKey
+
+    // sign
+    const signed = await signTransaction(txt)
+
+    // send
+    const signature = await connection.sendRawTransaction(signed.serialize())
+
+    // wait for it
+    await connection.confirmTransaction(signature, 'processed')
+  }
+
   return (
     <>
-      <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-black grow">
-        <NextLink href="/">
+      <div className='sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-black grow'>
+        <NextLink href='/'>
           <a>
-            <button className="flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 rounded-full align h-14 hover:bg-gray-600">
-              <img className="w-8 h-8 rounded-full aspect-square" src={storefront.logoUrl} />
+            <button className='flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 rounded-full align h-14 hover:bg-gray-600'>
+              <img
+                className='w-8 h-8 rounded-full aspect-square'
+                src={storefront.logoUrl}
+              />
               {storefront.title}
-              </button>
+            </button>
           </a>
         </NextLink>
         <WalletMultiButton>Connect</WalletMultiButton>
       </div>
-      <div className="container pb-10 mx-auto text-white">
-        <div className="grid grid-cols-1 mt-12 mb-10 lg:grid-cols-2">
-          <div className="block px-4 mb-4 lg:mb-0 lg:flex lg:items-center lg:justify-center ">
-            <div className="block mb-6 lg:hidden">
-              <h1 className="text-2xl lg:text-4xl md:text-3xl">
+      <div className='container pb-10 mx-auto text-white'>
+        <div className='grid grid-cols-1 mt-12 mb-10 lg:grid-cols-2'>
+          <div className='block px-4 mb-4 lg:mb-0 lg:flex lg:items-center lg:justify-center '>
+            <div className='block mb-6 lg:hidden'>
+              <h1 className='text-2xl lg:text-4xl md:text-3xl'>
                 <b>{nft.name}</b>
               </h1>
-              <p className="text-lg">{nft.description}</p>
+              <p className='text-lg'>{nft.description}</p>
             </div>
             <img
               src={nft.image}
-              className="block h-auto max-w-full border-none rounded-lg shadow"
+              className='block h-auto max-w-full border-none rounded-lg shadow'
             />
           </div>
-          <div className="px-4">
-            <div className="hidden lg:block xl:block 2xl:block">
-              <h1 className="text-2xl lg:text-4xl md:text-3xl">
+          <div className='px-4'>
+            <div className='hidden lg:block xl:block 2xl:block'>
+              <h1 className='text-2xl lg:text-4xl md:text-3xl'>
                 <b>{nft.name}</b>
               </h1>
-              <p className="text-lg">{nft.description}</p>
+              <p className='text-lg'>{nft.description}</p>
             </div>
-            <div className="grid grid-cols-2 gap-6 mt-8">
-              {nft.attributes.map((a) => (
-                <div key={a.traitType} className="px-4 py-4 rounded border border-[#383838]">
-                  <h1 className="text-gray-400 uppercase">{a.traitType}</h1>
+            <div className='grid grid-cols-2 gap-6 mt-8'>
+              {nft.attributes.map(a => (
+                <div
+                  key={a.traitType}
+                  className='px-4 py-4 rounded border border-[#383838]'
+                >
+                  <h1 className='text-gray-400 uppercase'>{a.traitType}</h1>
                   <p>{a.value}</p>
                 </div>
               ))}
@@ -144,50 +336,64 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
           </div>
         </div>
 
-        <div className="w-full md:flex p-6 rounded-lg bg-[#282828]">
-          <div className="mb-6 w-12/12 md:w-5/12 lg:w-7/12 md:mb-0">
-            <div className="flex grid-cols-2">
-
-              <div className="grow">
-                <p className="text-gray-400">OWNER</p>
+        <div className='w-full md:flex p-6 rounded-lg bg-[#282828]'>
+          <div className='mb-6 w-12/12 md:w-5/12 lg:w-7/12 md:mb-0'>
+            <div className='flex grid-cols-2'>
+              <div className='grow'>
+                <p className='text-gray-400'>OWNER</p>
                 <img
                   src={storefront.logoUrl}
-                  className="object-contain rounded-full inline-block h-[24px] mr-2"
+                  className='object-contain rounded-full inline-block h-[24px] mr-2'
                 />
-                <span className="font-mono text-lg tracking-wider">{storefront.ownerAddress.slice(0,4) + "..." + storefront.ownerAddress.slice(-4) }</span>
+                <span className='font-mono text-lg tracking-wider'>
+                  {storefront.ownerAddress.slice(0, 4) +
+                    '...' +
+                    storefront.ownerAddress.slice(-4)}
+                </span>
               </div>
 
-              <div className="grow">
-                <p className="text-gray-400 xs:float-left lg:float-none">
+              <div className='grow'>
+                <p className='text-gray-400 xs:float-left lg:float-none'>
                   PRICE
                 </p>
-                <p className="text-base md:text-xl lg:text-3xl">
+                <p className='text-base md:text-xl lg:text-3xl'>
                   <b>{solSymbol} 1.5</b>
                 </p>
               </div>
             </div>
           </div>
-          <div className="text-center md:mx-0 md:px-0 w-12/12 md:w-7/12 lg:w-5/12">
+          <div className='text-center md:mx-0 md:px-0 w-12/12 md:w-7/12 lg:w-5/12'>
             <Routes>
               <Route
                 path={`/nfts/${nft.address}`}
-                element={(
-                  <div className="grid flex-grow grid-cols-2 gap-4">
-                    <Link to={`/nfts/${nft.address}/offers/new`} className="w-full">
-                      <button className="w-full px-10 text-sm text-white transition-colors duration-150 bg-black rounded-full h-14 lg:text-xl md:text-base focus:shadow-outline hover:bg-black">
+                element={
+                  <div className='grid flex-grow grid-cols-2 gap-4'>
+                    <Link
+                      to={`/nfts/${nft.address}/offers/new`}
+                      className='w-full'
+                    >
+                      <button className='w-full px-10 text-sm text-white transition-colors duration-150 bg-black rounded-full h-14 lg:text-xl md:text-base focus:shadow-outline hover:bg-black'>
                         Make Offer
                       </button>
                     </Link>
-                    <Link to={`/nfts/${nft.address}/listings/new`} className="w-full">
-                      <button className="w-full px-10 text-sm text-black transition-colors duration-150 bg-white rounded-full hover:bg-gray-100 h-14 lg:text-xl md:text-base focus:shadow-outline">
+                    <Link
+                      to={`/nfts/${nft.address}/listings/new`}
+                      className='w-full'
+                    >
+                      <button className='w-full px-10 text-sm text-black transition-colors duration-150 bg-white rounded-full hover:bg-gray-100 h-14 lg:text-xl md:text-base focus:shadow-outline'>
                         Sell NFT
                       </button>
                     </Link>
-                    <button className="w-full px-10 text-sm text-black transition-colors duration-150 bg-white rounded-full h-14 lg:text-xl md:text-base focus:shadow-outline hover:bg-gray-100">
+                    <button
+                      className='w-full px-10 text-sm text-black transition-colors duration-150 bg-white rounded-full h-14 lg:text-xl md:text-base focus:shadow-outline hover:bg-gray-100'
+                      onClick={() => {
+                        buyThisNft()
+                      }}
+                    >
                       Buy Now
                     </button>
                   </div>
-                )}
+                }
               />
               <Route
                 path={`/nfts/${nft.address}/offers/new`}
@@ -200,35 +406,39 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
             </Routes>
           </div>
         </div>
-        <div className="flex justify-between px-4 mt-10 mb-10 text-sm sm:text-base md:text-lg ">
-          <div className="w-full">
-            <h1 className="text-xl md:text-2xl">
+        <div className='flex justify-between px-4 mt-10 mb-10 text-sm sm:text-base md:text-lg '>
+          <div className='w-full'>
+            <h1 className='text-xl md:text-2xl'>
               <b>Offers</b>
             </h1>
 
-            <div className="grid grid-cols-3 p-4 text-gray-400 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 2xl:grid-cols-4">
+            <div className='grid grid-cols-3 p-4 text-gray-400 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 2xl:grid-cols-4'>
               <div>FROM</div>
               <div>PRICE</div>
               <div>DATE</div>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 2xl:grid-cols-4 rounded-lg p-4 mb-4 border border-[#383838]">
+            <div className='grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 2xl:grid-cols-4 rounded-lg p-4 mb-4 border border-[#383838]'>
               <div>
                 <img
-                  src="https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg"
-                  className="object-contain rounded-full mr-2 inline-block h-[30px]"
+                  src='https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg'
+                  className='object-contain rounded-full mr-2 inline-block h-[30px]'
                 />
                 <span>@skelly</span>
               </div>
-              <div className=">{solSymbol} 75</div>
-            <div className=">3 hours ago</div>
+              <div
+                className='>{solSymbol} 75</div>
+            <div className='
+              >
+                3 hours ago
+              </div>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 2xl:grid-cols-4 rounded-lg p-4 mb-4 border border-[#383838]">
+            <div className='grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 2xl:grid-cols-4 rounded-lg p-4 mb-4 border border-[#383838]'>
               <div>
                 <img
-                  src="https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg"
-                  className="object-contain rounded-full mr-2 inline-block h-[30px]"
+                  src='https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg'
+                  className='object-contain rounded-full mr-2 inline-block h-[30px]'
                 />
                 <span>@skelly</span>
               </div>
@@ -240,40 +450,42 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
         {/* END OF OFFERS SECTION */}
 
         {/* ACTIVITIES SECTION */}
-        <div className="flex justify-between mt-10 mb-10 text-sm sm:text-base md:text-lg ">
-          <div className="w-full mx-4">
-            <h1 className="text-xl md:text-2xl">
+        <div className='flex justify-between mt-10 mb-10 text-sm sm:text-base md:text-lg '>
+          <div className='w-full mx-4'>
+            <h1 className='text-xl md:text-2xl'>
               <b>Activities</b>
             </h1>
 
-            <div className="grid grid-cols-4 p-4 text-gray-400">
+            <div className='grid grid-cols-4 p-4 text-gray-400'>
               <div>EVENT</div>
               <div>WALLETS</div>
               <div>PRICE</div>
               <div>WHEN</div>
             </div>
 
-            <div className="grid grid-cols-4 rounded-lg p-4 mb-4 border border-[#383838]">
+            <div className='grid grid-cols-4 rounded-lg p-4 mb-4 border border-[#383838]'>
               <div>
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1"
-                  className="float-left pt-1 feather feather-dollar-sign"
+                  xmlns='http://www.w3.org/2000/svg'
+                  width='24'
+                  height='24'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  strokeWidth='1'
+                  className='float-left pt-1 feather feather-dollar-sign'
                 >
-                  <line x1="12" y1="1" x2="12" y2="23"></line>
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                  <line x1='12' y1='1' x2='12' y2='23'></line>
+                  <path d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'></path>
                 </svg>
-                <span className="hidden md:block lg:block xl:block">Listed</span>
+                <span className='hidden md:block lg:block xl:block'>
+                  Listed
+                </span>
               </div>
               <div>
                 <img
-                  src="https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg"
-                  className="object-contain rounded-full mr-2 inline-block h-[30px]"
+                  src='https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg'
+                  className='object-contain rounded-full mr-2 inline-block h-[30px]'
                 />
                 <span>@skelly</span>
               </div>
@@ -281,27 +493,29 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
               <div>3 hours ago</div>
             </div>
 
-            <div className="grid grid-cols-4 rounded-lg p-4 mb-4 border border-[#383838]">
+            <div className='grid grid-cols-4 rounded-lg p-4 mb-4 border border-[#383838]'>
               <div>
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1"
-                  className="float-left pt-1 feather feather-dollar-sign"
+                  xmlns='http://www.w3.org/2000/svg'
+                  width='24'
+                  height='24'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  strokeWidth='1'
+                  className='float-left pt-1 feather feather-dollar-sign'
                 >
-                  <line x1="12" y1="1" x2="12" y2="23"></line>
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                  <line x1='12' y1='1' x2='12' y2='23'></line>
+                  <path d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'></path>
                 </svg>
-                <span className="hidden md:block lg:block xl:block">Listed</span>
+                <span className='hidden md:block lg:block xl:block'>
+                  Listed
+                </span>
               </div>
               <div>
                 <img
-                  src="https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg"
-                  className="object-contain rounded-full mr-2 inline-block h-[30px]"
+                  src='https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg'
+                  className='object-contain rounded-full mr-2 inline-block h-[30px]'
                 />
                 <span>@skelly</span>
               </div>
@@ -309,39 +523,39 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
               <div>10 hours ago</div>
             </div>
 
-            <div className="grid grid-cols-4 rounded-lg p-4 mb-4 border border-[#383838]">
+            <div className='grid grid-cols-4 rounded-lg p-4 mb-4 border border-[#383838]'>
               <div>
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1"
-                  className="float-left pt-1 mr-1 feather feather-tag"
+                  xmlns='http://www.w3.org/2000/svg'
+                  width='24'
+                  height='24'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  strokeWidth='1'
+                  className='float-left pt-1 mr-1 feather feather-tag'
                 >
-                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                  <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                  <path d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'></path>
+                  <line x1='7' y1='7' x2='7.01' y2='7'></line>
                 </svg>
-                <span className="hidden md:block lg:block xl:block">Sold</span>
+                <span className='hidden md:block lg:block xl:block'>Sold</span>
               </div>
 
-              <div className="inline-block">
+              <div className='inline-block'>
                 <p>
                   <span>
                     <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1"
-                      className="inline-block feather feather-corner-up-right"
+                      xmlns='http://www.w3.org/2000/svg'
+                      width='24'
+                      height='24'
+                      viewBox='0 0 24 24'
+                      fill='none'
+                      stroke='currentColor'
+                      strokeWidth='1'
+                      className='inline-block feather feather-corner-up-right'
                     >
-                      <polyline points="15 14 20 9 15 4"></polyline>
-                      <path d="M4 20v-7a4 4 0 0 1 4-4h12"></path>
+                      <polyline points='15 14 20 9 15 4'></polyline>
+                      <path d='M4 20v-7a4 4 0 0 1 4-4h12'></path>
                     </svg>
                   </span>
                   damien.sol
@@ -349,17 +563,17 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
                 <p>
                   <span>
                     <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1"
-                      className="inline-block feather feather-corner-down-right"
+                      xmlns='http://www.w3.org/2000/svg'
+                      width='24'
+                      height='24'
+                      viewBox='0 0 24 24'
+                      fill='none'
+                      stroke='currentColor'
+                      strokeWidth='1'
+                      className='inline-block feather feather-corner-down-right'
                     >
-                      <polyline points="15 10 20 15 15 20"></polyline>
-                      <path d="M4 4v7a4 4 0 0 0 4 4h12"></path>
+                      <polyline points='15 10 20 15 15 20'></polyline>
+                      <path d='M4 4v7a4 4 0 0 0 4 4h12'></path>
                     </svg>
                   </span>
                   @skelly

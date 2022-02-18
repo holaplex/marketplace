@@ -3,7 +3,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { Transaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { Link } from 'react-router-dom'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
-import BN from 'bn.js'
+import * as anchor from '@project-serum/anchor'
 import { NATIVE_MINT } from '@solana/spl-token'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 
@@ -63,14 +63,11 @@ const SellNft = ({ nft }: OfferProps) => {
     )
 
     const associatedTokenAccount = (
-      await AuctionHouseProgram.getAtaForMint(tokenMint, publicKey)
+      await AuctionHouseProgram.getAtaForMint(tokenMint, publicKey) //new PublicKey(nft.owwner.address)) 
     )[0]
 
     const metadata = await AuctionHouseProgram.getMetadata(tokenMint)
 
-    
-    // ❌  Program As Signer 
-    // https://github.com/metaplex-foundation/metaplex/blob/master/js/packages/cli/src/helpers/accounts.ts#L459
     const [
       programAsSigner,
       programAsSignerBump,
@@ -81,15 +78,16 @@ const SellNft = ({ nft }: OfferProps) => {
     const [
       freeTradeState,
       freeTradeBump,
-    ] = [PublicKey.default, 0]
+    ]  = [publicKey, "1"]
+
     // await AuctionHouseProgram.getAuctionHouseTradeState(
     //   auctionHouse,
     //   publicKey,
     //   associatedTokenAccount,
-    //   auctionHouse, // might be auctionhousefeeaccount (Treasury mint?)
+    //   NATIVE_MINT,
     //   tokenMint,
-    //   new BN(tokenSize),
-    //   new BN(sellAmount)
+    //   new anchor.BN(1),
+    //   new anchor.BN(0)
     // )
 
     // make transaction
@@ -97,10 +95,10 @@ const SellNft = ({ nft }: OfferProps) => {
 
     const sellInstructionArgs = {
       tradeStateBump,
-      freeTradeStateBump: freeTradeBump,
+      freeTradeStateBump: Number(freeTradeBump),
       programAsSignerBump: programAsSignerBump,
-      buyerPrice: new BN(sellPrice),
-      tokenSize: new BN(tokenSize),
+      buyerPrice: new anchor.BN(sellPrice),
+      tokenSize: new anchor.BN(1),
     }
 
     const sellInstructionAccounts = {
