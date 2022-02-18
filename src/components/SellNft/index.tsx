@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState }  from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { Transaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { Link } from 'react-router-dom'
@@ -21,16 +21,16 @@ const SellNft = ({ nft }: OfferProps) => {
   const { control, watch, register, handleSubmit } = useForm<OfferForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
+  const [sellAmount, setSellAmount] = useState(0)
 
-  const onSubmit = async ({ amount }: OfferForm) => {
-    const sellPrice = String(Number(amount) * LAMPORTS_PER_SOL)
+  const sellNftTransaction = async () => {
+    const sellPrice = String(Number(sellAmount) * LAMPORTS_PER_SOL)
 
     // NOTE: always 1 for NFTs since they are spl token with count of 1
     const tokenSize = '1'
     // TODO: read auction house from indexer
-    const auctionHouse = new PublicKey(
-      'BXUEBP3meoskWuU6aksqKKAcvRNLPzhjqL5RFeUd5vAR'
-    )
+    const auctionHouse = new PublicKey('BXUEBP3meoskWuU6aksqKKAcvRNLPzhjqL5RFeUd5vAR')
+    console.log(auctionHouse)
     // TODO: read authority from auction house record (auctionHouse.authority)
     const authority = new PublicKey(
       'BXUEBP3meoskWuU6aksqKKAcvRNLPzhjqL5RFeUd5vAR'
@@ -62,30 +62,35 @@ const SellNft = ({ nft }: OfferProps) => {
       tokenSize
     )
 
-    // Program As Signer
-    const [
-      programAsSigner,
-      programAsSignerBump,
-    ] = await AuctionHouseProgram.getAuctionHouseProgramAsSigner(auctionHouse)
-
     const associatedTokenAccount = (
       await AuctionHouseProgram.getAtaForMint(tokenMint, publicKey)
     )[0]
 
-    // Get AuctionHouse Trade State
+    const metadata = await AuctionHouseProgram.getMetadata(tokenMint)
+
+    
+    // ❌  Program As Signer 
+    // https://github.com/metaplex-foundation/metaplex/blob/master/js/packages/cli/src/helpers/accounts.ts#L459
+    const [
+      programAsSigner,
+      programAsSignerBump,
+    ] = await AuctionHouseProgram.getAuctionHouseProgramAsSigner()
+
+    // ❌ Get AuctionHouse Trade State
+    // https://github.com/metaplex-foundation/metaplex/blob/master/js/packages/cli/src/helpers/accounts.ts#L504
     const [
       freeTradeState,
       freeTradeBump,
-    ] = await AuctionHouseProgram.getAuctionHouseTradeState(
-      auctionHouse,
-      publicKey,
-      associatedTokenAccount,
-      auctionHouse, // might be auctionhousefeeaccount (Treasury mint?)
-      tokenMint,
-      new BN(tokenSize),
-      new BN(0)
-    )
-    const metadata = await AuctionHouseProgram.getMetadata(tokenMint)
+    ] = [PublicKey.default, 0]
+    // await AuctionHouseProgram.getAuctionHouseTradeState(
+    //   auctionHouse,
+    //   publicKey,
+    //   associatedTokenAccount,
+    //   auctionHouse, // might be auctionhousefeeaccount (Treasury mint?)
+    //   tokenMint,
+    //   new BN(tokenSize),
+    //   new BN(sellAmount)
+    // )
 
     // make transaction
     const txt = new Transaction()
@@ -136,6 +141,7 @@ const SellNft = ({ nft }: OfferProps) => {
       className='text-left'
       onSubmit={e => {
         e.preventDefault()
+        sellNftTransaction();
       }}
     >
       <h3 className='mb-6 text-xl font-bold md:text-2xl'>Sell this Nft</h3>
@@ -159,6 +165,7 @@ const SellNft = ({ nft }: OfferProps) => {
                   autoFocus
                   value={value}
                   onChange={(e: any) => {
+                    setSellAmount(e.target.value)
                     onChange(e.target.value)
                   }}
                   className='w-full h-10 pl-8 mb-4 bg-transparent border-2 border-gray-500 rounded-md focus:outline-none'
