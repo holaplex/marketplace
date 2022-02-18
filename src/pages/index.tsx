@@ -57,7 +57,7 @@ const GET_SIDEBAR = gql`
   }
 `
 
-export async function getServerSideProps () {
+export async function getServerSideProps() {
   const {
     data: { storefront },
   } = await client.query<GetStorefront>({
@@ -361,13 +361,13 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
               <div className='container md:mx-auto lg:mx-auto'>
                 <div className='flex flex-wrap -mx-1 lg:-mx-4'>
                   {nfts.data?.nfts.map(n => (
-                    <div className='w-full px-1 my-1 md:w-1/2 md:pb-2 md:px-2 lg:mb-4 lg:px-2 lg:w-1/3 xl:w-1/4 2xl:w-1/5'>
-                      <Link href={'/nfts/' + n.address}>
-                        <article className='overflow-hidden rounded-lg transition duration-300 transform hover:scale-[1.02]'>
-                          <div className='h-[300px] overflow-hidden'>
+                    <div key={n.address} className='w-full px-1 my-1 md:w-1/2 md:pb-2 md:px-2 lg:mb-4 lg:px-2 lg:w-1/3 xl:w-1/4 2xl:w-1/5'>
+                      <Link href={`/nfts/${n.address}`} passHref>
+                        <article className='overflow-hidden rounded-lg transition duration-300 transform hover:scale-[1.02] cursor-pointer'>
+                          <div className="w-full aspect-square">
                             <img
                               alt='Placeholder'
-                              className='block w-full h-full'
+                              className='w-full h-full object-cover'
                               src={n.image as string}
                             />
                           </div>

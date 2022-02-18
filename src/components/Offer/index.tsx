@@ -102,7 +102,6 @@ const Offer = ({ nft }: OfferProps) => {
     const signed = await signTransaction(txt);
 
     // submit transaction
-    
     const signature = await connection.sendRawTransaction(signed.serialize());
     
     await connection.confirmTransaction(signature, 'processed');
@@ -121,7 +120,7 @@ const Offer = ({ nft }: OfferProps) => {
         <Link to={`/nfts/${nft.address}`}>
           <button className="text-sm text-white w-full transition-colors duration-150 bg-black rounded-full h-12 lg:text-xl md:text-base focus:shadow-outline hover:bg-black">Cancel</button>
         </Link>
-        <button className="text-sm text-black transition-colors duration-150 bg-white rounded-full h-12 lg:text-xl md:text-base focus:shadow-outline hover:bg-white">Place offer</button>
+        <button type="submit" className="text-sm text-black transition-colors duration-150 bg-white rounded-full h-12 lg:text-xl md:text-base focus:shadow-outline hover:bg-white">Place offer</button>
       </div>
     </form>
   )
