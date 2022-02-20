@@ -167,7 +167,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
   const [showXsFilter, setShowXsFilter] = useState(false)
 
   return (
-    <div className='text-white bg-black'>
+    <div className='text-white bg-gray-900'>
       {showXsFilter && (
         <div className='fixed z-20 w-full h-full px-4 py-4 pt-24 bg-black'>
           <button
@@ -266,15 +266,15 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
         </div>
         <Link href='/'>
           <a
-            className='absolute h-20 bg-black bg-center bg-cover rounded-full -bottom-10 left-6 aspect-square'
+            className='absolute h-24 bg-black bg-center bg-cover rounded-full -bottom-12 left-6 aspect-square border-4 border-black'
             style={{ backgroundImage: `url(${storefront.logoUrl})` }}
           ></a>
         </Link>
       </div>
       <div className='flex justify-between px-6 mt-20 mb-10'>
         <div className='flex-col'>
-          <h1 className='text-2xl'>{storefront.title}</h1>
-          <p>{storefront.description}</p>
+          <h1>{storefront.title}</h1>
+          <p className='mt-4'>{storefront.description}</p>
         </div>
       </div>
       <div className='w-full pr-4 md:pr-8 lg:pr-8  xs:mb-[75px]'>

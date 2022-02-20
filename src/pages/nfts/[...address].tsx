@@ -101,7 +101,7 @@ interface NftPageProps extends AppProps {
 const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
   return (
     <>
-      <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-black grow">
+      <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
         <NextLink href="/">
           <a>
             <button className="flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 rounded-full align h-14 hover:bg-gray-600">
