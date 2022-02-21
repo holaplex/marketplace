@@ -116,9 +116,9 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
         <div className="grid grid-cols-1 mt-12 mb-10 lg:grid-cols-2">
           <div className="block px-4 mb-4 lg:mb-0 lg:flex lg:items-center lg:justify-center ">
             <div className="block mb-6 lg:hidden">
-              <h1 className="text-2xl lg:text-4xl md:text-3xl">
+            <p className="mb-4 text-2xl lg:text-4xl md:text-3xl">
                 <b>{nft.name}</b>
-              </h1>
+              </p>
               <p className="text-lg">{nft.description}</p>
             </div>
             <img
@@ -128,15 +128,15 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
           </div>
           <div className="px-4">
             <div className="hidden lg:block xl:block 2xl:block">
-              <h1 className="text-2xl lg:text-4xl md:text-3xl">
+              <p className="mb-4 text-2xl lg:text-4xl md:text-3xl">
                 <b>{nft.name}</b>
-              </h1>
+              </p>
               <p className="text-lg">{nft.description}</p>
             </div>
             <div className="grid grid-cols-2 gap-6 mt-8">
               {nft.attributes.map((a) => (
                 <div key={a.traitType} className="px-4 py-4 rounded border border-[#383838]">
-                  <h1 className="text-gray-400 uppercase">{a.traitType}</h1>
+                  <p className="text-lg text-gray-300 uppercase">{a.traitType}</p>
                   <p>{a.value}</p>
                 </div>
               ))}
