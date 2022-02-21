@@ -73,22 +73,18 @@ const SellNft = ({ nft }: OfferProps) => {
       programAsSignerBump,
     ] = await AuctionHouseProgram.getAuctionHouseProgramAsSigner()
 
-    // ❌ Get AuctionHouse Trade State
-    // https://github.com/metaplex-foundation/metaplex/blob/master/js/packages/cli/src/helpers/accounts.ts#L504
     const [
       freeTradeState,
       freeTradeBump,
-    ]  = [publicKey, "1"]
-
-    // await AuctionHouseProgram.getAuctionHouseTradeState(
-    //   auctionHouse,
-    //   publicKey,
-    //   associatedTokenAccount,
-    //   NATIVE_MINT,
-    //   tokenMint,
-    //   new anchor.BN(1),
-    //   new anchor.BN(0)
-    // )
+    ]  = await AuctionHouseProgram.getAuctionHouseTradeState(
+      auctionHouse,
+      publicKey,
+      associatedTokenAccount,
+      NATIVE_MINT,
+      tokenMint,
+      1,
+      0
+    )
 
     // make transaction
     const txt = new Transaction()

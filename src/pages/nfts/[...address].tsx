@@ -178,18 +178,16 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
       '1'
     )
 
-    // ❌ Get AuctionHouse Trade State
-    // https://github.com/metaplex-foundation/metaplex/blob/master/js/packages/cli/src/helpers/accounts.ts#L504
-    const [freeTradeState, freeTradeBump] = [publicKey, '1']
-    // await AuctionHouseProgram.getAuctionHouseTradeState(
-    //   auctionHouse,
-    //   publicKey,
-    //   associatedTokenAccount,
-    //   NATIVE_MINT,
-    //   tokenMint,
-    //   new anchor.BN(1),
-    //   new anchor.BN(0)
-    // )
+    const [freeTradeState, freeTradeBump] = 
+    await AuctionHouseProgram.getAuctionHouseTradeState(
+      auctionHouse,
+      publicKey,
+      associatedTokenAccount,
+      NATIVE_MINT,
+      tokenMint,
+      1,
+      0 
+    )
 
     const [
       programAsSigner,
@@ -236,14 +234,14 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
       metadata: metadata,
       treasuryMint: NATIVE_MINT,
       escrowPaymentAccount: escrowPaymentAccount,
-      // sellerPaymentReceiptAccount: web3.PublicKey;
-      // buyerReceiptTokenAccount: web3.PublicKey;
+      sellerPaymentReceiptAccount: publicKey,  // TODO: Update to NFT Owner
+      buyerReceiptTokenAccount: publicKey,
       authority: authority,
       auctionHouse: auctionHouse,
       auctionHouseFeeAccount: auctionHouseFeeAccount,
       auctionHouseTreasury: treasuryAccount,
       buyerTradeState: buyerTradeState,
-      // sellerTradeState: web3.PublicKey;
+      sellerTradeState: sellerTradeState,
       freeTradeState: freeTradeState,
       programAsSigner: programAsSigner,
     }
@@ -252,7 +250,7 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
       escrowPaymentBump: escrowPaymentBump,
       freeTradeStateBump: freeTradeBump,
       programAsSignerBump: programAsSignerBump,
-      // buyerPrice: beet.bignum;
+      buyerPrice: buyerPrice,
       tokenSize: new anchor.BN(1),
     }
 
