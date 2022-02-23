@@ -266,7 +266,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
         <img src={storefront.bannerUrl} alt={storefront.title} className='w-full h-80 object-cover'/>
       </div>
 
-      <div className='max-w-[1800px] px-8'>
+      <div className='w-full max-w-[1800px] px-8'>
         
         <div className='flex flex-col justify-between mt-20 mb-20 w-full relative'>
           <img 
@@ -360,6 +360,12 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
               <>Loading</>
             ) : (
               <div className='container md:mx-auto lg:mx-auto'>
+                {nfts.data?.nfts.length === 0 && 
+                  <div className='w-full p-10 border border-gray-800 rounded-lg text-center'>
+                    <h3>No NFTs found</h3>
+                    <p className='mt-2 text-gray-500'>No NFTs found matching these criteria.</p>
+                  </div>
+                }
                 <div className='grid grid-cols-1 gap-8 2xl:gap-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4'>
                   {nfts.data?.nfts.map(n => (
                     <Link href={'/nfts/' + n.address}>
