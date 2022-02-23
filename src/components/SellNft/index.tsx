@@ -63,7 +63,7 @@ const SellNft = ({ nft }: OfferProps) => {
     )
 
     const associatedTokenAccount = (
-      await AuctionHouseProgram.getAtaForMint(tokenMint, publicKey) //new PublicKey(nft.owwner.address)) 
+      await AuctionHouseProgram.getAtaForMint(tokenMint, new PublicKey(nft.owner.address)) 
     )[0]
 
     const metadata = await AuctionHouseProgram.getMetadata(tokenMint)

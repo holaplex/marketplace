@@ -44,6 +44,9 @@ export async function getServerSideProps (ctx: any) {
           sellerFeeBasisPoints
           mintAddress
           description
+          owner {
+            address
+          }
           attributes {
             traitType
             value
@@ -91,6 +94,10 @@ interface NftAttribute {
   traitType: string
 }
 
+interface NftOwner{
+  address: string
+}
+
 interface Nft {
   name: string
   address: string
@@ -99,6 +106,7 @@ interface Nft {
   sellerFeeBasisPoints: number
   mintAddress: string
   attributes: NftAttribute[]
+  owner: NftOwner
 }
 
 interface NftPageProps extends AppProps {
@@ -115,7 +123,7 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
     }
 
     // TO DO: get price from NFT
-    const buyerPrice = String(Number(0) * LAMPORTS_PER_SOL)
+    const buyerPrice = String(Number(0.01) * LAMPORTS_PER_SOL)
 
     // setup addresses and pubkeys
     const tokenMint = new PublicKey(nft.mintAddress)
@@ -138,8 +146,8 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
 
     // create buy
     const associatedTokenAccount = (
-      await AuctionHouseProgram.getAtaForMint(tokenMint, publicKey)
-    )[0] //new PublicKey(nft.owwner.address))
+      await AuctionHouseProgram.getAtaForMint(tokenMint, new PublicKey(nft.owner.address))
+    )[0] 
 
     const metadata = await AuctionHouseProgram.getMetadata(tokenMint)
 
@@ -169,7 +177,7 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
       sellerTradeState,
       sellerTradeStateBump,
     ] = await AuctionHouseProgram.findTradeStateAccount(
-      publicKey, // NFT OWNER ACCOUNT
+      new PublicKey(nft.owner.address), 
       auctionHouse,
       associatedTokenAccount,
       NATIVE_MINT,
@@ -196,7 +204,7 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
 
     const buyInstructionAccounts = {
       wallet: publicKey,
-      paymentAccount: publicKey, // TODO: new PublicKey(nft.owner.address)
+      paymentAccount: new PublicKey(nft.owner.address), 
       transferAuthority: publicKey,
       treasuryMint: NATIVE_MINT,
       tokenAccount: associatedTokenAccount,
@@ -228,13 +236,13 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
     // execute sale
     const executeSaleInstructionAccounts = {
       buyer: publicKey,
-      seller: publicKey, // TODO: Update to NFT Owner
+      seller: new PublicKey(nft.owner.address), 
       tokenAccount: associatedTokenAccount,
       tokenMint: tokenMint,
       metadata: metadata,
       treasuryMint: NATIVE_MINT,
       escrowPaymentAccount: escrowPaymentAccount,
-      sellerPaymentReceiptAccount: publicKey,  // TODO: Update to NFT Owner
+      sellerPaymentReceiptAccount: new PublicKey(nft.owner.address),
       buyerReceiptTokenAccount: publicKey,
       authority: authority,
       auctionHouse: auctionHouse,
