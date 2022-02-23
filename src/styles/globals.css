@@ -9,8 +9,26 @@
 }
 
 :root {
-  --base-bg: #171717;
-  --base-fg: #efefef;
+  --gray-100: #E0E0E0;
+  --gray-300: #A8A8A8;
+  --gray-500: #6F6F6F;
+  --gray-700: #393939;
+  --gray-800: #262626;
+  --gray-900: #171717;
+  --error-300: #FDA29B;
+  --error-500: #F04438;
+  --error-800: #912018;
+  --error-900: #7A271A;
+  --success-300: #6CE9A6;
+  --success-500: #12B76A;
+  --success-800: #05603A;
+  --success-900: #054F31;
+}
+
+@layer components {
+  .label {
+    @apply text-xs text-gray-300;
+  }
 }
 
 * {
@@ -21,7 +39,7 @@ html, body {
   @apply bg-gray-900;
 }
 
-h1, h2, h3 {
+h1, h2, h3, h4 {
   @apply font-semibold;
 }
 
@@ -35,6 +53,10 @@ h2 {
 
 h3 {
   @apply text-xl;
+}
+
+h4 {
+  @apply text-base;
 }
 
 .pubkey {
@@ -64,38 +86,53 @@ h3 {
 
 }
 .wallet-adapter-button[disabled].wallet-adapter-button-trigger {
-  @apply text-black bg-gray-100;
+  @apply text-black bg-gray-100 border-0 outline-0;
 }
 
 .select-base-theme .base__control {
-  @apply bg-gray-800 border-gray-800 text-white
+  @apply bg-gray-800 border-0 text-white outline-0 shadow-none cursor-pointer rounded-md py-1 px-4;
+}
+
+.select-base-theme .base__control:hover {
+  @apply bg-gray-700 border-0 text-white shadow-none;
+}
+
+.select-base-theme .base__value-container, .select-base-theme .base__input-container, .select-base-theme  .base__placeholder {
+  @apply p-0 m-0;
 }
 
 .select-base-theme .base__control.base__control--is-focused {
-  @apply border-gray-900;
-  border-color: red;
+  @apply border-0 bg-gray-700  outline-0 shadow-none;
 }
 
-.select-base-them .base__value-container {}
+.select-base-theme .base__dropdown-indicator {
+  @apply text-gray-500 pr-0;
+}
 
-.select-base-theme .base__indicators {}
+.select-base-theme .base__indicator-separator {
+  background-color: transparent;
+}
 
 .select-base-theme .base__menu {
   @apply bg-gray-800 border-0
 }
 
-.select-base-theme .base__menu-list {}
+.select-base-theme .base__menu-list .base__option {
+  @apply bg-gray-800;
+}
 
-.select-base-theme .base__option {}
+.select-base-theme .base__menu-list .base__option:hover {
+  @apply bg-gray-700;
+}
 
 .select-base-theme .base__option.base__option--is-focused {
-  @apply bg-gray-800
+  @apply bg-gray-800 cursor-pointer;
 }
 
 .select-base-theme .base__multi-value {
-  @apply bg-gray-800 text-white
+  @apply bg-gray-500 text-white;
 }
 
 .select-base-theme .base__multi-value__label {
-  @apply text-white
+  @apply text-white;
 }

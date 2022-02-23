@@ -5,23 +5,24 @@ module.exports = {
       'black': '#000000',
       'white': '#ffffff',
       'gray': {
-          100: '#E0E0E0',
-          300: '#A8A8A8',
-          500: '#6F6F6F',
-          800: '#262626',
-          900: '#171717',
+          100: 'var(--gray-100)',
+          300: 'var(--gray-300)',
+          500: 'var(--gray-500)',
+          700: 'var(--gray-700)',
+          800: 'var(--gray-800)',
+          900: 'var(--gray-900)',
       },
       'error': {
-          300: '#FDA29B',
-          500: '#F04438',
-          800: '#912018',
-          900: '#7A271A'
+          300: 'var(--error-300)',
+          500: 'var(--error-500)',
+          800: 'var(--error-800)',
+          900: 'var(--error-900)'
       },
       'success': {
-          300: '#6CE9A6',
-          500: '#12B76A',
-          800: '#05603A',
-          900: '#054F31'
+          300: 'var(--success-300)',
+          500: 'var(--success-500)',
+          800: 'var(--success-800)',
+          900: 'var(--success-900)'
       }
     },
     fontFamily: {
@@ -29,6 +30,9 @@ module.exports = {
       serif: ['Merriweather', 'serif'],
     },
     extend: {
+      boxShadow: {
+        'card': '0px 12px 16px rgba(0, 0, 0, 0.3)',
+      },
       spacing: {
         '8xl': '96rem',
         '9xl': '128rem',
