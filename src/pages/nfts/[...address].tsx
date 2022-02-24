@@ -114,7 +114,7 @@ interface Nft {
   mintAddress: string
   attributes: NftAttribute[]
   owner: NftOwner
-  listings: NftListing[]
+  listing: NftListing
 }
 
 interface NftPageProps extends AppProps {
@@ -131,7 +131,7 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
     }
 
     // TO DO: get price from NFT
-    const buyerPrice = String( Number(nft.listings[0].price) * LAMPORTS_PER_SOL)
+    const buyerPrice = String( Number(nft.listing.price) * LAMPORTS_PER_SOL)
 
     // setup addresses and pubkeys
     const tokenMint = new PublicKey(nft.mintAddress)
