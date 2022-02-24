@@ -120,7 +120,7 @@ interface Nft {
   mintAddress: string
   attributes: NftAttribute[]
   owner: NftOwner
-  listing: NftListing[]
+  listings: NftListing[]
 }
 
 interface NftPageProps extends AppProps {
