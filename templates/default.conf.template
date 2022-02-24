@@ -1,0 +1,11 @@
+server {
+  listen ${PORT};
+
+  server_name ~^(?<subdomain>\w+)\.${HOSTNAME}$;
+
+  location / {
+    proxy_set_header X-Holaplex-Subdomain $subdomain;
+    
+    proxy_pass http://${PROXY_HOST}:${WEB_PORT};
+}
+}
