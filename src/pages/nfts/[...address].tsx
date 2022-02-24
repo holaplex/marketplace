@@ -47,6 +47,9 @@ export async function getServerSideProps (ctx: any) {
           owner {
             address
           }
+          listings {
+            price
+          }
           attributes {
             traitType
             value
@@ -98,6 +101,10 @@ interface NftOwner{
   address: string
 }
 
+interface NftListing{
+  price: string
+}
+
 interface Nft {
   name: string
   address: string
@@ -107,6 +114,7 @@ interface Nft {
   mintAddress: string
   attributes: NftAttribute[]
   owner: NftOwner
+  listings: NftListing[]
 }
 
 interface NftPageProps extends AppProps {
@@ -123,7 +131,7 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
     }
 
     // TO DO: get price from NFT
-    const buyerPrice = String(Number(0.01) * LAMPORTS_PER_SOL)
+    const buyerPrice = String( Number(nft.listings[0].price) * LAMPORTS_PER_SOL)
 
     // setup addresses and pubkeys
     const tokenMint = new PublicKey(nft.mintAddress)
@@ -258,7 +266,7 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
       escrowPaymentBump: escrowPaymentBump,
       freeTradeStateBump: freeTradeBump,
       programAsSignerBump: programAsSignerBump,
-      buyerPrice: buyerPrice,
+      buyerPrice: Number(buyerPrice),
       tokenSize: new anchor.BN(1),
     }
 
