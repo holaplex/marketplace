@@ -293,8 +293,8 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
         </div>
       </div>
 
-      <div className='flex h-screen'>
-        <div className='hidden px-2 pt-2 w-72 sm:block md:block lg:block xl:block 2xl:block'>
+      <div className='flex h-screen overflow-hidden'>
+        <div className='hidden px-2 pt-2 overflow-y-scroll w-72 sm:block md:block lg:block xl:block 2xl:block'>
           <form
             onSubmit={e => {
               e.preventDefault()
