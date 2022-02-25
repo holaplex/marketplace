@@ -57,8 +57,8 @@ const GET_SIDEBAR = gql`
   }
 `
 
-export async function getServerSideProps({ req }: NextPageContext) {
-  const subdomain = req?.headers['x-holaplex-subdomain'];
+export async function getServerSideProps ({ req }: NextPageContext) {
+  const subdomain = req?.headers['x-holaplex-subdomain']
 
   const {
     data: { storefront },
@@ -76,7 +76,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
       }
     `,
     variables: {
-      subdomain: (subdomain || SUBDOMAIN),
+      subdomain: subdomain || SUBDOMAIN,
     },
   })
 
@@ -169,7 +169,13 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
   const [showXsFilter, setShowXsFilter] = useState(false)
 
   return (
-    <div className='text-white bg-gray-900 flex flex-col items-center'>
+    <div className='text-white bg-gray-900'>
+      <button
+        className='fixed rounded-full text-black bg-white h-10 right-[25%] w-[50%] z-10 block sm:hidden bottom-5'
+        onClick={() => setShowXsFilter(true)}
+      >
+        Filter
+      </button>
       {showXsFilter && (
         <div className='fixed z-20 w-full h-full px-4 py-4 pt-24 bg-black'>
           <button
@@ -260,114 +266,116 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
         </div>
       )}
 
-      <div className='w-full relative'>
-        <div className="absolute right-8 top-8">
+      <div className='relative w-full'>
+        <div className='absolute right-8 top-8'>
           <WalletMultiButton>Connect</WalletMultiButton>
         </div>
 
-        <img src={storefront.bannerUrl} alt={storefront.title} className='w-full h-80 object-cover' />
+        <img
+          src={storefront.bannerUrl}
+          alt={storefront.title}
+          className='object-cover w-full h-80'
+        />
       </div>
 
-      <div className='w-full max-w-[1800px] px-8'>
-
-        <div className='flex flex-col justify-between mt-20 mb-20 w-full relative'>
+      <div id='wrapper' className='w-full max-w-[1800px] px-8 border border-gray-700 border-b-1'>
+        <div
+          id='storefront_data'
+          className='relative flex flex-col justify-between w-full mt-20 mb-5'
+        >
           <img
             src={storefront.logoUrl}
             alt={storefront.title}
-            className='w-28 h-28 rounded-full border-4 border-gray-900 absolute -top-32'
+            className='absolute border-4 border-gray-900 rounded-full w-28 h-28 -top-32'
           />
           <h1>{storefront.title}</h1>
           <p className='mt-4 max-w-prose'>{storefront.description}</p>
         </div>
+      </div>
 
-        <div className='flex'>
-          <button
-            className='fixed rounded-full text-black bg-white h-10 right-[25%] w-[50%] z-10 block sm:hidden bottom-5'
-            onClick={() => setShowXsFilter(true)}
+      <div className='flex h-screen'>
+        <div className='hidden px-2 pt-2 w-72 sm:block md:block lg:block xl:block 2xl:block'>
+          <form
+            onSubmit={e => {
+              e.preventDefault()
+            }}
           >
-            Filter
-          </button>
-
-          <div className='flex-row flex-none hidden space-y-2 w-64 mr-10 sm:block'>
-            <form
-              onSubmit={e => {
-                e.preventDefault()
-              }}
-            >
-              <div className='flex flex-col flex-grow mb-6'>
-                <div className='flex justify-between w-full py-2 px-4 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
-                  <h4>Current listings</h4>
-                  <span className='text-sm text-gray-500'>0</span>
-                </div>
-                <div className='flex justify-between w-full py-2 px-4 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
-                  <h4>Owned by me</h4>
-                  <span className='text-sm text-gray-500'>0</span>
-                </div>
-                <div className='flex justify-between w-full py-2 px-4 mb-1 bg-gray-800 rounded-md cursor-pointer hover:bg-gray-800'>
-                  <h4>Unlisted</h4>
-                  <span className='text-sm text-gray-500'>0</span>
-                </div>
+            <div className='flex flex-col flex-grow mb-6'>
+              <div className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
+                <h4>Current listings</h4>
+                <span className='text-sm text-gray-500'>0</span>
               </div>
-              <div className='flex flex-col flex-grow gap-4'>
-                {sidebar.data?.creator.attributeGroups.map(
-                  ({ name: group, variants }, index) => (
-                    <div className='flex flex-col flex-grow gap-2' key={group}>
-                      <label className='label'>
-                        {group.charAt(0).toUpperCase() + group.slice(1)}
-                      </label>
-
-                      <Controller
-                        control={control}
-                        name={`attributes.${index}`}
-                        defaultValue={{ traitType: group, values: [] }}
-                        render={({ field: { onChange, value } }) => {
-                          return (
-                            <Select
-                              value={value.values}
-                              isMulti
-                              className='select-base-theme'
-                              classNamePrefix='base'
-                              onChange={(next: ValueType<OptionType>) => {
-                                onChange({ traitType: group, values: next })
-                              }}
-                              formatOptionLabel={(
-                                elem: ValueType<OptionType>
-                              ) =>
-                                elem.label
-                                  .split(' ')
-                                  .slice(0, -1)
-                                  .join(' ') +
-                                ' (' +
-                                elem.label.split(' ').at(-1) +
-                                ')'
-                              }
-                              options={
-                                variants.map(({ name, count }) => ({
-                                  value: name,
-                                  label: `${name} ${count}`,
-                                })) as OptionsType<OptionType>
-                              }
-                            />
-                          )
-                        }}
-                      />
-                    </div>
-                  )
-                )}
+              <div className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
+                <h4>Owned by me</h4>
+                <span className='text-sm text-gray-500'>0</span>
               </div>
-            </form>
-          </div>
-          <div className='grow'>
+              <div className='flex justify-between w-full px-4 py-2 mb-1 bg-gray-800 rounded-md cursor-pointer hover:bg-gray-800'>
+                <h4>Unlisted</h4>
+                <span className='text-sm text-gray-500'>0</span>
+              </div>
+            </div>
+            <div className='flex flex-col flex-grow gap-4'>
+              {sidebar.data?.creator.attributeGroups.map(
+                ({ name: group, variants }, index) => (
+                  <div className='flex flex-col flex-grow gap-2' key={group}>
+                    <label className='label'>
+                      {group.charAt(0).toUpperCase() + group.slice(1)}
+                    </label>
+
+                    <Controller
+                      control={control}
+                      name={`attributes.${index}`}
+                      defaultValue={{ traitType: group, values: [] }}
+                      render={({ field: { onChange, value } }) => {
+                        return (
+                          <Select
+                            value={value.values}
+                            isMulti
+                            className='select-base-theme'
+                            classNamePrefix='base'
+                            onChange={(next: ValueType<OptionType>) => {
+                              onChange({ traitType: group, values: next })
+                            }}
+                            formatOptionLabel={(elem: ValueType<OptionType>) =>
+                              elem.label
+                                .split(' ')
+                                .slice(0, -1)
+                                .join(' ') +
+                              ' (' +
+                              elem.label.split(' ').at(-1) +
+                              ')'
+                            }
+                            options={
+                              variants.map(({ name, count }) => ({
+                                value: name,
+                                label: `${name} ${count}`,
+                              })) as OptionsType<OptionType>
+                            }
+                          />
+                        )
+                      }}
+                    />
+                  </div>
+                )
+              )}
+            </div>
+          </form>
+        </div>
+
+        <div className='flex flex-1 overflow-hidden'>
+          <div className='flex-1 px-6 py-4 overflow-y-scroll'>
             {nfts.loading ? (
               <>Loading</>
             ) : (
               <div className='container md:mx-auto lg:mx-auto'>
-                {nfts.data?.nfts.length === 0 &&
-                  <div className='w-full p-10 border border-gray-800 rounded-lg text-center'>
+                {nfts.data?.nfts.length === 0 && (
+                  <div className='w-full p-10 text-center border border-gray-800 rounded-lg'>
                     <h3>No NFTs found</h3>
-                    <p className='mt-2 text-gray-500'>No NFTs found matching these criteria.</p>
+                    <p className='mt-2 text-gray-500'>
+                      No NFTs found matching these criteria.
+                    </p>
                   </div>
-                }
+                )}
                 <div className='grid grid-cols-1 gap-8 2xl:gap-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4'>
                   {nfts.data?.nfts.map(n => (
                     <Link passHref href={`/nfts/${n.address}`} key={n.address}>
