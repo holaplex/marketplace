@@ -103,6 +103,15 @@ interface Storefront {
   ownerAddress: string
 }
 
+export interface Marketplace {
+  subdomain: string,
+  name: string,
+  description: string,
+  logoUrl: string,
+  bannerUrl: string,
+  auctionHouseAddress: string
+}
+
 interface AttributeVariant {
   name: string
   count: number
@@ -119,6 +128,10 @@ interface Creator {
 
 interface GetStorefront {
   storefront: Storefront | null
+}
+
+interface GetMarketplace {
+  marketplace: Marketplace | null
 }
 
 interface GetSidebar {

@@ -12,6 +12,7 @@ import { Route, Routes } from 'react-router-dom'
 import Offer from '../../components/Offer';
 import SellNft from '../../components/SellNft';
 import WalletWithAvatar from '../../components/WalletWithAvatar';
+import { Marketplace } from "..";
 
 const solSymbol = '◎'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -24,17 +25,17 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'];
   
   const {
-    data: { storefront, nft },
+    data: { marketplace, nft },
   } = await client.query<GetNftPage>({
     query: gql`
       query GetNftPage($subdomain: String!, $address: String!) {
-        storefront(subdomain: $subdomain) {
-          title
-          description
-          logoUrl
-          faviconUrl
-          bannerUrl
-          ownerAddress
+        marketplace(subdomain: $subdomain) {
+          subdomain,
+          name,
+          description,
+          logoUrl,
+          bannerUrl,
+          auctionHouseAddress
         }
         nft(address: $address) {
           name
@@ -56,7 +57,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
     },
   })
 
-  if (isNil(storefront)) {
+  if (isNil(marketplace)) {
     return {
       notFound: true,
     }
@@ -72,6 +73,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
 
 interface GetNftPage {
   storefront: Storefront | null
+  marketplace: Marketplace
   nft: Nft | null
 }
 
