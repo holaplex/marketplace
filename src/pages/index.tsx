@@ -12,6 +12,7 @@ import Select, { OptionsType, ValueType } from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
 import client from '../client'
 import { useState } from 'react'
+import StickyBox from 'react-sticky-box'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -287,12 +288,13 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           >
             Filter
           </button>
-
-          <div className='flex-row flex-none hidden space-y-2 w-64 mr-10 sm:block'>
+          
+          <div className='hidden space-y-2 w-64 mr-10 sm:block'>
             <form
               onSubmit={e => {
                 e.preventDefault()
               }}
+              className='sticky top-0 py-4 max-h-screen overflow-auto'
             >
               <div className='flex flex-col flex-grow mb-6'>
                 <div className='flex justify-between w-full py-2 px-4 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
