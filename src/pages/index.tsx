@@ -275,7 +275,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           <img
             src={storefront.logoUrl}
             alt={storefront.title}
-            className='w-28 h-28 rounded-full border-4 border-gray-900 absolute -top-32'
+            className='w-28 h-28 rounded-full border-4 bg-gray-900 border-gray-900 absolute -top-32'
           />
           <h1>{storefront.title}</h1>
           <p className='mt-4 max-w-prose'>{storefront.description}</p>
@@ -370,7 +370,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                     <p className='mt-2 text-gray-500'>No NFTs found matching these criteria.</p>
                   </div>
                 }
-                <div className='grid grid-cols-1 gap-8 2xl:gap-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4'>
+                <div className='grid grid-cols-1 gap-8 mb-20 md:mb-0 2xl:gap-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
                   {nfts.data?.nfts.map(n => (
                     <Link passHref href={`/nfts/${n.address}`} key={n.address}>
                       <a>
