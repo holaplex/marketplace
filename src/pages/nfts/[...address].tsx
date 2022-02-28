@@ -71,6 +71,22 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   }
 }
 
+interface AuctionHouse {
+  address: string
+  treasury_mint: string
+  auction_house_treasury: string
+  treasury_withdrawal_destination: string
+  fee_withdrawal_destination: string
+  authority: string
+  creator: string
+  auction_house_fee_account: string
+  bump: Number
+  treasury_bump: Number
+  fee_payer_bump: Number 
+  seller_fee_basis_points: Number
+  requires_sign_off: boolean
+  can_change_sale_price: boolean
+}
 interface GetNftPage {
   storefront: Storefront | null
   marketplace: Marketplace

@@ -112,6 +112,23 @@ export interface Marketplace {
   auctionHouseAddress: string
 }
 
+interface AuctionHouse {
+  address: string
+  treasury_mint: string
+  auction_house_treasury: string
+  treasury_withdrawal_destination: string
+  fee_withdrawal_destination: string
+  authority: string
+  creator: string
+  auction_house_fee_account: string
+  bump: Number
+  treasury_bump: Number
+  fee_payer_bump: Number 
+  seller_fee_basis_points: Number
+  requires_sign_off: boolean
+  can_change_sale_price: boolean
+}
+
 interface AttributeVariant {
   name: string
   count: number
@@ -182,7 +199,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
   const [showXsFilter, setShowXsFilter] = useState(false)
 
   return (
-    <div className='text-white bg-gray-900 flex flex-col items-center'>
+    <div className='flex flex-col items-center text-white bg-gray-900'>
       {showXsFilter && (
         <div className='fixed z-20 w-full h-full px-4 py-4 pt-24 bg-black'>
           <button
@@ -273,21 +290,21 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
         </div>
       )}
 
-      <div className='w-full relative'>
+      <div className='relative w-full'>
         <div className="absolute right-8 top-8">
           <WalletMultiButton>Connect</WalletMultiButton>
         </div>
 
-        <img src={storefront.bannerUrl} alt={storefront.title} className='w-full h-80 object-cover' />
+        <img src={storefront.bannerUrl} alt={storefront.title} className='object-cover w-full h-80' />
       </div>
 
       <div className='w-full max-w-[1800px] px-8'>
 
-        <div className='flex flex-col justify-between mt-20 mb-20 w-full relative'>
+        <div className='relative flex flex-col justify-between w-full mt-20 mb-20'>
           <img
             src={storefront.logoUrl}
             alt={storefront.title}
-            className='w-28 h-28 rounded-full border-4 bg-gray-900 border-gray-900 absolute -top-32'
+            className='absolute border-4 border-gray-900 rounded-full w-28 h-28 -top-32'
           />
           <h1>{storefront.title}</h1>
           <p className='mt-4 max-w-prose'>{storefront.description}</p>
@@ -301,7 +318,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
             Filter
           </button>
 
-          <div className='hidden space-y-2 w-64 mr-10 sm:block'>
+          <div className='flex-row flex-none hidden w-64 mr-10 space-y-2 sm:block'>
             <form
               onSubmit={e => {
                 e.preventDefault()
@@ -309,15 +326,15 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
               className='sticky top-0 py-4 max-h-screen overflow-auto'
             >
               <div className='flex flex-col flex-grow mb-6'>
-                <div className='flex justify-between w-full py-2 px-4 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
+                <div className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
                   <h4>Current listings</h4>
                   <span className='text-sm text-gray-500'>0</span>
                 </div>
-                <div className='flex justify-between w-full py-2 px-4 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
+                <div className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
                   <h4>Owned by me</h4>
                   <span className='text-sm text-gray-500'>0</span>
                 </div>
-                <div className='flex justify-between w-full py-2 px-4 mb-1 bg-gray-800 rounded-md cursor-pointer hover:bg-gray-800'>
+                <div className='flex justify-between w-full px-4 py-2 mb-1 bg-gray-800 rounded-md cursor-pointer hover:bg-gray-800'>
                   <h4>Unlisted</h4>
                   <span className='text-sm text-gray-500'>0</span>
                 </div>
@@ -377,7 +394,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
             ) : (
               <div className='container md:mx-auto lg:mx-auto'>
                 {nfts.data?.nfts.length === 0 &&
-                  <div className='w-full p-10 border border-gray-800 rounded-lg text-center'>
+                  <div className='w-full p-10 text-center border border-gray-800 rounded-lg'>
                     <h3>No NFTs found</h3>
                     <p className='mt-2 text-gray-500'>No NFTs found matching these criteria.</p>
                   </div>
