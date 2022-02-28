@@ -107,6 +107,7 @@ interface NftPageProps extends AppProps {
 
 const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
 
+  // For Testing different states
   const isOwner = false
   const isListed = true
   const hasBeenSold = true
@@ -197,11 +198,14 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
                         {!isOwner &&
                           <Link to={`/nfts/${nft.address}/offers/new`} className="flex-1 button secondary">Make Offer</Link>
                         }
-                        {isOwner &&
+                        {isOwner && !isListed &&
                           <Link to={`/nfts/${nft.address}/listings/new`} className="flex-1 button">Sell NFT</Link>
                         }
-                        {isListed &&
+                        {isListed && !isOwner &&
                           <button className="button flex-1">Buy Now</button>
+                        }
+                        {isListed && isOwner &&
+                          <button className="button secondary flex-1">Cancel Listing</button>
                         }
                       </>
                     )}
@@ -222,7 +226,7 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
               {nft.attributes.map((a) => (
                 <div key={a.traitType} className="p-3 rounded border border-gray-700">
                   <p className="label uppercase">{a.traitType}</p>
-                  <p>{a.value}</p>
+                  <p className="text-ellipsis truncate" title={a.value}>{a.value}</p>
                 </div>
               ))}
             </div>
