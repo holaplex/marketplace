@@ -16,14 +16,13 @@ const SellNft = ({ nft }: OfferProps) => {
 
   return (
     <form
-      className="text-left"
+      className="text-left grow"
       onSubmit={(e) => {
         e.preventDefault();
       }
       }>
       <h3 className="text-xl md:text-2xl font-bold mb-6">Sell this Nft</h3>
-      <label className="mb-1 block">Price in SOL</label>
-      <div className="prefix-input prefix-icon-sol">
+      <div className="">
         <Controller
           control={control}
           name="amount"
@@ -37,14 +36,17 @@ const SellNft = ({ nft }: OfferProps) => {
 
             return (
               <>
-                <input
-                  autoFocus
-                  value={value}
-                  onChange={(e: any) => {
-                    onChange(e.target.value);
-                  }}
-                  className="bg-transparent focus:outline-none mb-4 pl-8 border-gray-500 border-2 w-full h-10 rounded-md"
-                />
+                <div className='sol-input-wrapper mb-4'>
+                  <input
+                    autoFocus
+                    value={value}
+                    onChange={(e: any) => {
+                      onChange(e.target.value);
+                    }}
+                    placeholder="Price in SOL"
+                    className="input"
+                  />
+                </div>
                 <div className="flex flex-col gap-2 mb-4">
                   <div className="flex justify-between">
                     <span className="text-gray-400">{nft.sellerFeeBasisPoints / 100}% creator royalty</span>
@@ -73,11 +75,9 @@ const SellNft = ({ nft }: OfferProps) => {
           }}
         />
       </div>
-      <div className="grid grid-cols-2 flex-grow gap-4">
-        <Link to={`/nfts/${nft.address}`}>
-          <button className="text-sm text-white w-full transition-colors duration-150 bg-black rounded-full h-12 lg:text-xl md:text-base focus:shadow-outline hover:bg-black">Cancel</button>
-        </Link>
-        <button className="text-sm text-black transition-colors duration-150 bg-white rounded-full h-12 lg:text-xl md:text-base focus:shadow-outline hover:bg-white">List for sale</button>
+      <div className="flex gap-4">
+        <Link to={`/nfts/${nft.address}`} className='button secondary flex-1'>Cancel</Link>
+        <button className="button flex-1">List for sale</button>
       </div>
     </form>
   )

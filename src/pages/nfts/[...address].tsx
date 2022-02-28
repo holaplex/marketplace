@@ -11,6 +11,7 @@ import NextLink from 'next/link'
 import { Route, Routes } from 'react-router-dom'
 import Offer from '../../components/Offer';
 import SellNft from '../../components/SellNft';
+import WalletWithAvatar from '../../components/WalletWithAvatar';
 
 const solSymbol = '◎'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -105,6 +106,11 @@ interface NftPageProps extends AppProps {
 }
 
 const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
+
+  const isOwner = false
+  const isListed = true
+  const hasBeenSold = true
+  
   return (
     <>
       <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
@@ -118,11 +124,11 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
         </NextLink>
         <WalletMultiButton>Connect</WalletMultiButton>
       </div>
-      <div className="container pb-10 mx-auto text-white">
-        <div className="grid grid-cols-1 mt-12 mb-10 lg:grid-cols-2">
-          <div className="block px-4 mb-4 lg:mb-0 lg:flex lg:items-center lg:justify-center ">
+      <div className="container px-4 pb-10 mx-auto text-white">
+        <div className="grid grid-cols-1 gap-6 mt-12 mb-10 lg:grid-cols-2 items-start">
+          <div className="block mb-4 lg:mb-0 lg:flex lg:items-center lg:justify-center ">
             <div className="block mb-6 lg:hidden">
-            <p className="mb-4 text-2xl lg:text-4xl md:text-3xl">
+              <p className="mb-4 text-2xl lg:text-4xl md:text-3xl">
                 <b>{nft.name}</b>
               </p>
               <p className="text-lg">{nft.description}</p>
@@ -132,17 +138,90 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
               className="block h-auto max-w-full border-none rounded-lg shadow"
             />
           </div>
-          <div className="px-4">
-            <div className="hidden lg:block xl:block 2xl:block">
+          <div className="">
+            <div className="hidden lg:block mb-8">
               <p className="mb-4 text-2xl lg:text-4xl md:text-3xl">
                 <b>{nft.name}</b>
               </p>
               <p className="text-lg">{nft.description}</p>
             </div>
+
+            {hasBeenSold &&
+              <div className="flex-1 mb-8">
+                <div className="label mb-1">CREATOR</div>
+                <WalletWithAvatar
+                  walletAddress={storefront.ownerAddress}
+                  avatarUrl={storefront.logoUrl}
+                />
+              </div>
+            }
+
+            <div className="w-full p-6 rounded-lg bg-gray-800 mt-8">
+              
+              <div className="mb-6 flex">
+                {isListed &&
+                  <div className="flex-1">
+                    <div className="label">PRICE</div>
+                    <p className="text-base md:text-xl lg:text-3xl">
+                      <b>{solSymbol} 1.5</b>
+                    </p>
+                  </div>
+                }
+                {(hasBeenSold && !isListed) &&
+                  <div className="flex-1">
+                    <div className="label mb-2">LAST PRICE</div>
+                    <div className="label icon-sol">5.0</div>
+                  </div>
+                }
+                {(!hasBeenSold && !isListed) &&
+                  <div className="flex-1">
+                    <div className="label mb-2">MINTED</div>
+                    <div className="label">4 days ago</div>
+                  </div>
+                }
+                <div className="flex-1">
+                  <div className="label mb-1">{hasBeenSold ? 'OWNER' : 'CREATOR'}</div>
+                  <WalletWithAvatar
+                    walletAddress={storefront.ownerAddress}
+                    avatarUrl={storefront.logoUrl}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4 overflow-visible">
+                <Routes>
+                  <Route
+                    path={`/nfts/${nft.address}`}
+                    element={(
+                      <>
+                        {!isOwner &&
+                          <Link to={`/nfts/${nft.address}/offers/new`} className="flex-1 button secondary">Make Offer</Link>
+                        }
+                        {isOwner &&
+                          <Link to={`/nfts/${nft.address}/listings/new`} className="flex-1 button">Sell NFT</Link>
+                        }
+                        {isListed &&
+                          <button className="button flex-1">Buy Now</button>
+                        }
+                      </>
+                    )}
+                  />
+                  <Route
+                    path={`/nfts/${nft.address}/offers/new`}
+                    element={<Offer nft={nft} />}
+                  />
+                  <Route
+                    path={`/nfts/${nft.address}/listings/new`}
+                    element={<SellNft nft={nft} />}
+                  />
+                </Routes>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-6 mt-8">
               {nft.attributes.map((a) => (
-                <div key={a.traitType} className="px-4 py-4 rounded border border-[#383838]">
-                  <p className="text-lg text-gray-300 uppercase">{a.traitType}</p>
+                <div key={a.traitType} className="p-3 rounded border border-gray-700">
+                  <p className="label uppercase">{a.traitType}</p>
                   <p>{a.value}</p>
                 </div>
               ))}
@@ -150,72 +229,29 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
           </div>
         </div>
 
-        <div className="w-full md:flex p-6 rounded-lg bg-[#282828]">
-          <div className="mb-6 w-12/12 md:w-5/12 lg:w-7/12 md:mb-0">
-            <div className="flex grid-cols-2">
-
-              <div className="grow">
-                <p className="text-gray-400">OWNER</p>
-                <img
-                  src={storefront.logoUrl}
-                  className="object-contain rounded-full inline-block h-[24px] mr-2"
-                />
-                <span className="font-mono text-lg tracking-wider">{storefront.ownerAddress.slice(0,4) + "..." + storefront.ownerAddress.slice(-4) }</span>
-              </div>
-
-              <div className="grow">
-                <p className="text-gray-400 xs:float-left lg:float-none">
-                  PRICE
-                </p>
-                <p className="text-base md:text-xl lg:text-3xl">
-                  <b>{solSymbol} 1.5</b>
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="text-center md:mx-0 md:px-0 w-12/12 md:w-7/12 lg:w-5/12">
-            <Routes>
-              <Route
-                path={`/nfts/${nft.address}`}
-                element={(
-                  <div className="grid flex-grow grid-cols-2 gap-4">
-                    <Link to={`/nfts/${nft.address}/offers/new`} className="w-full">
-                      <button className="w-full px-10 text-sm text-white transition-colors duration-150 bg-black rounded-full h-14 lg:text-xl md:text-base focus:shadow-outline hover:bg-black">
-                        Make Offer
-                      </button>
-                    </Link>
-                    <Link to={`/nfts/${nft.address}/listings/new`} className="w-full">
-                      <button className="w-full px-10 text-sm text-black transition-colors duration-150 bg-white rounded-full hover:bg-gray-100 h-14 lg:text-xl md:text-base focus:shadow-outline">
-                        Sell NFT
-                      </button>
-                    </Link>
-                    <button className="w-full px-10 text-sm text-black transition-colors duration-150 bg-white rounded-full h-14 lg:text-xl md:text-base focus:shadow-outline hover:bg-gray-100">
-                      Buy Now
-                    </button>
-                  </div>
-                )}
-              />
-              <Route
-                path={`/nfts/${nft.address}/offers/new`}
-                element={<Offer nft={nft} />}
-              />
-              <Route
-                path={`/nfts/${nft.address}/listings/new`}
-                element={<SellNft nft={nft} />}
-              />
-            </Routes>
-          </div>
-        </div>
+        
         <div className="flex justify-between px-4 mt-10 mb-10 text-sm sm:text-base md:text-lg ">
           <div className="w-full">
             <h1 className="text-xl md:text-2xl">
               <b>Offers</b>
             </h1>
 
-            <div className="grid grid-cols-3 p-4 text-gray-400 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 2xl:grid-cols-4">
-              <div>FROM</div>
-              <div>PRICE</div>
-              <div>DATE</div>
+            <div className="grid grid-cols-3 p-4 sm:grid-cols-4">
+              <div className="label uppercase">FROM</div>
+              <div className="label uppercase">PRICE</div>
+              <div className="label uppercase">DATE</div>
+            </div>
+
+            <div className="grid grid-cols-3 sm:grid-cols-4 rounded-lg p-4 mb-4 border border-gray-700">
+              <div>
+                <img
+                  src="https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg"
+                  className="object-contain rounded-full mr-2 inline-block h-[30px]"
+                />
+                <span>@skelly</span>
+              </div>
+              <div className="icon-sol">75</div>
+              <div>3 hours ago</div>
             </div>
 
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 2xl:grid-cols-4 rounded-lg p-4 mb-4 border border-[#383838]">
@@ -226,19 +262,7 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
                 />
                 <span>@skelly</span>
               </div>
-              <div className=">{solSymbol} 75</div>
-            <div className=">3 hours ago</div>
-            </div>
-
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 2xl:grid-cols-4 rounded-lg p-4 mb-4 border border-[#383838]">
-              <div>
-                <img
-                  src="https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg"
-                  className="object-contain rounded-full mr-2 inline-block h-[30px]"
-                />
-                <span>@skelly</span>
-              </div>
-              <div>{solSymbol} 100</div>
+              <div className="icon-sol">100</div>
               <div>10 hours ago</div>
             </div>
           </div>
