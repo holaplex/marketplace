@@ -45,11 +45,28 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             value
           }
         }
+        auctionHouse(address: $auctionHouse){
+          address
+          treasury_mint
+          auction_house_treasury
+          treasury_withdrawl_destination
+          fee_withdrawl_destination
+          authority
+          creator
+          bump
+          treasury_bump
+          fee_payer_bump
+          seller_fee_basis_points
+          requires_sign_off
+          can_change_sale_price
+          auction_house_fee_account
+        }
       }
     `,
     variables: {
       subdomain: (subdomain || SUBDOMAIN),
       address: (query?.address || [])[0],
+      auctionHouse: (subdomain || SUBDOMAIN),
     },
   })
 
@@ -78,6 +95,7 @@ interface GetNftPage {
 interface NftPageProps extends AppProps {
   marketplace: Marketplace
   nft: Nft
+  auctionHouse: AuctionHouse
 }
 
 const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
@@ -101,7 +119,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
         <WalletMultiButton>Connect</WalletMultiButton>
       </div>
       <div className="container px-4 pb-10 mx-auto text-white">
-        <div className="grid grid-cols-1 gap-6 mt-12 mb-10 lg:grid-cols-2 items-start">
+        <div className="grid items-start grid-cols-1 gap-6 mt-12 mb-10 lg:grid-cols-2">
           <div className="block mb-4 lg:mb-0 lg:flex lg:items-center lg:justify-center ">
             <div className="block mb-6 lg:hidden">
               <p className="mb-4 text-2xl lg:text-4xl md:text-3xl">
@@ -115,7 +133,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
             />
           </div>
           <div className="">
-            <div className="hidden lg:block mb-8">
+            <div className="hidden mb-8 lg:block">
               <p className="mb-4 text-2xl lg:text-4xl md:text-3xl">
                 <b>{nft.name}</b>
               </p>
@@ -124,7 +142,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
 
             {hasBeenSold &&
               <div className="flex-1 mb-8">
-                <div className="label mb-1">CREATOR</div>
+                <div className="mb-1 label">CREATOR</div>
                 <WalletWithAvatar
                   walletAddress={marketplace.ownerAddress}
                   avatarUrl={marketplace.logoUrl}
@@ -132,9 +150,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               </div>
             }
 
-            <div className="w-full p-6 rounded-lg bg-gray-800 mt-8">
+            <div className="w-full p-6 mt-8 bg-gray-800 rounded-lg">
               
-              <div className="mb-6 flex">
+              <div className="flex mb-6">
                 {isListed &&
                   <div className="flex-1">
                     <div className="label">PRICE</div>
@@ -145,18 +163,18 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 }
                 {(hasBeenSold && !isListed) &&
                   <div className="flex-1">
-                    <div className="label mb-2">LAST PRICE</div>
+                    <div className="mb-2 label">LAST PRICE</div>
                     <div className="label icon-sol">5.0</div>
                   </div>
                 }
                 {(!hasBeenSold && !isListed) &&
                   <div className="flex-1">
-                    <div className="label mb-2">MINTED</div>
+                    <div className="mb-2 label">MINTED</div>
                     <div className="label">4 days ago</div>
                   </div>
                 }
                 <div className="flex-1">
-                  <div className="label mb-1">{hasBeenSold ? 'OWNER' : 'CREATOR'}</div>
+                  <div className="mb-1 label">{hasBeenSold ? 'OWNER' : 'CREATOR'}</div>
                   <WalletWithAvatar
                     walletAddress={marketplace.ownerAddress}
                     avatarUrl={marketplace.logoUrl}
@@ -177,10 +195,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                           <Link to={`/nfts/${nft.address}/listings/new`} className="flex-1 button">Sell NFT</Link>
                         }
                         {isListed && !isOwner &&
-                          <button className="button flex-1">Buy Now</button>
+                          <button className="flex-1 button">Buy Now</button>
                         }
                         {isListed && isOwner &&
-                          <button className="button secondary flex-1">Cancel Listing</button>
+                          <button className="flex-1 button secondary">Cancel Listing</button>
                         }
                       </>
                     )}
@@ -199,9 +217,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
 
             <div className="grid grid-cols-2 gap-6 mt-8">
               {nft.attributes.map((a) => (
-                <div key={a.traitType} className="p-3 rounded border border-gray-700">
-                  <p className="label uppercase">{a.traitType}</p>
-                  <p className="text-ellipsis truncate" title={a.value}>{a.value}</p>
+                <div key={a.traitType} className="p-3 border border-gray-700 rounded">
+                  <p className="uppercase label">{a.traitType}</p>
+                  <p className="truncate text-ellipsis" title={a.value}>{a.value}</p>
                 </div>
               ))}
             </div>
@@ -216,12 +234,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
             </h1>
 
             <div className="grid grid-cols-3 p-4 sm:grid-cols-4">
-              <div className="label uppercase">FROM</div>
-              <div className="label uppercase">PRICE</div>
-              <div className="label uppercase">DATE</div>
+              <div className="uppercase label">FROM</div>
+              <div className="uppercase label">PRICE</div>
+              <div className="uppercase label">DATE</div>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 rounded-lg p-4 mb-4 border border-gray-700">
+            <div className="grid grid-cols-3 p-4 mb-4 border border-gray-700 rounded-lg sm:grid-cols-4">
               <div>
                 <img
                   src="https://arweave.cache.holaplex.com/jCOsXoir5WC8dcxzM-e53XSOL8mAvO0DetErDLSbMRg"

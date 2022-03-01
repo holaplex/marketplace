@@ -260,7 +260,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               onSubmit={e => {
                 e.preventDefault()
               }}
-              className='sticky top-0 py-4 max-h-screen overflow-auto'
+              className='sticky top-0 max-h-screen py-4 overflow-auto'
             >
               <div className='flex flex-col flex-grow mb-6'>
                 <div className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
@@ -354,12 +354,12 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                               {nft.name}
                             </h4>
                             <div className='flex items-center'>
-                              <img src={nft.image as string} className='h-4 w-4 rounded-full bg-gray-800 m-0 outline-none mr-1' />
+                              <img src={nft.image as string} className='w-4 h-4 m-0 mr-1 bg-gray-800 rounded-full outline-none' />
                               <label className='label truncate ...'>TODO: Creator Name and avatar</label>
                             </div>
                           </header>
                           {listingType === 'buyNow' &&
-                            <footer className='flex gap-2 h-20 items-center px-4'>
+                            <footer className='flex items-center h-20 gap-2 px-4'>
                               <div className='flex-1 mr-auto'>
                                 <p className='label'>Price</p>
                                 <p className='font-semibold icon-sol'>12</p>
@@ -368,18 +368,18 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                             </footer>
                           }
                           {listingType === 'unlisted' &&
-                            <footer className='grid h-20 items-center px-4'>
+                            <footer className='grid items-center h-20 px-4'>
                               <div>
                                 <p className='label'>Last Price</p>
-                                <p className='font-semibold icon-sol text-gray-300'>12</p>
+                                <p className='font-semibold text-gray-300 icon-sol'>12</p>
                               </div>
                             </footer>
                           }
                           {listingType === 'neverListed' &&
-                            <footer className='grid h-20 items-center px-4'>
+                            <footer className='grid items-center h-20 px-4'>
                               <div>
                                 <p className='label'>Minted</p>
-                                <p className='label text-sm'>6 days ago</p>
+                                <p className='text-sm label'>6 days ago</p>
                               </div>
                             </footer>
                           }
