@@ -61,8 +61,24 @@ export async function getServerSideProps({ req }: NextPageContext) {
           description
           logoUrl
           bannerUrl
-          auctionHouseAddress
           ownerAddress
+          auctionHouse{
+            address
+            treasuryMint
+            auctionHouseTreasury
+            treasuryWithdrawalDestination
+            feeWithdrawalDestination
+            authority
+            creator
+            auctionHouseFeeAccount
+            bump
+            treasuryBump
+            feePayerBump
+            sellerFeeBasisPoints
+            requireSignOff
+            canChangeSalePrice
+          }
+          }
         }
       }
     `,

@@ -31,7 +31,22 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           description
           logoUrl
           bannerUrl
-          auctionHouseAddress
+          auctionHouse{
+            address
+            treasuryMint
+            auctionHouseTreasury
+            treasuryWithdrawalDestination
+            feeWithdrawalDestination
+            authority
+            creator
+            auctionHouseFeeAccount
+            bump
+            treasuryBump
+            feePayerBump
+            sellerFeeBasisPoints
+            requireSignOff
+            canChangeSalePrice
+          }
         }
         nft(address: $address) {
           name
@@ -45,28 +60,11 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             value
           }
         }
-        auctionHouse(address: $auctionHouse){
-          address
-          treasury_mint
-          auction_house_treasury
-          treasury_withdrawl_destination
-          fee_withdrawl_destination
-          authority
-          creator
-          bump
-          treasury_bump
-          fee_payer_bump
-          seller_fee_basis_points
-          requires_sign_off
-          can_change_sale_price
-          auction_house_fee_account
-        }
       }
     `,
     variables: {
       subdomain: (subdomain || SUBDOMAIN),
       address: (query?.address || [])[0],
-      auctionHouse: (subdomain || SUBDOMAIN),
     },
   })
 
@@ -84,18 +82,14 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   }
 }
 
-
 interface GetNftPage {
   marketplace: Marketplace | null
   nft: Nft | null
 }
 
-
-
 interface NftPageProps extends AppProps {
   marketplace: Marketplace
   nft: Nft
-  auctionHouse: AuctionHouse
 }
 
 const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
