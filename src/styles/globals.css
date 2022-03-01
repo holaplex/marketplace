@@ -31,7 +31,11 @@
   }
 
   .button {
-    @apply flex text-center items-center justify-center h-12 text-gray-900 bg-white hover:scale-[1.02] rounded-full whitespace-nowrap transition-transform grow;
+    @apply flex font-semibold items-center justify-center h-12 text-gray-900 bg-white hover:scale-[1.02] px-4 rounded-full whitespace-nowrap transition-transform grow;
+  }
+
+  .button.small {
+    @apply h-10 text-sm;
   }
 
   .button.secondary {
