@@ -47,11 +47,28 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             value
           }
         }
+        auctionHouse(address: $auctionHouse){
+          address
+          treasury_mint
+          auction_house_treasury
+          treasury_withdrawl_destination
+          fee_withdrawl_destination
+          authority
+          creator
+          bump
+          treasury_bump
+          fee_payer_bump
+          seller_fee_basis_points
+          requires_sign_off
+          can_change_sale_price
+          auction_house_fee_account
+        }
       }
     `,
     variables: {
       subdomain: (subdomain || SUBDOMAIN),
       address: (query?.address || [])[0],
+      auctionHouse: (subdomain || SUBDOMAIN),
     },
   })
 
@@ -102,9 +119,10 @@ interface Nft {
 interface NftPageProps extends AppProps {
   storefront: Storefront
   nft: Nft
+  auctionHouse: AuctionHouse
 }
 
-const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
+const Nft: NextPage<NftPageProps> = ({ storefront, nft, auctionHouse }) => {
   return (
     <>
       <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
