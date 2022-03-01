@@ -11,7 +11,7 @@ import Select from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
 import client from '../client'
 import { useState } from 'react'
-import { Marketplace, Creator, Nft, AuctionHouse } from '../types';
+import { Marketplace, Creator, Nft } from '../types';
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
