@@ -1,31 +1,21 @@
 import { useEffect } from 'react'
 import next, { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
+import Link from 'next/link'
 import {
-  WalletDisconnectButton,
   WalletMultiButton,
 } from '@solana/wallet-adapter-react-ui'
-import { isNil, modify, map, filter, pipe, prop, isEmpty, not } from 'ramda'
+import { isNil, map, modify, filter, pipe, prop, isEmpty, not } from 'ramda'
 import { AppProps } from 'next/app'
-import Select, { OptionsType, ValueType } from 'react-select'
+import Select from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
 import client from '../client'
 import { useState } from 'react'
-import NFTCard from '../components/NFTCard'
+import { Marketplace, Creator, Nft } from '../types';
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
 type OptionType = { label: string; value: number }
-const solSymbol = '◎'
-
-interface Nft {
-  name: string
-  address: string
-  uri: string
-  creators: string[]
-  description: string
-  image: string
-}
 
 interface GetNftsData {
   nfts: Nft[]
@@ -61,16 +51,17 @@ export async function getServerSideProps({ req }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'];
 
   const {
-    data: { storefront },
-  } = await client.query<GetStorefront>({
+    data: { marketplace },
+  } = await client.query<GetMarketplace>({
     query: gql`
-      query GetStorefront($subdomain: String!) {
-        storefront(subdomain: $subdomain) {
-          title
+      query GetMarketplace($subdomain: String!) {
+        marketplace(subdomain: $subdomain) {
+          subdomain
+          name
           description
           logoUrl
-          faviconUrl
           bannerUrl
+          auctionHouseAddress
           ownerAddress
         }
       }
@@ -80,7 +71,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
     },
   })
 
-  if (isNil(storefront)) {
+  if (isNil(marketplace)) {
     return {
       notFound: true,
     }
@@ -88,63 +79,9 @@ export async function getServerSideProps({ req }: NextPageContext) {
 
   return {
     props: {
-      storefront,
+      marketplace,
     },
   }
-}
-
-interface Storefront {
-  title: string
-  description: string
-  logoUrl: string
-  bannerUrl: string
-  faviconUrl: string
-  subdomain: string
-  ownerAddress: string
-}
-
-export interface Marketplace {
-  subdomain: string,
-  name: string,
-  description: string,
-  logoUrl: string,
-  bannerUrl: string,
-  auctionHouseAddress: string
-}
-
-interface AuctionHouse {
-  address: string
-  treasury_mint: string
-  auction_house_treasury: string
-  treasury_withdrawal_destination: string
-  fee_withdrawal_destination: string
-  authority: string
-  creator: string
-  auction_house_fee_account: string
-  bump: Number
-  treasury_bump: Number
-  fee_payer_bump: Number 
-  seller_fee_basis_points: Number
-  requires_sign_off: boolean
-  can_change_sale_price: boolean
-}
-
-interface AttributeVariant {
-  name: string
-  count: number
-}
-interface AttributeGroup {
-  name: string
-  variants: AttributeVariant[]
-}
-
-interface Creator {
-  addresss: string
-  attributeGroups: AttributeGroup[]
-}
-
-interface GetStorefront {
-  storefront: Storefront | null
 }
 
 interface GetMarketplace {
@@ -156,7 +93,7 @@ interface GetSidebar {
 }
 
 interface HomePageProps extends AppProps {
-  storefront: Storefront
+  marketplace: Marketplace
 }
 
 interface AttributeFilter {
@@ -166,16 +103,16 @@ interface AttributeFilter {
 interface NFTFilterForm {
   attributes: AttributeFilter[]
 }
-const Home: NextPage<HomePageProps> = ({ storefront }) => {
+const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const nfts = useQuery<GetNftsData>(GET_NFTS, {
     variables: {
-      creators: [storefront.ownerAddress],
+      creators: [marketplace.ownerAddress],
     },
   })
 
   const sidebar = useQuery<GetSidebar>(GET_SIDEBAR, {
     variables: {
-      address: storefront.ownerAddress,
+      address: marketplace.ownerAddress,
     },
   })
 
@@ -189,7 +126,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
       )(attributes)
 
       nfts.refetch({
-        creators: [storefront.ownerAddress],
+        creators: [marketplace.ownerAddress],
         attributes: next,
       })
     })
@@ -295,19 +232,19 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           <WalletMultiButton>Connect</WalletMultiButton>
         </div>
 
-        <img src={storefront.bannerUrl} alt={storefront.title} className='object-cover w-full h-80' />
+        <img src={marketplace.bannerUrl} alt={marketplace.title} className='object-cover w-full h-80' />
       </div>
 
       <div className='w-full max-w-[1800px] px-8'>
 
         <div className='relative flex flex-col justify-between w-full mt-20 mb-20'>
           <img
-            src={storefront.logoUrl}
-            alt={storefront.title}
+            src={marketplace.logoUrl}
+            alt={marketplace.title}
             className='absolute border-4 border-gray-900 rounded-full w-28 h-28 -top-32'
           />
-          <h1>{storefront.title}</h1>
-          <p className='mt-4 max-w-prose'>{storefront.description}</p>
+          <h1>{marketplace.title}</h1>
+          <p className='mt-4 max-w-prose'>{marketplace.description}</p>
         </div>
 
         <div className='flex'>
@@ -400,9 +337,57 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                   </div>
                 }
                 <div className='grid grid-cols-1 gap-8 mb-20 md:mb-0 2xl:gap-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
-                  {nfts.data?.nfts.map(n => (
-                    <NFTCard nft={n} />
-                  ))}
+                  {nfts.data?.nfts.map(nft => {
+                    const listingType = 'buyNow';
+
+                    return (
+                      <Link passHref href={`/nfts/${nft.address}`} key={nft.address}>
+                      <a>
+                        <article className='overflow-hidden rounded-lg transition duration-100 transform cursor-pointer bg-gray-900 shadow-card	hover:scale-[1.02]'>
+                          <img
+                            alt='Placeholder'
+                            className='block w-full aspect-square'
+                            src={nft.image as string}
+                          />
+                          <header className='p-4'>
+                            <h4 className='lg:text-base mb-2 text-sm truncate ...'>
+                              {nft.name}
+                            </h4>
+                            <div className='flex items-center'>
+                              <img src={nft.image as string} className='h-4 w-4 rounded-full bg-gray-800 m-0 outline-none mr-1' />
+                              <label className='label truncate ...'>TODO: Creator Name and avatar</label>
+                            </div>
+                          </header>
+                          {listingType === 'buyNow' &&
+                            <footer className='flex gap-2 h-20 items-center px-4'>
+                              <div className='flex-1 mr-auto'>
+                                <p className='label'>Price</p>
+                                <p className='font-semibold icon-sol'>12</p>
+                              </div>
+                              <div className='button small grow-0'>Buy Now</div>
+                            </footer>
+                          }
+                          {listingType === 'unlisted' &&
+                            <footer className='grid h-20 items-center px-4'>
+                              <div>
+                                <p className='label'>Last Price</p>
+                                <p className='font-semibold icon-sol text-gray-300'>12</p>
+                              </div>
+                            </footer>
+                          }
+                          {listingType === 'neverListed' &&
+                            <footer className='grid h-20 items-center px-4'>
+                              <div>
+                                <p className='label'>Minted</p>
+                                <p className='label text-sm'>6 days ago</p>
+                              </div>
+                            </footer>
+                          }
+                        </article>
+                      </a>
+                    </Link >
+                    )
+                  })}
                 </div>
               </div>
             )}
