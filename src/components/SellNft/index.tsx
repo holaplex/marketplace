@@ -18,7 +18,7 @@ interface OfferProps {
   ah: any;
 }
 
-const SellNft = ({ nft, ah }: OfferProps) => {
+const SellNft = ({ nft }: OfferProps) => {
   const { control, watch } = useForm<OfferForm>({});
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
@@ -27,9 +27,9 @@ const SellNft = ({ nft, ah }: OfferProps) => {
   const sellNftTransaction = async () => {
     const sellPrice = String(Number(sellAmount) * LAMPORTS_PER_SOL)
     const tokenSize = '1'
-    const auctionHouse = new PublicKey(ah.address)
-    const authority = new PublicKey(ah.authority)
-    const auctionHouseFeeAccount = new PublicKey(ah.auction_house_fee_account)
+    const auctionHouse = new PublicKey(nft.auctionHouse.address)
+    const authority = new PublicKey(nft.auctionHouse.authority)
+    const auctionHouseFeeAccount = new PublicKey(nft.auctionHouse.auctionHouseFeeAccount)
 
     const tokenMint = new PublicKey(nft.mintAddress)
 
