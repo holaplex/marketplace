@@ -7,12 +7,11 @@ import {
 } from '@solana/wallet-adapter-react-ui'
 import { isNil, modify, map, filter, pipe, prop, isEmpty, not } from 'ramda'
 import { AppProps } from 'next/app'
-import Link from 'next/link'
 import Select, { OptionsType, ValueType } from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
 import client from '../client'
 import { useState } from 'react'
-import StickyBox from 'react-sticky-box'
+import NFTCard from '../components/NFTCard'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -288,7 +287,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
           >
             Filter
           </button>
-          
+
           <div className='hidden space-y-2 w-64 mr-10 sm:block'>
             <form
               onSubmit={e => {
@@ -372,47 +371,7 @@ const Home: NextPage<HomePageProps> = ({ storefront }) => {
                 }
                 <div className='grid grid-cols-1 gap-8 mb-20 md:mb-0 2xl:gap-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
                   {nfts.data?.nfts.map(n => (
-                    <Link passHref href={`/nfts/${n.address}`} key={n.address}>
-                      <a>
-                        <article className='overflow-hidden rounded-lg transition duration-100 transform cursor-pointer bg-gray-900 shadow-card	hover:scale-[1.02]'>
-                          <img
-                            alt='Placeholder'
-                            className='block w-full aspect-square'
-                            src={n.image as string}
-                          />
-                          <header className='p-4'>
-                            <p className='lg:text-base mb-2 text-sm truncate ...'>
-                              {n.name}
-                            </p>
-                            <p className='text-sm text-[#a8a8a8]'>
-                              <span>
-                                {' '}
-                                <img
-                                  src={storefront.logoUrl}
-                                  className='object-fill rounded-full inline-block h-[16px] mr-1'
-                                />
-                              </span>
-                              {storefront.title}
-                            </p>
-                          </header>
-
-                          <footer className='grid grid-cols-2 gap-2 p-4 bg-[#262626] rounded-t-none rounded-b-lg'>
-                            <div>
-                              <p className='text-[#a8a8a8] text-sm'>
-                                Current Bid
-                              </p>
-                              <p className='text-sm'>{solSymbol} 33</p>
-                            </div>
-                            <div>
-                              <p className='text-right text-[#a8a8a8] text-sm'>
-                                Ends In
-                              </p>
-                              <p className='text-sm text-right '>19h 48m 53s</p>
-                            </div>
-                          </footer>
-                        </article>
-                      </a>
-                    </Link>
+                    <NFTCard nft={n} />
                   ))}
                 </div>
               </div>
