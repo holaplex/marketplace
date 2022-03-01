@@ -12,29 +12,26 @@ import { Route, Routes } from 'react-router-dom'
 import Offer from '../../components/Offer';
 import SellNft from '../../components/SellNft';
 import WalletWithAvatar from '../../components/WalletWithAvatar';
+import { Marketplace, Nft } from "../../types";
 
 const solSymbol = '◎'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
-
-interface NextPageContextWithParams extends NextPageContext {
-  params: any;
-}
 
 export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'];
   
   const {
-    data: { storefront, nft },
+    data: { marketplace, nft },
   } = await client.query<GetNftPage>({
     query: gql`
       query GetNftPage($subdomain: String!, $address: String!) {
-        storefront(subdomain: $subdomain) {
-          title
+        marketplace(subdomain: $subdomain) {
+          subdomain
+          name
           description
           logoUrl
-          faviconUrl
           bannerUrl
-          ownerAddress
+          auctionHouseAddress
         }
         nft(address: $address) {
           name
@@ -56,7 +53,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
     },
   })
 
-  if (isNil(storefront)) {
+  if (isNil(marketplace)) {
     return {
       notFound: true,
     }
@@ -64,48 +61,26 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
 
   return {
     props: {
-      storefront,
+      marketplace,
       nft,
     },
   }
 }
 
+
 interface GetNftPage {
-  storefront: Storefront | null
+  marketplace: Marketplace | null
   nft: Nft | null
 }
 
-interface Storefront {
-  title: string
-  description: string
-  logoUrl: string
-  bannerUrl: string
-  faviconUrl: string
-  subdomain: string
-  ownerAddress: string
-}
 
-interface NftAttribute {
-  value: string
-  traitType: string
-}
-
-interface Nft {
-  name: string
-  address: string
-  description: string
-  image: string
-  sellerFeeBasisPoints: number
-  mintAddress: string
-  attributes: NftAttribute[]
-}
 
 interface NftPageProps extends AppProps {
-  storefront: Storefront
+  marketplace: Marketplace
   nft: Nft
 }
 
-const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
+const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
 
   // For Testing different states
   const isOwner = false
@@ -118,8 +93,8 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
         <NextLink href="/">
           <a>
             <button className="flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 rounded-full align h-14 hover:bg-gray-600">
-              <img className="w-8 h-8 rounded-full aspect-square" src={storefront.logoUrl} />
-              {storefront.title}
+              <img className="w-8 h-8 rounded-full aspect-square" src={marketplace.logoUrl} />
+              {marketplace.name}
               </button>
           </a>
         </NextLink>
@@ -151,8 +126,8 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
               <div className="flex-1 mb-8">
                 <div className="label mb-1">CREATOR</div>
                 <WalletWithAvatar
-                  walletAddress={storefront.ownerAddress}
-                  avatarUrl={storefront.logoUrl}
+                  walletAddress={marketplace.ownerAddress}
+                  avatarUrl={marketplace.logoUrl}
                 />
               </div>
             }
@@ -183,8 +158,8 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
                 <div className="flex-1">
                   <div className="label mb-1">{hasBeenSold ? 'OWNER' : 'CREATOR'}</div>
                   <WalletWithAvatar
-                    walletAddress={storefront.ownerAddress}
-                    avatarUrl={storefront.logoUrl}
+                    walletAddress={marketplace.ownerAddress}
+                    avatarUrl={marketplace.logoUrl}
                   />
                 </div>
               </div>
@@ -277,4 +252,4 @@ const Nft: NextPage<NftPageProps> = ({ storefront, nft }) => {
   )
 }
 
-export default Nft
+export default NftShow
