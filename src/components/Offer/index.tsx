@@ -6,6 +6,7 @@ import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house';
 import { MetadataProgram } from  '@metaplex-foundation/mpl-token-metadata';
 import { Transaction, PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
+import { Nft, Marketplace } from '../../types'
 
 const NATIVE_MINT = new PublicKey("So11111111111111111111111111111111111111112")
 interface OfferForm {
@@ -13,8 +14,8 @@ interface OfferForm {
 }
 
 interface OfferProps {
-  nft: any;
-  marketplace: any;
+  nft: Nft;
+  marketplace: Marketplace;
 }
 
 const Offer = ({ nft, marketplace }: OfferProps) => {
@@ -27,7 +28,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
     const tokenSize = '1';
     const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
     const authority = new PublicKey(marketplace.auctionHouse.authority)
-    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auctionHouseFeeAccount)
+    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auction_houseFeeAccount)
     const tokenMint = new PublicKey(nft.mintAddress);
     const associatedTokenAccount = (
       await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address)) 
