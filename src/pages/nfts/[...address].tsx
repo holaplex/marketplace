@@ -44,7 +44,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             treasuryBump
             feePayerBump
             sellerFeeBasisPoints
-            requireSignOff
+            requiresSignOff
             canChangeSalePrice
           }
         }
@@ -55,6 +55,9 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           sellerFeeBasisPoints
           mintAddress
           description
+          owner{
+            address
+          }
           attributes {
             traitType
             value
@@ -185,9 +188,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         {!isOwner &&
                           <Link to={`/nfts/${nft.address}/offers/new`} className="flex-1 button secondary">Make Offer</Link>
                         }
-                        {isOwner && !isListed &&
+                        
                           <Link to={`/nfts/${nft.address}/listings/new`} className="flex-1 button">Sell NFT</Link>
-                        }
+                        
                         {isListed && !isOwner &&
                           <button className="flex-1 button">Buy Now</button>
                         }
@@ -203,7 +206,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   />
                   <Route
                     path={`/nfts/${nft.address}/listings/new`}
-                    element={<SellNft nft={nft} />}
+                    element={<SellNft nft={nft} marketplace={marketplace} />}
                   />
                 </Routes>
               </div>

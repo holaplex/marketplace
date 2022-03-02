@@ -75,7 +75,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
             treasuryBump
             feePayerBump
             sellerFeeBasisPoints
-            requireSignOff
+            requiresSignOff
             canChangeSalePrice
           }
         }

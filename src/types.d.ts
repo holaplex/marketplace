@@ -21,7 +21,7 @@ export interface AuctionHouse {
   treasuryBump: number;
   feePayerBump: number;
   sellerFeeBasisPoints: number;
-  requireSignOff: boolean;
+  requiresSignOff: boolean;
   canChangeSalePrice: boolean;
 }
 

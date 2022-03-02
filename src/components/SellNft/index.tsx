@@ -2,23 +2,24 @@ import React, { useState }  from 'react'
 import { useForm, Controller } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { NATIVE_MINT } from '@solana/spl-token'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import {MetadataProgram} from  '@metaplex-foundation/mpl-token-metadata'
 import { Transaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import BN from 'bn.js'
 
 const { createSellInstruction } = AuctionHouseProgram.instructions
 
+const NATIVE_MINT = new PublicKey("So11111111111111111111111111111111111111112")
 interface OfferForm {
   amount: string;
 }
 
 interface OfferProps {
   nft: any;
-  ah: any;
+  marketplace: any;
 }
 
-const SellNft = ({ nft }: OfferProps) => {
+const SellNft = ({ nft, marketplace }: OfferProps) => {
   const { control, watch } = useForm<OfferForm>({});
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
@@ -27,9 +28,9 @@ const SellNft = ({ nft }: OfferProps) => {
   const sellNftTransaction = async () => {
     const sellPrice = String(Number(sellAmount) * LAMPORTS_PER_SOL)
     const tokenSize = '1'
-    const auctionHouse = new PublicKey(nft.auctionHouse.address)
-    const authority = new PublicKey(nft.auctionHouse.authority)
-    const auctionHouseFeeAccount = new PublicKey(nft.auctionHouse.auctionHouseFeeAccount)
+    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
+    const authority = new PublicKey(marketplace.auctionHouse.authority)
+    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auctionHouseFeeAccount)
 
     const tokenMint = new PublicKey(nft.mintAddress)
 
@@ -38,8 +39,9 @@ const SellNft = ({ nft }: OfferProps) => {
       return
     }
 
+    console.log(nft)
     const associatedTokenAccount = (
-      await AuctionHouseProgram.getAtaForMint(tokenMint, new PublicKey(nft.owner.address)) 
+      await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address)) 
     )[0] 
 
 
@@ -47,10 +49,10 @@ const SellNft = ({ nft }: OfferProps) => {
     const [
       sellerTradeState,
       tradeStateBump,
-    ] = await AuctionHouseProgram.findTradeStateAccount(
+    ] = await AuctionHouseProgram.findTradeStateAddress(
       publicKey,
       auctionHouse,
-      associatedTokenAccount, // VERIFY THIS
+      associatedTokenAccount, 
       NATIVE_MINT,
       tokenMint,
       sellPrice,
@@ -58,24 +60,24 @@ const SellNft = ({ nft }: OfferProps) => {
     )
 
 
-    const metadata = await AuctionHouseProgram.getMetadata(tokenMint)
+    const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
 
     const [
       programAsSigner,
       programAsSignerBump,
-    ] = await AuctionHouseProgram.getAuctionHouseProgramAsSigner()
+    ] = await AuctionHouseProgram.findAuctionHouseProgramAsSignerAddress()
 
     const [
       freeTradeState,
       freeTradeBump,
-    ]  = await AuctionHouseProgram.getAuctionHouseTradeState(
+    ]  = await AuctionHouseProgram.findTradeStateAddress(
       auctionHouse,
       publicKey,
       associatedTokenAccount,
       NATIVE_MINT,
       tokenMint,
-      1,
-      0
+      String(1),
+      String(0)
     )
 
     // make transaction
