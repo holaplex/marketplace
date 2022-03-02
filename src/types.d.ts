@@ -45,6 +45,10 @@ export interface NftAttribute {
   traitType: string
 }
 
+export interface NftOwner {
+  address: string
+}
+
 export interface Nft {
   name: string
   address: string
@@ -53,4 +57,5 @@ export interface Nft {
   sellerFeeBasisPoints: number
   mintAddress: string
   attributes: NftAttribute[]
+  owner: NftOwner
 }

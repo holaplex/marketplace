@@ -1,26 +1,27 @@
 import React, { useState }  from 'react'
-import { useForm, Controller } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form'
+import { Link } from 'react-router-dom'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import {MetadataProgram} from  '@metaplex-foundation/mpl-token-metadata'
 import { Transaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import BN from 'bn.js'
+import { Nft, Marketplace } from '../../types'
 
 const { createSellInstruction } = AuctionHouseProgram.instructions
 
-const NATIVE_MINT = new PublicKey("So11111111111111111111111111111111111111112")
+const NATIVE_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 interface OfferForm {
   amount: string;
 }
 
 interface OfferProps {
-  nft: any;
-  marketplace: any;
+  nft: Nft;
+  marketplace: Marketplace;
 }
 
 const SellNft = ({ nft, marketplace }: OfferProps) => {
-  const { control, watch } = useForm<OfferForm>({});
+  const { control, watch } = useForm<OfferForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
   const [sellAmount, setSellAmount] = useState(0)
@@ -30,7 +31,7 @@ const SellNft = ({ nft, marketplace }: OfferProps) => {
     const tokenSize = '1'
     const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
     const authority = new PublicKey(marketplace.auctionHouse.authority)
-    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auctionHouseFeeAccount)
+    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auction_houseFeeAccount)
 
     const tokenMint = new PublicKey(nft.mintAddress)
 
