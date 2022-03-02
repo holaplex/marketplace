@@ -247,7 +247,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           <WalletMultiButton>Connect</WalletMultiButton>
         </div>
 
-        <img src={marketplace.bannerUrl} alt={marketplace.title} className='object-cover w-full h-80' />
+        <img src={marketplace.bannerUrl} alt={marketplace.name} className='object-cover w-full h-80' />
       </div>
 
       <div className='w-full max-w-[1800px] px-8'>
@@ -255,10 +255,10 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         <div className='relative flex flex-col justify-between w-full mt-20 mb-20'>
           <img
             src={marketplace.logoUrl}
-            alt={marketplace.title}
+            alt={marketplace.name}
             className='absolute border-4 border-gray-900 rounded-full w-28 h-28 -top-32'
           />
-          <h1>{marketplace.title}</h1>
+          <h1>{marketplace.name}</h1>
           <p className='mt-4 max-w-prose'>{marketplace.description}</p>
         </div>
 

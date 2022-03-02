@@ -85,7 +85,7 @@ const SellNft = ({ nft, marketplace }: OfferProps) => {
 
     const sellInstructionArgs = {
       tradeStateBump,
-      freeTradeStateBump: Number(freeTradeBump),
+      freeTradeStateBump: freeTradeBump,
       programAsSignerBump: programAsSignerBump,
       buyerPrice: new BN(sellPrice),
       tokenSize: new BN(tokenSize),
