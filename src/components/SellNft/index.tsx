@@ -59,7 +59,6 @@ const SellNft = ({ nft, marketplace }: OfferProps) => {
       tokenSize
     )
 
-
     const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
 
     const [
@@ -155,7 +154,7 @@ const SellNft = ({ nft, marketplace }: OfferProps) => {
                     onChange(e.target.value);
                     setSellAmount(e.target.value)
                   }}
-                  className="w-full h-10 pl-8 mb-4 bg-transparent border-2 border-gray-500 rounded-md focus:outline-none"
+                  className="w-full h-10 pl-8 mb-4 text-black bg-transparent border-2 border-gray-500 rounded-md focus:outline-none"
                 />
                 <div className="flex flex-col gap-2 mb-4">
                   <div className="flex justify-between">
