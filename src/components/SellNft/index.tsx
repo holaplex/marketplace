@@ -39,7 +39,6 @@ const SellNft = ({ nft, marketplace }: OfferProps) => {
       return
     }
 
-    console.log(nft)
     const associatedTokenAccount = (
       await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address)) 
     )[0] 
