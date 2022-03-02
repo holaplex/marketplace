@@ -47,7 +47,6 @@ export interface NftAttribute {
 
 export interface NftOwner {
   address: string
-  
 }
 
 export interface Nft {
