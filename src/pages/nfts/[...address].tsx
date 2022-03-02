@@ -62,6 +62,9 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             traitType
             value
           }
+          owner{
+            address
+          }
         }
       }
     `,
@@ -202,7 +205,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   />
                   <Route
                     path={`/nfts/${nft.address}/offers/new`}
-                    element={<Offer nft={nft} />}
+                    element={<Offer nft={nft} marketplace={marketplace} />}
                   />
                   <Route
                     path={`/nfts/${nft.address}/listings/new`}
