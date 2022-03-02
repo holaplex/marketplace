@@ -153,6 +153,7 @@ const SellNft = ({ nft, marketplace }: OfferProps) => {
                   value={value}
                   onChange={(e: any) => {
                     onChange(e.target.value);
+                    setSellAmount(e.target.value)
                   }}
                   className="w-full h-10 pl-8 mb-4 bg-transparent border-2 border-gray-500 rounded-md focus:outline-none"
                 />
