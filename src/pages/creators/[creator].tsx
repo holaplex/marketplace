@@ -5,21 +5,24 @@ import Link from 'next/link'
 import {
   WalletMultiButton,
 } from '@solana/wallet-adapter-react-ui'
-import { isNil } from 'ramda'
-import { truncateAddress } from '../modules/address';
+import { isNil, map, modify, filter, pipe, prop, isEmpty, not, any } from 'ramda'
 import { AppProps } from 'next/app'
-import { useForm } from 'react-hook-form'
-import client from '../client'
-import { Marketplace, Creator, Nft } from '../types';
-import { List } from './../components/List';
-import  { NftCard } from './../components/NftCard';
+import Select from 'react-select'
+import { useForm, Controller } from 'react-hook-form'
+import { truncateAddress } from './../../modules/address';
+import client from '../../client'
+import { Marketplace, Creator, Nft } from '../../types';
+import { List } from '../../components/List'
+import { NftCard } from '../../components/NftCard'
 
-const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
+const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
+
+type OptionType = { label: string; value: number };
 
 interface GetNftsData {
   nfts: Nft[]
   creator: Creator
-}
+};
 
 const GET_NFTS = gql`
   query GetNfts($creators: [String!]!, $attributes: [AttributeFilter!]) {
@@ -32,14 +35,14 @@ const GET_NFTS = gql`
   }
 `
 
-export async function getServerSideProps({ req }: NextPageContext) {
+export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'];
 
   const {
-    data: { marketplace },
-  } = await client.query<GetMarketplace>({
+    data: { marketplace, creator },
+  } = await client.query<GetCreatorPage>({
     query: gql`
-      query GetMarketplace($subdomain: String!) {
+      query GetCreatorPage($subdomain: String!, $creator: String!) {
         marketplace(subdomain: $subdomain) {
           subdomain
           name
@@ -47,7 +50,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
           logoUrl
           bannerUrl
           ownerAddress
-          auctionHouse {
+          auctionHouse{
             address
             treasuryMint
             auctionHouseTreasury
@@ -64,14 +67,24 @@ export async function getServerSideProps({ req }: NextPageContext) {
             canChangeSalePrice
           }
         }
+        creator(address: $creator) {
+          attributeGroups {
+            name
+            variants {
+              name
+              count
+            }
+          }
+        }
       }
     `,
     variables: {
       subdomain: (subdomain || SUBDOMAIN),
+      creator: query.creator,
     },
   })
 
-  if (isNil(marketplace)) {
+  if (any(isNil)([marketplace, creator])) {
     return {
       notFound: true,
     }
@@ -80,16 +93,19 @@ export async function getServerSideProps({ req }: NextPageContext) {
   return {
     props: {
       marketplace,
+      creator,
     },
   }
 }
 
-interface GetMarketplace {
-  marketplace: Marketplace | null
+interface GetCreatorPage {
+  marketplace: Marketplace | null;
+  creator: Creator | null;
 }
 
-interface HomePageProps extends AppProps {
+interface CreatorPageProps extends AppProps {
   marketplace: Marketplace
+  creator: Creator
 }
 
 interface AttributeFilter {
@@ -99,7 +115,7 @@ interface AttributeFilter {
 interface NFTFilterForm {
   attributes: AttributeFilter[]
 }
-const Home: NextPage<HomePageProps> = ({ marketplace }) => {
+const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const nfts = useQuery<GetNftsData>(GET_NFTS, {
     variables: {
       creators: [marketplace.ownerAddress],
@@ -107,6 +123,21 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   })
 
   const { control, watch } = useForm<NFTFilterForm>({})
+
+  useEffect(() => {
+    const subscription = watch(({ attributes }) => {
+      const next = pipe(
+        filter(pipe(prop('values'), isEmpty, not)),
+        map(modify('values', map(prop('value'))))
+      )(attributes)
+
+      nfts.refetch({
+        creators: [marketplace.ownerAddress],
+        attributes: next,
+      })
+    })
+    return () => subscription.unsubscribe()
+  }, [watch])
 
   return (
     <div className='flex flex-col items-center text-white bg-gray-900'>
@@ -145,16 +176,55 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                   <h4>Unlisted</h4>
                 </li>
               </ul>
-              <label className="label mb-2">Creators</label>
+              <div className="flex flex-row justify-between align-top w-full mb-2">
+                <label className="label">Creators</label>
+                <Link href="/" passHref>
+                  <a>
+                    Show All
+                  </a>
+                </Link>
+              </div>
               <ul className="flex flex-col flex-grow mb-6">
-                <li>
-                  <Link href={`/creators/${marketplace.ownerAddress}`}>
-                    <a className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
-                      <h4>{truncateAddress(marketplace.ownerAddress)}</h4>
-                    </a>
-                  </Link>
+                <li className='flex justify-between w-full px-4 py-2 mb-1 rounded-md bg-gray-800 hover:bg-gray-800'>
+                  <h4>{truncateAddress(marketplace.ownerAddress)}</h4>
                 </li>
               </ul>
+              <div className='flex flex-col flex-grow gap-4'>
+                {creator.attributeGroups.map(
+                  ({ name: group, variants }, index) => (
+                    <div className='flex flex-col flex-grow gap-2' key={group}>
+                      <label className='label'>
+                        {group}
+                      </label>
+                      <Controller
+                        control={control}
+                        name={`attributes.${index}`}
+                        defaultValue={{ traitType: group, values: [] }}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <Select
+                              value={value.values}
+                              isMulti
+                              className='select-base-theme'
+                              classNamePrefix='base'
+                              onChange={(next: ValueType<OptionType>) => {
+                                onChange({ traitType: group, values: next })
+                              }}
+
+                              options={
+                                variants.map(({ name, count }) => ({
+                                  value: name,
+                                  label: `${name} (${count})`,
+                                })) as OptionsType<OptionType>
+                              }
+                            />
+                          )
+                        }}
+                      />
+                    </div>
+                  )
+                )}
+              </div>
             </form>
           </div>
           <div className='grow'>
@@ -203,4 +273,4 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   )
 }
 
-export default Home
+export default CreatorShow

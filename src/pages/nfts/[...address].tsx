@@ -1,7 +1,7 @@
 import { NextPage, NextPageContext } from "next"
 import { AppProps } from 'next/app'
 import { gql } from '@apollo/client'
-import { isNil } from 'ramda'
+import { add, isNil, pipe, ifElse, always, equals, length } from 'ramda'
 import client from '../../client'
 import { Link } from 'react-router-dom';
 import {
@@ -11,15 +11,16 @@ import NextLink from 'next/link'
 import { Route, Routes } from 'react-router-dom'
 import Offer from '../../components/Offer';
 import SellNft from '../../components/SellNft';
-import WalletWithAvatar from '../../components/WalletWithAvatar';
+import Avatar from '../../components/Avatar';
 import { Marketplace, Nft } from "../../types";
+import { truncateAddress } from "../../modules/address";
 
 const solSymbol = '◎'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
 export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'];
-  
+
   const {
     data: { marketplace, nft },
   } = await client.query<GetNftPage>({
@@ -31,7 +32,8 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           description
           logoUrl
           bannerUrl
-          auctionHouse{
+          ownerAddress
+          auctionHouse {
             address
             treasuryMint
             auctionHouseTreasury
@@ -62,7 +64,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             traitType
             value
           }
-          owner{
+          creators {
             address
           }
         }
@@ -104,7 +106,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   const isOwner = false
   const isListed = true
   const hasBeenSold = true
-  
+
   return (
     <>
       <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
@@ -113,7 +115,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
             <button className="flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 rounded-full align h-14 hover:bg-gray-600">
               <img className="w-8 h-8 rounded-full aspect-square" src={marketplace.logoUrl} />
               {marketplace.name}
-              </button>
+            </button>
           </a>
         </NextLink>
         <WalletMultiButton>Connect</WalletMultiButton>
@@ -139,19 +141,19 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               </p>
               <p className="text-lg">{nft.description}</p>
             </div>
-
-            {hasBeenSold &&
-              <div className="flex-1 mb-8">
-                <div className="mb-1 label">CREATOR</div>
-                <WalletWithAvatar
-                  walletAddress={marketplace.ownerAddress}
-                  avatarUrl={marketplace.logoUrl}
-                />
-              </div>
-            }
-
+            <div className="flex-1 mb-8">
+              <div className="mb-1 label">{ifElse(pipe(length, equals(1)), always('CREATOR'), always('CREATORS'))(nft.creators)}</div>
+              <ul>
+                {nft.creators.map(({ address }) => (
+                  <li key={address}>
+                    <a href={`https://holaplex.com/profiles/${address}`} rel="noreferrer" target="_blank">
+                      <Avatar name={truncateAddress(address)} />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
             <div className="w-full p-6 mt-8 bg-gray-800 rounded-lg">
-              
               <div className="flex mb-6">
                 {isListed &&
                   <div className="flex-1">
@@ -174,11 +176,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   </div>
                 }
                 <div className="flex-1">
-                  <div className="mb-1 label">{hasBeenSold ? 'OWNER' : 'CREATOR'}</div>
-                  <WalletWithAvatar
-                    walletAddress={marketplace.ownerAddress}
-                    avatarUrl={marketplace.logoUrl}
-                  />
+                  <div className="mb-1 label">OWNER</div>
+                  <a href={`https://holaplex.com/profiles/${nft.owner.address}`} rel="noreferrer" target="_blank">
+                    <Avatar
+                      name={truncateAddress(nft.owner.address)}
+                    />
+                  </a>
                 </div>
               </div>
 
@@ -226,7 +229,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
           </div>
         </div>
 
-        
+
         <div className="flex justify-between px-4 mt-10 mb-10 text-sm sm:text-base md:text-lg ">
           <div className="w-full">
             <h1 className="text-xl md:text-2xl">
