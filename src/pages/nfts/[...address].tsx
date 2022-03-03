@@ -3,7 +3,7 @@ import { AppProps } from 'next/app'
 import { gql } from '@apollo/client'
 import { add, isNil, pipe, ifElse, always, equals, length } from 'ramda'
 import client from '../../client'
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'
 import {
   WalletMultiButton,
 } from '@solana/wallet-adapter-react-ui'
@@ -12,13 +12,12 @@ import { Route, Routes } from 'react-router-dom'
 import Offer from '../../components/Offer';
 import SellNft from '../../components/SellNft';
 import Avatar from '../../components/Avatar';
-import { Marketplace, Nft } from "../../types";
-import { truncateAddress } from "../../modules/address";
-import { Transaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house';
-import { MetadataProgram } from "@metaplex-foundation/mpl-token-metadata";
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import BN from 'bn.js';
+import { Marketplace, Nft, NftListing } from "../../types";
+import { Transaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import { MetadataProgram } from "@metaplex-foundation/mpl-token-metadata"
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import BN from 'bn.js'
 
 const solSymbol = '◎'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -72,6 +71,21 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           creators {
             address
           }
+          listings {
+            address
+            auctionHouse
+            bookkepper
+            seller
+            metadata
+            purchaseReceipt
+            price
+            tokenSize
+            bump
+            tradeState
+            tradeStateBump
+            createdAt
+            canceledAt
+          }
         }
       }
     `,
@@ -115,10 +129,15 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
 
+  // const thisListing = nft.listings.filter((listing)=>{
+  //   return listing.auction_house = marketplace.auctionHouse.address
+  // })
+
+
   const buyNftTransaction = async () => {
-    
     // TODO: Get the price from the listing
-    const listingPrice = '1'
+    // const listingPrice = listing.price
+    const listingPrice = "1"
 
     const tokenSize = '1'
     const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
@@ -141,8 +160,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
 
     const [escrowPaymentAccount, escrowPaymentBump ] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(auctionHouse, publicKey)
-    const [buyerTradeStateAccount, buyerTradeStateBump] = await AuctionHouseProgram.findTradeStateAddress(publicKey, auctionHouse, associatedTokenAccount, treasuryMint, tokenMint, listingPrice, tokenSize)
+    
+    const [buyerTradeStateAccount, buyerTradeStateBump] = await AuctionHouseProgram.findPublicBidTradeStateAddress(publicKey, auctionHouse, treasuryMint, tokenMint, listingPrice, tokenSize)
     const [sellerTradeStateAccount, sellerTradeStateBump] = await AuctionHouseProgram.findTradeStateAddress(nftOwner, auctionHouse, associatedTokenAccount, treasuryMint, tokenMint, listingPrice, tokenSize)
+    const [freeTradeStateAccount, tradeStateBump] = await AuctionHouseProgram.findTradeStateAddress(nftOwner,auctionHouse, associatedTokenAccount, treasuryMint, tokenMint, '0', tokenSize)
     const [programAsSigner, programAsSignerBump] = await AuctionHouseProgram.findAuctionHouseProgramAsSignerAddress()
 
     const publicBuyInstructionAccounts = {
@@ -166,7 +187,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
       tokenSize: new BN(tokenSize)
     }
 
-    
     const executeSaleInstructionAccounts = {
       buyer: publicKey,
       seller: nftOwner,
@@ -182,16 +202,14 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
       auctionHouseFeeAccount: auctionHouseFeeAccount,
       auctionHouseTreasury: auctionHouseTreasury,
       buyerTradeState: buyerTradeStateAccount,
-      sellerTradeState: sellerTradeStateAccount,
-      freeTradeState: web3.PublicKey,
+      sellerTradeState: sellerTradeStateAccount, //new PublicKey(listing.tradeState),
+      freeTradeState: freeTradeStateAccount,
       programAsSigner: programAsSigner
     }
     
-    
-    
     const executeSaleInstructionArgs = {
       escrowPaymentBump: escrowPaymentBump,
-      freeTradeStateBump: number,
+      freeTradeStateBump: tradeStateBump,
       programAsSignerBump: programAsSignerBump,
       buyerPrice: new BN(listingPrice),
       tokenSize: new BN(tokenSize)
