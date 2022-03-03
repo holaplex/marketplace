@@ -148,7 +148,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     const publicBuyInstructionAccounts = {
       wallet: publicKey,
       paymentAccount: nftOwner,
-      transferAuthority: web3.PublicKey,
+      transferAuthority: publicKey,
       treasuryMint: treasuryMint,
       tokenAccount: associatedTokenAccount,
       metadata: metadata,
