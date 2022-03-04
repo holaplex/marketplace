@@ -1,3 +1,5 @@
+import { To } from "react-router";
+
 export interface Marketplace {
   subdomain: string;
   name: string;
@@ -55,14 +57,31 @@ interface AddressKeyType {
 
 export type KeyType = AddressKeyType;
 
+export interface NftListing {
+  address: string
+  auctionHouse: string
+  bookkepper: string
+  seller: string
+  metadata: string
+  purchaseReceipt: string
+  price: number
+  tokenSize: number
+  bump: number
+  tradeState: string
+  tradeStateBump: number
+  createdAt: string
+  canceledAt: string
+}
+
 export interface Nft extends KeyType {
-  name: string;
-  address: string;
-  description: string;
-  image: string;
-  sellerFeeBasisPoints: number;
-  mintAddress: string;
-  attributes: NftAttribute[];
+  name: string
+  address: string
+  description: string
+  image: string
+  sellerFeeBasisPoints: number
+  mintAddress: string
+  attributes: NftAttribute[]
   creators: UserWallet[];
   owner: UserWallet;
+  listings: NftListing[]
 }

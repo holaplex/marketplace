@@ -24,7 +24,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
   const { connection } = useConnection();
   const [offerPrice, setOfferPrice] = useState(0);
 
-  const buyNft = async () => {
+  const placeOfferTransaction = async () => {
     const tokenSize = '1';
     const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
     const authority = new PublicKey(marketplace.auctionHouse.authority)
@@ -98,7 +98,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
       className="text-left grow"
       onSubmit={(e) => {
         e.preventDefault();
-        buyNft();
+        placeOfferTransaction();
       }
       }>
       <h3 className="mb-6 text-xl font-bold md:text-2xl">Make an offer</h3>

@@ -3,7 +3,7 @@ import { AppProps } from 'next/app'
 import { gql } from '@apollo/client'
 import { add, isNil, pipe, ifElse, always, equals, length } from 'ramda'
 import client from '../../client'
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'
 import {
   WalletMultiButton,
 } from '@solana/wallet-adapter-react-ui'
@@ -12,8 +12,12 @@ import { Route, Routes } from 'react-router-dom'
 import Offer from '../../components/Offer';
 import SellNft from '../../components/SellNft';
 import Avatar from '../../components/Avatar';
-import { Marketplace, Nft } from "../../types";
-import { truncateAddress } from "../../modules/address";
+import { Marketplace, Nft, NftListing } from "../../types";
+import { Transaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import { MetadataProgram } from "@metaplex-foundation/mpl-token-metadata"
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import BN from 'bn.js'
 
 const solSymbol = '◎'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -67,6 +71,21 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           creators {
             address
           }
+          listings {
+            address
+            auctionHouse
+            bookkepper
+            seller
+            metadata
+            purchaseReceipt
+            price
+            tokenSize
+            bump
+            tradeState
+            tradeStateBump
+            createdAt
+            canceledAt
+          }
         }
       }
     `,
@@ -107,6 +126,117 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   const isListed = true
   const hasBeenSold = true
 
+  const { publicKey, signTransaction } = useWallet()
+  const { connection } = useConnection()
+
+  // const thisListing = nft.listings.filter((listing)=>{
+  //   return listing.auction_house = marketplace.auctionHouse.address
+  // })
+
+
+  const buyNftTransaction = async () => {
+    // TODO: Get the price from the listing
+    // const listingPrice = listing.price
+    const listingPrice = "1"
+
+    const tokenSize = '1'
+    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
+    const authority = new PublicKey(marketplace.auctionHouse.authority)
+    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auction_houseFeeAccount)
+    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
+    const nftOwner = new PublicKey(nft.owner.address)
+    const tokenMint = new PublicKey(nft.mintAddress)
+    const auctionHouseTreasury = new PublicKey(marketplace.auctionHouse.auctionHouseTreasury)
+
+
+    if (!publicKey || !signTransaction) {
+      return
+    }
+
+    const associatedTokenAccount = (
+      await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address)) 
+    )[0] 
+
+    const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
+
+    const [escrowPaymentAccount, escrowPaymentBump ] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(auctionHouse, publicKey)
+    
+    const [buyerTradeStateAccount, buyerTradeStateBump] = await AuctionHouseProgram.findPublicBidTradeStateAddress(publicKey, auctionHouse, treasuryMint, tokenMint, listingPrice, tokenSize)
+    const [sellerTradeStateAccount, sellerTradeStateBump] = await AuctionHouseProgram.findTradeStateAddress(nftOwner, auctionHouse, associatedTokenAccount, treasuryMint, tokenMint, listingPrice, tokenSize)
+    const [freeTradeStateAccount, tradeStateBump] = await AuctionHouseProgram.findTradeStateAddress(nftOwner,auctionHouse, associatedTokenAccount, treasuryMint, tokenMint, '0', tokenSize)
+    const [programAsSigner, programAsSignerBump] = await AuctionHouseProgram.findAuctionHouseProgramAsSignerAddress()
+
+    const publicBuyInstructionAccounts = {
+      wallet: publicKey,
+      paymentAccount: nftOwner,
+      transferAuthority: publicKey,
+      treasuryMint: treasuryMint,
+      tokenAccount: associatedTokenAccount,
+      metadata: metadata,
+      escrowPaymentAccount: escrowPaymentAccount,
+      authority: authority,
+      auctionHouse: auctionHouse,
+      auctionHouseFeeAccount: auctionHouseFeeAccount,
+      buyerTradeState: buyerTradeStateAccount
+    }
+
+    const publicBuyInstructionArgs = {
+      tradeStateBump: buyerTradeStateBump,
+      escrowPaymentBump: escrowPaymentBump,
+      buyerPrice: new BN(listingPrice),
+      tokenSize: new BN(tokenSize)
+    }
+
+    const executeSaleInstructionAccounts = {
+      buyer: publicKey,
+      seller: nftOwner,
+      tokenAccount: associatedTokenAccount,
+      tokenMint: tokenMint,
+      metadata: metadata,
+      treasuryMint: treasuryMint,
+      escrowPaymentAccount: escrowPaymentAccount,
+      sellerPaymentReceiptAccount: nftOwner,
+      buyerReceiptTokenAccount: publicKey,
+      authority: authority,
+      auctionHouse: auctionHouse,
+      auctionHouseFeeAccount: auctionHouseFeeAccount,
+      auctionHouseTreasury: auctionHouseTreasury,
+      buyerTradeState: buyerTradeStateAccount,
+      sellerTradeState: sellerTradeStateAccount, //new PublicKey(listing.tradeState),
+      freeTradeState: freeTradeStateAccount,
+      programAsSigner: programAsSigner
+    }
+    
+    const executeSaleInstructionArgs = {
+      escrowPaymentBump: escrowPaymentBump,
+      freeTradeStateBump: tradeStateBump,
+      programAsSignerBump: programAsSignerBump,
+      buyerPrice: new BN(listingPrice),
+      tokenSize: new BN(tokenSize)
+    }
+
+     // generate instruction
+    const publicBuyInstruction = AuctionHouseProgram.instructions.createPublicBuyInstruction(publicBuyInstructionAccounts, publicBuyInstructionArgs)
+    const executeSaleInstruction = AuctionHouseProgram.instructions.createExecuteSaleInstruction(executeSaleInstructionAccounts, executeSaleInstructionArgs)
+
+    const txt = new Transaction()
+
+    // add instructions to tx
+    txt.add(publicBuyInstruction)
+    txt.add(executeSaleInstruction)
+
+    // lookup recent block hash and assign fee payer (the current logged in user)
+    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+    txt.feePayer = publicKey
+
+    // sign it
+    const signed = await signTransaction(txt)
+
+    // submit transaction
+    const signature = await connection.sendRawTransaction(signed.serialize())
+    await connection.confirmTransaction(signature, 'processed')
+  }
+  
   return (
     <>
       <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
@@ -198,7 +328,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                           <Link to={`/nfts/${nft.address}/listings/new`} className="flex-1 button">Sell NFT</Link>
                         }
                         {isListed && !isOwner &&
-                          <button className="flex-1 button">Buy Now</button>
+                          <button className="flex-1 button" onClick={()=>{buyNftTransaction();}}>Buy Now</button>
                         }
                         {isListed && isOwner &&
                           <button className="flex-1 button secondary">Cancel Listing</button>

@@ -6,6 +6,7 @@ import {
   WalletMultiButton,
 } from '@solana/wallet-adapter-react-ui'
 import { isNil, map, modify, filter, pipe, prop, isEmpty, not, any } from 'ramda'
+import { useRouter } from "next/router";
 import { AppProps } from 'next/app'
 import Select from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
@@ -116,9 +117,10 @@ interface NFTFilterForm {
   attributes: AttributeFilter[]
 }
 const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
+  const router = useRouter();
   const nfts = useQuery<GetNftsData>(GET_NFTS, {
     variables: {
-      creators: [marketplace.ownerAddress],
+      creators: [router.query.creator],
     },
   })
 
@@ -132,7 +134,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
       )(attributes)
 
       nfts.refetch({
-        creators: [marketplace.ownerAddress],
+        creators: [router.query.creator],
         attributes: next,
       })
     })
@@ -229,24 +231,6 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
           </div>
           <div className='grow'>
             <List
-              grid={{
-                xs: {
-                  cols: 1,
-                  gap: 8,
-                },
-                md: {
-                  cols: 2,
-                  gap: 8,
-                },
-                lg: {
-                  cols: 3,
-                  gap: 8,
-                },
-                xl: {
-                  cols: 4,
-                  gap: 8
-                },
-              }}
               data={nfts.data?.nfts}
               loading={nfts.loading}
               loadingComponent={<NftCard.Skeleton />}

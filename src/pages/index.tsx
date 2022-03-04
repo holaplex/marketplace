@@ -159,24 +159,6 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           </div>
           <div className='grow'>
             <List
-              grid={{
-                xs: {
-                  cols: 1,
-                  gap: 8,
-                },
-                md: {
-                  cols: 2,
-                  gap: 8,
-                },
-                lg: {
-                  cols: 3,
-                  gap: 8,
-                },
-                xl: {
-                  cols: 4,
-                  gap: 8
-                },
-              }}
               data={nfts.data?.nfts}
               loading={nfts.loading}
               loadingComponent={<NftCard.Skeleton />}
