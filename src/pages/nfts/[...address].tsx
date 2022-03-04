@@ -9,18 +9,20 @@ import {
 } from '@solana/wallet-adapter-react-ui'
 import NextLink from 'next/link'
 import { Route, Routes } from 'react-router-dom'
-import Offer from '../../components/Offer';
-import SellNft from '../../components/SellNft';
+import Offer from '../../components/Offer'
+import SellNft from '../../components/SellNft'
 import Avatar from '../../components/Avatar';
-import { Marketplace, Nft, NftListing } from "../../types";
-import { Transaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
-import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
-import { MetadataProgram } from "@metaplex-foundation/mpl-token-metadata"
+import { truncateAddress } from "../../modules/address";
+import { Marketplace, Nft, NftListing } from "../../types"
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
+import { Transaction, PublicKey } from '@solana/web3.js'
 import BN from 'bn.js'
 
 const solSymbol = '◎'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
+const NATIVE_MINT = new PublicKey("So11111111111111111111111111111111111111112")
 
 export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'];
@@ -74,7 +76,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           listings {
             address
             auctionHouse
-            bookkepper
+            bookkeeper
             seller
             metadata
             purchaseReceipt
@@ -120,19 +122,14 @@ interface NftPageProps extends AppProps {
 }
 
 const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
-
+  const { publicKey, signTransaction } = useWallet();
+  const { connection } = useConnection();
   // For Testing different states
-  const isOwner = false
+  const isOwner = true
   const isListed = true
-  const hasBeenSold = true
+  const hasBeenSold = false
 
-  const { publicKey, signTransaction } = useWallet()
-  const { connection } = useConnection()
-
-  // const thisListing = nft.listings.filter((listing)=>{
-  //   return listing.auction_house = marketplace.auctionHouse.address
-  // })
-
+  const listingPrice = 1
 
   const buyNftTransaction = async () => {
     // TODO: Get the price from the listing
@@ -154,16 +151,16 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     }
 
     const associatedTokenAccount = (
-      await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address)) 
-    )[0] 
+      await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address))
+    )[0]
 
     const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
 
-    const [escrowPaymentAccount, escrowPaymentBump ] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(auctionHouse, publicKey)
-    
+    const [escrowPaymentAccount, escrowPaymentBump] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(auctionHouse, publicKey)
+
     const [buyerTradeStateAccount, buyerTradeStateBump] = await AuctionHouseProgram.findPublicBidTradeStateAddress(publicKey, auctionHouse, treasuryMint, tokenMint, listingPrice, tokenSize)
     const [sellerTradeStateAccount, sellerTradeStateBump] = await AuctionHouseProgram.findTradeStateAddress(nftOwner, auctionHouse, associatedTokenAccount, treasuryMint, tokenMint, listingPrice, tokenSize)
-    const [freeTradeStateAccount, tradeStateBump] = await AuctionHouseProgram.findTradeStateAddress(nftOwner,auctionHouse, associatedTokenAccount, treasuryMint, tokenMint, '0', tokenSize)
+    const [freeTradeStateAccount, tradeStateBump] = await AuctionHouseProgram.findTradeStateAddress(nftOwner, auctionHouse, associatedTokenAccount, treasuryMint, tokenMint, '0', tokenSize)
     const [programAsSigner, programAsSignerBump] = await AuctionHouseProgram.findAuctionHouseProgramAsSignerAddress()
 
     const publicBuyInstructionAccounts = {
@@ -206,7 +203,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
       freeTradeState: freeTradeStateAccount,
       programAsSigner: programAsSigner
     }
-    
+
     const executeSaleInstructionArgs = {
       escrowPaymentBump: escrowPaymentBump,
       freeTradeStateBump: tradeStateBump,
@@ -215,7 +212,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
       tokenSize: new BN(tokenSize)
     }
 
-     // generate instruction
+    // generate instruction
     const publicBuyInstruction = AuctionHouseProgram.instructions.createPublicBuyInstruction(publicBuyInstructionAccounts, publicBuyInstructionArgs)
     const executeSaleInstruction = AuctionHouseProgram.instructions.createExecuteSaleInstruction(executeSaleInstructionAccounts, executeSaleInstructionArgs)
 
@@ -236,7 +233,66 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     const signature = await connection.sendRawTransaction(signed.serialize())
     await connection.confirmTransaction(signature, 'processed')
   }
-  
+
+
+  const cancelListingTransaction = async () => {
+    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
+    const authority = new PublicKey(marketplace.auctionHouse.authority)
+    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auction_houseFeeAccount)
+    const tokenMint = new PublicKey(nft.mintAddress);
+    const associatedTokenAccount = (
+      await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address))
+    )[0];
+
+    if (!publicKey || !signTransaction) {
+      return;
+    }
+
+    const [tradeState, tradeStateBump] = await AuctionHouseProgram.findTradeStateAddress(
+      publicKey,
+      auctionHouse,
+      associatedTokenAccount,
+      NATIVE_MINT,
+      tokenMint,
+      String(listingPrice),
+      "1",
+    );
+
+    const cancelInstructionAccounts = {
+      wallet: publicKey,
+      tokenAccount: associatedTokenAccount,
+      tokenMint: tokenMint,
+      authority: authority,
+      auctionHouse: auctionHouse,
+      auctionHouseFeeAccount: auctionHouseFeeAccount,
+      tradeState: tradeState,
+    }
+
+    const cancelInstructionArgs = {
+      buyerPrice: new BN(listingPrice),
+      tokenSize: new BN(1)
+    }
+
+    const cancelInstruction = AuctionHouseProgram.instructions.createCancelInstruction(cancelInstructionAccounts, cancelInstructionArgs)
+
+    // make transaction
+    const txt = new Transaction();
+
+    txt.add(cancelInstruction);
+
+    // lookup recent block hash and assign fee payer (the current logged in user)
+    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+    txt.feePayer = publicKey;
+
+    const signed = await signTransaction(txt);
+
+    // submit transaction
+    const signature = await connection.sendRawTransaction(signed.serialize());
+
+    await connection.confirmTransaction(signature, 'processed');
+
+  }
+
   return (
     <>
       <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
@@ -328,10 +384,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                           <Link to={`/nfts/${nft.address}/listings/new`} className="flex-1 button">Sell NFT</Link>
                         }
                         {isListed && !isOwner &&
-                          <button className="flex-1 button" onClick={()=>{buyNftTransaction();}}>Buy Now</button>
+                          <button className="flex-1 button" onClick={() => { buyNftTransaction(); }}>Buy Now</button>
                         }
                         {isListed && isOwner &&
-                          <button className="flex-1 button secondary">Cancel Listing</button>
+                          <button className="flex-1 button secondary" onClick={() => {
+                            cancelListingTransaction()
+                          }}>Cancel Listing</button>
                         }
                       </>
                     )}
