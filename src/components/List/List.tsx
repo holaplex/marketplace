@@ -1,55 +1,28 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { KeyType } from '../../types';
-import { isEmpty, prepend, range, map, toPairs, pipe, join, equals, nth, ifElse } from 'ramda';
-import cx from 'classnames';
-
-interface GridSlot {
-  cols: number;
-  gap: number;
-}
-
-interface ListGrid {
-  xs: GridSlot;
-  sm?: GridSlot;
-  md?: GridSlot;
-  lg?: GridSlot;
-  xl?: GridSlot;
-}
+import { isEmpty, range, map } from 'ramda';
 
 interface ListProps<D> {
-  itemRender: (item: D, index: number) => React.ReactNode,
-  data: D[] | undefined,
-  dataKey?: string,
-  loading: boolean,
-  emptyComponent: React.ReactNode,
-  loadingComponent: React.ReactNode,
+  itemRender: (item: D, index: number) => React.ReactNode;
+  data: D[] | undefined;
+  dataKey?: string;
+  loading: boolean;
+  emptyComponent: React.ReactNode;
+  loadingComponent: React.ReactNode;
   loadingCount?: number;
-  grid: ListGrid,
+  gridClassName?: string;
 }
 
 export function List<D extends KeyType>({
   itemRender,
   data,
   loading,
-  grid,
   emptyComponent,
   loadingComponent,
   dataKey = 'address',
   loadingCount = 12,
+  gridClassName = 'grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-8 xl:grid-cols-4 xl:gap-8',
 }: ListProps<D>) {
-  const gridClassName = useMemo(() => pipe(
-      toPairs,
-      map(ifElse(
-        pipe(nth(0), equals("xs")),
-        ([_, { cols, gap }]: [string, GridSlot]) => `grid-cols-${cols} gap-${gap}`,
-        ([size, { cols, gap }]: [string, GridSlot]) => `${size}:grid-cols-${cols} ${size}:gap-${gap}`,
-      )),
-      prepend('grid'),
-      join(' ')
-    )(grid) as string,
-    [grid]
-  );
-  
   return (
     <div className="container md:mx-auto lg:mx-auto">
       {loading ? (
