@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { KeyType } from '../../types';
 import { isEmpty, prepend, range, map, toPairs, pipe, join, equals, nth, ifElse } from 'ramda';
 import cx from 'classnames';
@@ -37,17 +37,19 @@ export function List<D extends KeyType>({
   dataKey = 'address',
   loadingCount = 12,
 }: ListProps<D>) {
-  const gridClassName = pipe(
-    toPairs,
-    map(ifElse(
-      pipe(nth(0), equals("xs")),
-      ([_, { cols, gap }]: [string, GridSlot]) => `grid-cols-${cols} gap-${gap}`,
-      ([size, { cols, gap }]: [string, GridSlot]) => `${size}:grid-cols-${cols} ${size}:gap-${gap}`,
-    )),
-    prepend('grid'),
-    join(' ')
-  )(grid) as string;
-
+  const gridClassName = useMemo(() => pipe(
+      toPairs,
+      map(ifElse(
+        pipe(nth(0), equals("xs")),
+        ([_, { cols, gap }]: [string, GridSlot]) => `grid-cols-${cols} gap-${gap}`,
+        ([size, { cols, gap }]: [string, GridSlot]) => `${size}:grid-cols-${cols} ${size}:gap-${gap}`,
+      )),
+      prepend('grid'),
+      join(' ')
+    )(grid) as string,
+    [grid]
+  );
+  
   return (
     <div className="container md:mx-auto lg:mx-auto">
       {loading ? (
