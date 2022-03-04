@@ -45,17 +45,24 @@ export interface NftAttribute {
   traitType: string
 }
 
-export interface NftOwner {
+export interface UserWallet {
   address: string
 }
 
-export interface Nft {
-  name: string
-  address: string
-  description: string
-  image: string
-  sellerFeeBasisPoints: number
-  mintAddress: string
-  attributes: NftAttribute[]
-  owner: NftOwner
+interface AddressKeyType { 
+  [address: string] : string,
+};
+
+export type KeyType = AddressKeyType;
+
+export interface Nft extends KeyType {
+  name: string;
+  address: string;
+  description: string;
+  image: string;
+  sellerFeeBasisPoints: number;
+  mintAddress: string;
+  attributes: NftAttribute[];
+  creators: UserWallet[];
+  owner: UserWallet;
 }
