@@ -99,7 +99,6 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
 
     const [receipt, receiptBump] = await AuctionHouseProgram.findListingReceiptAddress(sellerTradeState);
 
-
     const printListingReceiptInstruction = createPrintListingReceiptInstruction(
       {
         receipt,
@@ -119,7 +118,7 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
     const signed = await signTransaction(txt)
 
     const signature = await connection.sendRawTransaction(signed.serialize());
-    
+
     await connection.confirmTransaction(signature, 'processed');
   }
 

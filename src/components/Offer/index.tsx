@@ -4,9 +4,10 @@ import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house';
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata';
-import { Transaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Transaction, PublicKey, LAMPORTS_PER_SOL, SYSVAR_INSTRUCTIONS_PUBKEY } from '@solana/web3.js';
 import { Nft, Marketplace } from '../../types'
 
+const { createPublicBuyInstruction, createPrintBidReceiptInstruction } = AuctionHouseProgram.instructions;
 interface OfferForm {
   amount: string;
 }
@@ -17,46 +18,47 @@ interface OfferProps {
 }
 
 const Offer = ({ nft, marketplace }: OfferProps) => {
-  const { handleSubmit } = useForm<OfferForm>({});
+  const { handleSubmit, register } = useForm<OfferForm>({});
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
 
   const placeOfferTransaction = async ({ amount }: OfferForm) => {
-    const buyerPrice = Number(amount) * LAMPORTS_PER_SOL;
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
-    const authority = new PublicKey(marketplace.auctionHouse.authority)
-    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auctionHouseFeeAccount);
-    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint);
-    const tokenMint = new PublicKey(nft.mintAddress);
-    const [associatedTokenAccount] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address));
-
     if (!publicKey || !signTransaction) {
       return;
     }
+    
+    const buyerPrice = Number(amount) * LAMPORTS_PER_SOL;
+    const auctionHouse = new PublicKey(marketplace.auctionHouse.address);
+    const authority = new PublicKey(marketplace.auctionHouse.authority);
+    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auctionHouseFeeAccount);
+    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint);
+    const tokenMint = new PublicKey(nft.mintAddress);
+
+    const [tokenAccount] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address));
 
     const [escrowPaymentAccount, escrowPaymentBump] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(auctionHouse, publicKey);
 
     const [buyerTradeState, tradeStateBump] = await AuctionHouseProgram.findTradeStateAddress(
       publicKey,
       auctionHouse,
-      associatedTokenAccount,
+      tokenAccount,
       treasuryMint,
       tokenMint,
       buyerPrice,
       1,
     );
 
-    const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
+    const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint);
 
     const txt = new Transaction();
 
-    const instruction = AuctionHouseProgram.instructions.createBuyInstruction(
+    const publicBuyInstruction = createPublicBuyInstruction(
       {
         wallet: publicKey,
         paymentAccount: publicKey,
         transferAuthority: publicKey,
         treasuryMint,
-        tokenAccount: associatedTokenAccount,
+        tokenAccount,
         metadata,
         escrowPaymentAccount,
         authority,
@@ -72,7 +74,20 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
       }
     );
 
-    txt.add(instruction);
+    const [receipt, receiptBump] = await AuctionHouseProgram.findBidReceiptAddress(buyerTradeState);
+    
+    const printBidReceiptInstruction = createPrintBidReceiptInstruction(
+      {
+        receipt,
+        bookkeeper: publicKey,
+        instruction: SYSVAR_INSTRUCTIONS_PUBKEY
+      },
+      {
+        receiptBump,
+      }
+    );
+
+    txt.add(publicBuyInstruction).add(printBidReceiptInstruction);
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
     txt.feePayer = publicKey;
@@ -92,12 +107,10 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
       <h3 className="mb-6 text-xl font-bold md:text-2xl">Make an offer</h3>
       <div className="mb-4 sol-input-wrapper">
         <input
+          {...register("amount", { required: true })}
           autoFocus
           className="input"
           placeholder="Price in SOL"
-          onChange={(e) => {
-            setOfferPrice(Number(e.target.value));
-          }}
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
