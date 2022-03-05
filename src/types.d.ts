@@ -18,7 +18,7 @@ export interface AuctionHouse {
   feeWithdrawalDestination: string;
   authority: string;
   creator: string;
-  auction_houseFeeAccount: string;
+  auctionHouseFeeAccount: string;
   bump: number;
   treasuryBump: number;
   feePayerBump: number;

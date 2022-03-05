@@ -27,7 +27,7 @@ import client from '../client';
 import withReactRouter from '../react-router';
 
 function App({ Component, pageProps }: AppProps) {
-  const network = WalletAdapterNetwork.Devnet;
+  const network = WalletAdapterNetwork.Mainnet;
   const navigate = useNavigate();
 
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);

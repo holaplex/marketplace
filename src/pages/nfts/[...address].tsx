@@ -1,7 +1,7 @@
 import { NextPage, NextPageContext } from "next"
 import { AppProps } from 'next/app'
 import { gql } from '@apollo/client'
-import { add, isNil, pipe, ifElse, always, equals, length } from 'ramda'
+import { add, isNil, pipe, ifElse, always, equals, length, find, prop } from 'ramda'
 import client from '../../client'
 import { Link } from 'react-router-dom'
 import {
@@ -125,9 +125,8 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
   // For Testing different states
-  const isOwner = true
-  const isListed = true
-  const hasBeenSold = false
+  const isOwner = equals(nft.owner.address, publicKey?.toBase58());
+  const isListed = find(pipe(prop('auctionHouse'), equals(marketplace.auctionHouse.address)))(nft.listings);
 
   const listingPrice = 1
 
@@ -199,7 +198,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
       auctionHouseFeeAccount: auctionHouseFeeAccount,
       auctionHouseTreasury: auctionHouseTreasury,
       buyerTradeState: buyerTradeStateAccount,
-      sellerTradeState: sellerTradeStateAccount, //new PublicKey(listing.tradeState),
+      sellerTradeState: sellerTradeStateAccount,
       freeTradeState: freeTradeStateAccount,
       programAsSigner: programAsSigner
     }
@@ -347,18 +346,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                     <p className="text-base md:text-xl lg:text-3xl">
                       <b>{solSymbol} 1.5</b>
                     </p>
-                  </div>
-                }
-                {(hasBeenSold && !isListed) &&
-                  <div className="flex-1">
-                    <div className="mb-2 label">LAST PRICE</div>
-                    <div className="label icon-sol">5.0</div>
-                  </div>
-                }
-                {(!hasBeenSold && !isListed) &&
-                  <div className="flex-1">
-                    <div className="mb-2 label">MINTED</div>
-                    <div className="label">4 days ago</div>
                   </div>
                 }
                 <div className="flex-1">

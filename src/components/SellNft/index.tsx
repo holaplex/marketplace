@@ -1,93 +1,83 @@
-import React, { useState }  from 'react'
+import React, { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
-import {MetadataProgram} from  '@metaplex-foundation/mpl-token-metadata'
-import { Transaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
-import BN from 'bn.js'
+import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
+import { Transaction, PublicKey, LAMPORTS_PER_SOL, SYSVAR_INSTRUCTIONS_PUBKEY } from '@solana/web3.js'
 import { Nft, Marketplace } from '../../types'
 
-const { createSellInstruction } = AuctionHouseProgram.instructions
+const { createSellInstruction, createPrintListingReceiptInstruction } = AuctionHouseProgram.instructions
 
-const NATIVE_MINT = new PublicKey("So11111111111111111111111111111111111111112");
-interface OfferForm {
+interface SellNftForm {
   amount: string;
 }
 
-interface OfferProps {
+interface SellNftProps {
   nft: Nft;
   marketplace: Marketplace;
 }
 
-const SellNft = ({ nft, marketplace }: OfferProps) => {
-  const { control, watch } = useForm<OfferForm>({})
+const SellNft = ({ nft, marketplace }: SellNftProps) => {
+  const { control, watch, handleSubmit } = useForm<SellNftForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
-  const [sellAmount, setSellAmount] = useState(0)
 
-  const sellNftTransaction = async () => {
-    const sellPrice = String(Number(sellAmount) * LAMPORTS_PER_SOL)
-    const tokenSize = '1'
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
-    const authority = new PublicKey(marketplace.auctionHouse.authority)
-    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auction_houseFeeAccount)
-
+  const sellNftTransaction = async ({ amount }: SellNftForm) => {
+    const buyerPrice = Number(amount) * LAMPORTS_PER_SOL;
+    const auctionHouse = new PublicKey(marketplace.auctionHouse.address);
+    const authority = new PublicKey(marketplace.auctionHouse.authority);
+    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auctionHouseFeeAccount);
+    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint);
     const tokenMint = new PublicKey(nft.mintAddress)
-
 
     if (!publicKey || !signTransaction) {
       return
     }
 
-    const associatedTokenAccount = (
-      await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address)) 
-    )[0] 
+    const [associatedTokenAccount] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address));
 
-
-    // Find TradeState Account
     const [
       sellerTradeState,
       tradeStateBump,
     ] = await AuctionHouseProgram.findTradeStateAddress(
       publicKey,
       auctionHouse,
-      associatedTokenAccount, 
-      NATIVE_MINT,
+      associatedTokenAccount,
+      treasuryMint,
       tokenMint,
-      sellPrice,
-      tokenSize
-    )
+      buyerPrice,
+      1
+    );
 
-    const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
+    const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint);
 
     const [
       programAsSigner,
       programAsSignerBump,
-    ] = await AuctionHouseProgram.findAuctionHouseProgramAsSignerAddress()
+    ] = await AuctionHouseProgram.findAuctionHouseProgramAsSignerAddress();
 
     const [
       freeTradeState,
       freeTradeBump,
-    ]  = await AuctionHouseProgram.findTradeStateAddress(
-      auctionHouse,
+    ] = await AuctionHouseProgram.findTradeStateAddress(
       publicKey,
+      auctionHouse,
       associatedTokenAccount,
-      NATIVE_MINT,
+      treasuryMint,
       tokenMint,
-      String(1),
-      String(0)
-    )
+      0,
+      1,
+    );
 
-    // make transaction
     const txt = new Transaction()
 
     const sellInstructionArgs = {
       tradeStateBump,
       freeTradeStateBump: freeTradeBump,
       programAsSignerBump: programAsSignerBump,
-      buyerPrice: new BN(sellPrice),
-      tokenSize: new BN(tokenSize),
+      buyerPrice,
+      tokenSize: 1,
     }
 
     const sellInstructionAccounts = {
@@ -102,35 +92,41 @@ const SellNft = ({ nft, marketplace }: OfferProps) => {
       programAsSigner: programAsSigner,
     }
 
-    // generate instruction
-    const instruction = createSellInstruction(
+    const sellInstruction = createSellInstruction(
       sellInstructionAccounts,
       sellInstructionArgs
-    )
+    );
 
-    // add instruction to tx
-    txt.add(instruction)
+    const [receipt, receiptBump] = await AuctionHouseProgram.findListingReceiptAddress(sellerTradeState);
 
-    // lookup recent block hash and assign fee payer (the current logged in user)
+
+    const printListingReceiptInstruction = createPrintListingReceiptInstruction(
+      {
+        receipt,
+        bookkeeper: publicKey,
+        instruction: SYSVAR_INSTRUCTIONS_PUBKEY
+      },
+      {
+        receiptBump,
+      }
+    );
+
+    txt.add(sellInstruction).add(printListingReceiptInstruction);
+
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    // sign it
     const signed = await signTransaction(txt)
 
-    // submit transaction
-    const signature = await connection.sendRawTransaction(signed.serialize())
-    await connection.confirmTransaction(signature, 'processed')
+    const signature = await connection.sendRawTransaction(signed.serialize());
+    
+    await connection.confirmTransaction(signature, 'processed');
   }
 
   return (
     <form
       className="text-left grow"
-      onSubmit={(e) => {
-        e.preventDefault();
-        sellNftTransaction();
-      }
-      }>
+      onSubmit={handleSubmit(sellNftTransaction)}>
       <h3 className="mb-6 text-xl font-bold md:text-2xl">Sell this Nft</h3>
       <label className="block mb-1">Price in SOL</label>
       <div className="prefix-input prefix-icon-sol">
@@ -147,15 +143,16 @@ const SellNft = ({ nft, marketplace }: OfferProps) => {
 
             return (
               <>
-                <input
-                  autoFocus
-                  value={value}
-                  onChange={(e: any) => {
-                    onChange(e.target.value);
-                    setSellAmount(e.target.value)
-                  }}
-                  className="w-full h-10 pl-8 mb-4 text-black bg-transparent border-2 border-gray-500 rounded-md focus:outline-none"
-                />
+                <div className="mb-4 sol-input-wrapper">
+                  <input
+                    autoFocus
+                    value={value}
+                    className="input"
+                    onChange={(e: any) => {
+                      onChange(e.target.value);
+                    }}
+                  />
+                </div>
                 <div className="flex flex-col gap-2 mb-4">
                   <div className="flex justify-between">
                     <span className="text-gray-400">{nft.sellerFeeBasisPoints / 100}% creator royalty</span>
