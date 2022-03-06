@@ -15,7 +15,7 @@ import Avatar from '../../components/Avatar';
 import { truncateAddress } from "../../modules/address";
 import { Marketplace, Nft, Listing, Offer } from "../../types";
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house';
+import { AuctionHouseProgram } from '@holaplex/mpl-auction-house';
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata';
 import { format } from 'timeago.js';
 import { Transaction, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, LAMPORTS_PER_SOL } from '@solana/web3.js';
