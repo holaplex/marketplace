@@ -28,6 +28,11 @@ const GET_NFTS = gql`
       name
       description
       image
+      listings {
+        address
+        auctionHouse
+        price
+      }
     }
   }
 `
@@ -172,7 +177,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 return (
                   <Link passHref href={`/nfts/${nft.address}`} key={nft.address}>
                     <a>
-                      <NftCard nft={nft} />
+                      <NftCard nft={nft} marketplace={marketplace} />
                     </a>
                   </Link>
                 )

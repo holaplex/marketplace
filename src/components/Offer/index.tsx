@@ -1,14 +1,13 @@
-import React, { useState }  from 'react';
+import React, { useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
-import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house';
-import { MetadataProgram } from  '@metaplex-foundation/mpl-token-metadata';
-import { Transaction, PublicKey } from '@solana/web3.js';
-import BN from 'bn.js';
+import { AuctionHouseProgram } from '@holaplex/mpl-auction-house';
+import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata';
+import { Transaction, PublicKey, LAMPORTS_PER_SOL, SYSVAR_INSTRUCTIONS_PUBKEY } from '@solana/web3.js';
 import { Nft, Marketplace } from '../../types'
 
-const NATIVE_MINT = new PublicKey("So11111111111111111111111111111111111111112")
+const { createPublicBuyInstruction, createPrintBidReceiptInstruction } = AuctionHouseProgram.instructions;
 interface OfferForm {
   amount: string;
 }
@@ -19,50 +18,47 @@ interface OfferProps {
 }
 
 const Offer = ({ nft, marketplace }: OfferProps) => {
-  const { control, watch } = useForm<OfferForm>({});
+  const { handleSubmit, register } = useForm<OfferForm>({});
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
-  const [offerPrice, setOfferPrice] = useState(0);
 
-  const placeOfferTransaction = async () => {
-    const tokenSize = '1';
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
-    const authority = new PublicKey(marketplace.auctionHouse.authority)
-    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auction_houseFeeAccount)
-    const tokenMint = new PublicKey(nft.mintAddress);
-    const associatedTokenAccount = (
-      await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address)) 
-    )[0];
-
+  const placeOfferTransaction = async ({ amount }: OfferForm) => {
     if (!publicKey || !signTransaction) {
       return;
     }
 
-    const [escrowPaymentAccount, escrowPaymentBump] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(auctionHouse,publicKey);
+    const buyerPrice = Number(amount) * LAMPORTS_PER_SOL;
+    const auctionHouse = new PublicKey(marketplace.auctionHouse.address);
+    const authority = new PublicKey(marketplace.auctionHouse.authority);
+    const auctionHouseFeeAccount = new PublicKey(marketplace.auctionHouse.auctionHouseFeeAccount);
+    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint);
+    const tokenMint = new PublicKey(nft.mintAddress);
+
+    const [tokenAccount] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(tokenMint, new PublicKey(nft.owner.address));
+
+    const [escrowPaymentAccount, escrowPaymentBump] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(auctionHouse, publicKey);
 
     const [buyerTradeState, tradeStateBump] = await AuctionHouseProgram.findTradeStateAddress(
       publicKey,
       auctionHouse,
-      associatedTokenAccount,
-      NATIVE_MINT,
+      tokenAccount,
+      treasuryMint,
       tokenMint,
-      String(offerPrice),
-      tokenSize,
+      buyerPrice,
+      1,
     );
 
-    const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
-    
-    // make transaction
+    const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint);
+
     const txt = new Transaction();
 
-    // generate sell instruction
-    const instruction = AuctionHouseProgram.instructions.createBuyInstruction(
+    const publicBuyInstruction = createPublicBuyInstruction(
       {
         wallet: publicKey,
         paymentAccount: publicKey,
         transferAuthority: publicKey,
-        treasuryMint: NATIVE_MINT,
-        tokenAccount: associatedTokenAccount,
+        treasuryMint,
+        tokenAccount,
         metadata,
         escrowPaymentAccount,
         authority,
@@ -73,43 +69,48 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
       {
         escrowPaymentBump,
         tradeStateBump,
-        tokenSize: new BN(tokenSize),
-        buyerPrice: new BN(offerPrice), 
+        tokenSize: 1,
+        buyerPrice,
       }
     );
 
-    // assign instruction to transaction
-    txt.add(instruction);
+    const [receipt, receiptBump] = await AuctionHouseProgram.findBidReceiptAddress(buyerTradeState);
+    
+    const printBidReceiptInstruction = createPrintBidReceiptInstruction(
+      {
+        receipt,
+        bookkeeper: publicKey,
+        instruction: SYSVAR_INSTRUCTIONS_PUBKEY
+      },
+      {
+        receiptBump,
+      }
+    );
 
-    // lookup recent block hash and assign fee payer (the current logged in user)
+    txt.add(publicBuyInstruction).add(printBidReceiptInstruction);
+
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
     txt.feePayer = publicKey;
 
     const signed = await signTransaction(txt);
 
-    // submit transaction
     const signature = await connection.sendRawTransaction(signed.serialize());
-    
+
     await connection.confirmTransaction(signature, 'processed');
   }
 
   return (
     <form
       className="text-left grow"
-      onSubmit={(e) => {
-        e.preventDefault();
-        placeOfferTransaction();
-      }
-      }>
+      onSubmit={handleSubmit(placeOfferTransaction)}
+    >
       <h3 className="mb-6 text-xl font-bold md:text-2xl">Make an offer</h3>
-      <div className="mb-4 sol-input-wrapper">
-        <input 
-          autoFocus 
-          className="input" 
+      <div className="mb-4 sol-input">
+        <input
+          {...register("amount", { required: true })}
+          autoFocus
+          className="input"
           placeholder="Price in SOL"
-          onChange={(e)=>{
-            setOfferPrice(Number(e.target.value));
-          }}
         />
       </div>
       <div className="grid grid-cols-2 gap-4">

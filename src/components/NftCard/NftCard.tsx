@@ -1,12 +1,22 @@
 import React from 'react';
-import { Nft } from './../../types';
+import { find, pipe, prop, equals } from 'ramda';
+import { Nft, Marketplace, Listing } from './../../types';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import Link from 'next/link';
+import { toSOL } from './../../modules/lamports';
 
 interface NftCardProps {
   nft: Nft;
+  marketplace: Marketplace;
 }
 
-export const NftCard = ({ nft }: NftCardProps) => {
-  const listingType = 'buyNow';
+export const NftCard = ({ nft, marketplace }: NftCardProps) => {
+  const listing = find<Listing>(
+    pipe(
+      prop('auctionHouse'),
+      equals(marketplace.auctionHouse.address)
+    )
+  )(nft.listings);
 
   return (
     <article className='overflow-hidden rounded-lg transition duration-100 transform cursor-pointer bg-gray-900 shadow-card	hover:scale-[1.02]'>
@@ -22,31 +32,27 @@ export const NftCard = ({ nft }: NftCardProps) => {
         <div className='flex items-center'>
         </div>
       </header>
-      {listingType === 'buyNow' &&
-        <footer className='flex items-center h-20 gap-2 px-4 border-t-gray-800 border-t-2'>
-          <div className='flex-1 mr-auto'>
-            <p className='label'>Price</p>
-            <p className='font-semibold icon-sol'>12</p>
-          </div>
-          <div className='button small grow-0'>Buy Now</div>
-        </footer>
-      }
-      {listingType === 'unlisted' &&
-        <footer className='grid items-center h-20 px-4 border-t-gray-800 border-t-2'>
-          <div>
-            <p className='label'>Last Price</p>
-            <p className='font-semibold text-gray-300 icon-sol'>12</p>
-          </div>
-        </footer>
-      }
-      {listingType === 'neverListed' &&
-        <footer className='grid items-center h-20 px-4 border-t-gray-800 border-t-2'>
-          <div>
-            <p className='label'>Minted</p>
-            <p className='text-sm label'>6 days ago</p>
-          </div>
-        </footer>
-      }
+      <footer className='flex justify-end items-center h-20 gap-2 px-4 border-t-gray-800 border-t-2'>
+        {listing ? (
+          <>
+            <div className='flex-1 mr-auto'>
+              <p className='label'>Price</p>
+              <p className='font-semibold icon-sol'>{toSOL(listing.price)}</p>
+            </div>
+            <Link href={`/nfts/${nft.address}`} passHref>
+              <a>
+                <button className='button small grow-0'>Buy Now</button>
+              </a>
+            </Link>
+          </>
+        ) : (
+          <Link href={`/nfts/${nft.address}/offers/new`} passHref>
+            <a>
+              <button className='button tertiary small grow-0'>Make Offer</button>
+            </a>
+          </Link>
+        )}
+      </footer>
     </article>
   )
 }
