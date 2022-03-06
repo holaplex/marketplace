@@ -142,7 +142,7 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
 
             return (
               <>
-                <div className="mb-4 sol-input-wrapper">
+                <div className="mb-4 sol-input">
                   <input
                     autoFocus
                     value={value}

@@ -26,7 +26,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
     if (!publicKey || !signTransaction) {
       return;
     }
-    
+
     const buyerPrice = Number(amount) * LAMPORTS_PER_SOL;
     const auctionHouse = new PublicKey(marketplace.auctionHouse.address);
     const authority = new PublicKey(marketplace.auctionHouse.authority);
@@ -105,7 +105,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
       onSubmit={handleSubmit(placeOfferTransaction)}
     >
       <h3 className="mb-6 text-xl font-bold md:text-2xl">Make an offer</h3>
-      <div className="mb-4 sol-input-wrapper">
+      <div className="mb-4 sol-input">
         <input
           {...register("amount", { required: true })}
           autoFocus

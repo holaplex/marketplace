@@ -535,15 +535,6 @@
     "@solana/web3.js" "^1.35.1"
     bn.js "^5.2.0"
 
-"@metaplex-foundation/mpl-auction-house@file:/Users/kyleespinola/Code/holaplex/metaplex-program-library/auction-house/js":
-  version "1.1.0"
-  dependencies:
-    "@metaplex-foundation/beet" "^0.0.8"
-    "@metaplex-foundation/beet-solana" "^0.0.6"
-    "@metaplex-foundation/mpl-core" "0.0.4"
-    "@solana/web3.js" "^1.35.1"
-    bn.js "^5.2.0"
-
 "@metaplex-foundation/mpl-core@0.0.4":
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/@metaplex-foundation/mpl-core/-/mpl-core-0.0.4.tgz#af7c518b1283f91fa98e8c38ab97fd3f7d18984f"
@@ -4481,6 +4472,11 @@ text-table@^0.2.0:
   version "2.3.8"
   resolved "https://registry.npmjs.org/through/-/through-2.3.8.tgz"
   integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
+
+timeago.js@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/timeago.js/-/timeago.js-4.0.2.tgz#724e8c8833e3490676c7bb0a75f5daf20e558028"
+  integrity sha512-a7wPxPdVlQL7lqvitHGGRsofhdwtkoSXPGATFuSOA2i1ZNQEPLrGnj68vOp2sOJTCFAQVXPeNMX/GctBaO9L2w==
 
 timers-browserify@2.0.12:
   version "2.0.12"

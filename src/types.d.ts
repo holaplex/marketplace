@@ -57,7 +57,7 @@ interface AddressKeyType {
 
 export type KeyType = AddressKeyType;
 
-export interface NftListing {
+export interface Listing {
   address: string
   auctionHouse: string
   bookkepper: string
@@ -71,6 +71,14 @@ export interface NftListing {
   tradeStateBump: number
   createdAt: string
   canceledAt: string
+};
+
+export interface Offer {
+  address: string;
+  buyer: string;
+  price: number;
+  createdAt: string;
+  auctionHouse: string;
 }
 
 export interface Nft extends KeyType {
@@ -83,5 +91,6 @@ export interface Nft extends KeyType {
   attributes: NftAttribute[]
   creators: UserWallet[];
   owner: UserWallet;
-  listings: NftListing[]
-}
+  listings: Listing[];
+  offers: Offer[];
+};

@@ -42,24 +42,31 @@
     @apply text-white bg-gray-900 grow;
   }
 
+  .button.tertiary {
+    @apply text-gray-300 bg-gray-700 grow;
+  }
+
   .input {
     @apply bg-gray-900 px-4 py-2 border border-gray-500 focus:border-gray-100 text-white rounded-md w-full focus:outline-none placeholder-gray-500;
   }
 
-  .sol-input-wrapper {
+  .sol-input {
     @apply relative;
   }
 
-  .sol-input-wrapper .input {
+  .sol-input .input {
     @apply pl-10;
   }
   
-  .sol-input-wrapper:before {
+  .sol-input:before {
     content: "◎";
     @apply h-full absolute px-4 flex items-center text-gray-500;
   }
 
-
+  .sol-amount:before {
+    content: "◎";
+    @apply h-full text-gray-500 pr-2;
+  }
 }
 
 * {

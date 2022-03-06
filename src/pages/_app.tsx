@@ -26,12 +26,12 @@ import { clusterApiUrl } from '@solana/web3.js';
 import client from '../client';
 import withReactRouter from '../react-router';
 
+const network = WalletAdapterNetwork.Mainnet;
+
 function App({ Component, pageProps }: AppProps) {
-  const network = WalletAdapterNetwork.Mainnet;
   const navigate = useNavigate();
 
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-
+  const endpoint = useMemo(() => clusterApiUrl(network), []);
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
@@ -42,7 +42,7 @@ function App({ Component, pageProps }: AppProps) {
       new SolletWalletAdapter({ network }),
       new SolletExtensionWalletAdapter({ network }),
     ],
-    [network]
+    []
   );
 
   const router = useRouter()
@@ -52,12 +52,12 @@ function App({ Component, pageProps }: AppProps) {
       navigate(url);
     }
 
-    router.events.on('routeChangeStart', handleRouteChange)
+    router.events.on('routeChangeComplete', handleRouteChange)
 
     return () => {
-      router.events.off('routeChangeStart', handleRouteChange)
+      router.events.off('routeChangeComplete', handleRouteChange)
     }
-  }, []);
+  }, [router, navigate]);
   
   return (
     <ApolloProvider client={client}>
