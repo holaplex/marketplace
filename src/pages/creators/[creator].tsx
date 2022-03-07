@@ -2,19 +2,21 @@ import { useEffect } from 'react'
 import next, { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
 import Link from 'next/link'
+import { useWallet } from '@solana/wallet-adapter-react'
 import {
   WalletMultiButton,
 } from '@solana/wallet-adapter-react-ui'
-import { isNil, map, modify, filter, pipe, prop, isEmpty, not, any } from 'ramda'
+import { isNil, map, modify, filter, pipe, prop, isEmpty, not, any, equals, ifElse, always } from 'ramda'
 import { useRouter } from "next/router";
 import { AppProps } from 'next/app'
 import Select from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
 import { truncateAddress } from './../../modules/address';
 import client from '../../client'
-import { Marketplace, Creator, Nft } from '../../types';
+import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter } from './../../types.d';
 import { List } from '../../components/List'
 import { NftCard } from '../../components/NftCard'
+import cx from 'classnames';
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
@@ -26,8 +28,8 @@ interface GetNftsData {
 };
 
 const GET_NFTS = gql`
-  query GetNfts($creators: [String!]!, $attributes: [AttributeFilter!]) {
-    nfts(creators: $creators, attributes: $attributes) {
+  query GetNfts($creators: [PublicKey!]!, $attributes: [AttributeFilter!], $owners: [PublicKey!], $listed: [PublicKey!]) {
+    nfts(creators: $creators, attributes: $attributes, owners: $owners, listed: $listed) {
       address
       name
       description
@@ -56,7 +58,10 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           logoUrl
           bannerUrl
           ownerAddress
-          auctionHouse{
+          creators {
+            creatorAddress
+          }
+          auctionHouse {
             address
             treasuryMint
             auctionHouseTreasury
@@ -114,14 +119,13 @@ interface CreatorPageProps extends AppProps {
   creator: Creator
 }
 
-interface AttributeFilter {
-  traitType: string
-  values: string[]
+interface NftFilterForm {
+  attributes: AttributeFilter[];
+  preset: PresetNftFilter;
 }
-interface NFTFilterForm {
-  attributes: AttributeFilter[]
-}
+
 const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
+  const { publicKey, connected } = useWallet();
   const router = useRouter();
   const nfts = useQuery<GetNftsData>(GET_NFTS, {
     variables: {
@@ -129,22 +133,39 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     },
   })
 
-  const { control, watch } = useForm<NFTFilterForm>({})
+  const { control, watch } = useForm<NftFilterForm>({
+    defaultValues: { preset: PresetNftFilter.All }
+  });
 
   useEffect(() => {
-    const subscription = watch(({ attributes }) => {
-      const next = pipe(
+    const subscription = watch(({ attributes, preset }) => {
+      const pubkey = publicKey?.toBase58();
+      const nextAttributes = pipe(
         filter(pipe(prop('values'), isEmpty, not)),
         map(modify('values', map(prop('value'))))
-      )(attributes)
+      )(attributes);
+
+      const owners = ifElse(
+        equals(PresetNftFilter.Owned),
+        always([pubkey]),
+        always(null),
+      )(preset as PresetNftFilter);
+
+      const listed = ifElse(
+        equals(PresetNftFilter.Listed),
+        always([marketplace.auctionHouse.address]),
+        always(null),
+      )(preset as PresetNftFilter);
 
       nfts.refetch({
         creators: [router.query.creator],
-        attributes: next,
-      })
+        attributes: nextAttributes,
+        owners,
+        listed,
+      });
     })
     return () => subscription.unsubscribe()
-  }, [watch])
+  }, [watch, publicKey, marketplace])
 
   return (
     <div className='flex flex-col items-center text-white bg-gray-900'>
@@ -173,15 +194,89 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
               className='sticky top-0 max-h-screen py-4 overflow-auto'
             >
               <ul className='flex flex-col flex-grow mb-6'>
-                <li className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
-                  <h4>Current listings</h4>
+                <li>
+                  <Controller
+                    control={control}
+                    name="preset"
+                    render={({ field: { value, onChange } }) => (
+                      <label
+                        htmlFor="preset-all"
+                        className={
+                          cx(
+                            "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
+                            { "bg-gray-800": equals(PresetNftFilter.All, value) }
+                          )
+                        }
+                      >
+                        <input
+                          onChange={onChange}
+                          className="hidden"
+                          type="radio"
+                          name="preset"
+                          value={PresetNftFilter.All}
+                          id="preset-all"
+                        />
+                        All
+                      </label>
+                    )}
+                  />
                 </li>
-                <li className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
-                  <h4>Owned by me</h4>
+                <li>
+                  <Controller
+                    control={control}
+                    name="preset"
+                    render={({ field: { value, onChange } }) => (
+                      <label
+                        htmlFor="preset-listed"
+                        className={
+                          cx(
+                            "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
+                            { "bg-gray-800": equals(PresetNftFilter.Listed, value) }
+                          )
+                        }
+                      >
+                        <input
+                          onChange={onChange}
+                          className="hidden"
+                          type="radio"
+                          name="preset"
+                          value={PresetNftFilter.Listed}
+                          id="preset-listed"
+                        />
+                        Listed for sale
+                      </label>
+                    )}
+                  />
                 </li>
-                <li className='flex justify-between w-full px-4 py-2 mb-1 bg-gray-800 rounded-md cursor-pointer hover:bg-gray-800'>
-                  <h4>Unlisted</h4>
-                </li>
+                {connected && (
+                  <li>
+                    <Controller
+                      control={control}
+                      name="preset"
+                      render={({ field: { value, onChange } }) => (
+                        <label
+                          htmlFor="preset-owned"
+                          className={
+                            cx(
+                              "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
+                              { "bg-gray-800": equals(PresetNftFilter.Owned, value) }
+                            )
+                          }
+                        >
+                          <input
+                            onChange={onChange}
+                            className="hidden"
+                            type="radio"
+                            name="preset"
+                            value={PresetNftFilter.Owned}
+                            id="preset-owned"
+                          />
+                          Owned by me
+                        </label>
+                      )}
+                    />
+                  </li>
+                )}
               </ul>
               <div className="flex flex-row justify-between align-top w-full mb-2">
                 <label className="label">Creators</label>

@@ -4,15 +4,17 @@ import { gql, useQuery } from '@apollo/client'
 import Link from 'next/link'
 import {
   WalletMultiButton,
-} from '@solana/wallet-adapter-react-ui'
-import { isNil } from 'ramda'
+} from '@solana/wallet-adapter-react-ui';
+import cx from 'classnames';
+import { isNil, map, modify, filter, pipe, prop, isEmpty, not, equals, ifElse, always } from 'ramda'
 import { truncateAddress } from '../modules/address';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { AppProps } from 'next/app'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import client from '../client'
-import { Marketplace, Creator, Nft } from '../types';
+import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter, MarketplaceCreator } from '../types.d';
 import { List } from './../components/List';
-import  { NftCard } from './../components/NftCard';
+import { NftCard } from './../components/NftCard';
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -22,8 +24,8 @@ interface GetNftsData {
 }
 
 const GET_NFTS = gql`
-  query GetNfts($creators: [String!]!, $attributes: [AttributeFilter!]) {
-    nfts(creators: $creators, attributes: $attributes) {
+  query GetNfts($creators: [PublicKey!]!, $owners: [PublicKey!], $listed: [PublicKey!]) {
+    nfts(creators: $creators, owners: $owners, listed: $listed) {
       address
       name
       description
@@ -52,6 +54,9 @@ export async function getServerSideProps({ req }: NextPageContext) {
           logoUrl
           bannerUrl
           ownerAddress
+          creators {
+            creatorAddress
+          }
           auctionHouse {
             address
             treasuryMint
@@ -97,21 +102,50 @@ interface HomePageProps extends AppProps {
   marketplace: Marketplace
 }
 
-interface AttributeFilter {
-  traitType: string
-  values: string[]
+interface NftFilterForm {
+  attributes: AttributeFilter[];
+  preset: PresetNftFilter;
 }
-interface NFTFilterForm {
-  attributes: AttributeFilter[]
-}
+
 const Home: NextPage<HomePageProps> = ({ marketplace }) => {
+  const { publicKey, connected } = useWallet();
+  const creators = map(prop('creatorAddress'))(marketplace.creators);
+
   const nfts = useQuery<GetNftsData>(GET_NFTS, {
     variables: {
-      creators: [marketplace.ownerAddress],
+      creators,
     },
   })
 
-  const { control, watch } = useForm<NFTFilterForm>({})
+  const { watch, register, control } = useForm<NftFilterForm>({
+    defaultValues: { preset: PresetNftFilter.All }
+  });
+
+  useEffect(() => {
+    const subscription = watch(({ preset }) => {
+      const pubkey = publicKey?.toBase58();
+
+      const owners = ifElse(
+        equals(PresetNftFilter.Owned),
+        always([pubkey]),
+        always(null),
+      )(preset as PresetNftFilter);
+
+      const listed = ifElse(
+        equals(PresetNftFilter.Listed),
+        always([marketplace.auctionHouse.address]),
+        always(null),
+      )(preset as PresetNftFilter);
+
+      nfts.refetch({
+        creators,
+        owners,
+        listed,
+      });
+    })
+    return () => subscription.unsubscribe()
+  }, [watch, publicKey, marketplace]);
+
 
   return (
     <div className='flex flex-col items-center text-white bg-gray-900'>
@@ -140,25 +174,102 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               className='sticky top-0 max-h-screen py-4 overflow-auto'
             >
               <ul className='flex flex-col flex-grow mb-6'>
-                <li className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
-                  <h4>Current listings</h4>
+                <li>
+                  <Controller
+                    control={control}
+                    name="preset"
+                    render={({ field: { value, onChange } }) => (
+                      <label
+                        htmlFor="preset-all"
+                        className={
+                          cx(
+                            "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
+                            { "bg-gray-800": equals(PresetNftFilter.All, value) }
+                          )
+                        }
+                      >
+                        <input
+                          onChange={onChange}
+                          className="hidden"
+                          type="radio"
+                          name="preset"
+                          value={PresetNftFilter.All}
+                          id="preset-all"
+                        />
+                        All
+                      </label>
+                    )}
+                  />
                 </li>
-                <li className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
-                  <h4>Owned by me</h4>
+                <li>
+                <Controller
+                    control={control}
+                    name="preset"
+                    render={({ field: { value, onChange } }) => (
+                      <label
+                        htmlFor="preset-listed"
+                        className={
+                          cx(
+                            "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
+                            { "bg-gray-800": equals(PresetNftFilter.Listed, value) }
+                          )
+                        }
+                      >
+                        <input
+                          onChange={onChange}
+                          className="hidden"
+                          type="radio"
+                          name="preset"
+                          value={PresetNftFilter.Listed}
+                          id="preset-listed"
+                        />
+                        Listed for sale
+                      </label>
+                    )}
+                  />
                 </li>
-                <li className='flex justify-between w-full px-4 py-2 mb-1 bg-gray-800 rounded-md cursor-pointer hover:bg-gray-800'>
-                  <h4>Unlisted</h4>
-                </li>
+                {connected && (
+                  <li>
+                <Controller
+                    control={control}
+                    name="preset"
+                    render={({ field: { value, onChange } }) => (
+                      <label
+                        htmlFor="preset-owned"
+                        className={
+                          cx(
+                            "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
+                            { "bg-gray-800": equals(PresetNftFilter.Owned, value) }
+                          )
+                        }
+                      >
+                        <input
+                          onChange={onChange}
+                          className="hidden"
+                          type="radio"
+                          name="preset"
+                          value={PresetNftFilter.Owned}
+                          id="preset-owned"
+                        />
+                        Owned by me
+                      </label>
+
+                    )}
+                  />
+                  </li>
+                )}
               </ul>
               <label className="mb-2 label">Creators</label>
               <ul className="flex flex-col flex-grow mb-6">
-                <li>
-                  <Link href={`/creators/${marketplace.ownerAddress}`}>
-                    <a className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
-                      <h4>{truncateAddress(marketplace.ownerAddress)}</h4>
-                    </a>
-                  </Link>
-                </li>
+                {creators.map((creator) => (
+                  <li key={creator}>
+                    <Link href={`/creators/${creator}`}>
+                      <a className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
+                        <h4>{truncateAddress(creator)}</h4>
+                      </a>
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </form>
           </div>
