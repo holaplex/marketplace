@@ -46,15 +46,10 @@ const {
   createPrintPurchaseReceiptInstruction,
 } = AuctionHouseProgram.instructions
 
-<<<<<<< HEAD
 const pickAuctionHouse = prop('auctionHouse');
 
 export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'];
-=======
-export async function getServerSideProps ({ req, query }: NextPageContext) {
-  const subdomain = req?.headers['x-holaplex-subdomain']
->>>>>>> wrap wrap
 
   const {
     data: { marketplace, nft },
