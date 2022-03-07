@@ -27,9 +27,9 @@ spec:
   - group: ''
     kind: NetworkPolicy
   namespaceResourceWhitelist:
-  - group: 'apps'
+  - group: ''
     kind: ConfigMap
-  - group: 'apps'
+  - group: ''
     kind: Service
   - group: 'apps'
     kind: Deployment

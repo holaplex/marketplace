@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: stage-marketplace
+  name: prod-marketplace
   namespace: argocd
 spec:
-  project: stage-marketplace
+  project: prod-marketplace
   source:
     repoURL: https://github.com/holaplex/marketplace.git
-    targetRevision: dev
-    path: k8s/app
+    targetRevision: main
+    path: k8s/prod/app
   destination:
     server: https://kubernetes.default.svc
-    namespace: stage-marketplace
+    namespace: prod-marketplace
