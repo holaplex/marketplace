@@ -63,7 +63,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:dev-aa3df37
+        image: nginx:1.21.6-alpine
         env:
         - name: HOSTNAME
           value: holaplex.market
