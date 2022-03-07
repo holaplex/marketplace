@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { Link } from 'react-router-dom';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house';
-import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata';
-import { Transaction, PublicKey, LAMPORTS_PER_SOL, SYSVAR_INSTRUCTIONS_PUBKEY } from '@solana/web3.js';
-import { Nft, Marketplace } from '../../types';
-import { toast } from 'react-toastify';
+import React, { useState } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { Link } from 'react-router-dom'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
+import { Transaction, PublicKey, LAMPORTS_PER_SOL, SYSVAR_INSTRUCTIONS_PUBKEY } from '@solana/web3.js'
+import { Nft, Marketplace } from '../../types'
 
 const { createSellInstruction, createPrintListingReceiptInstruction } = AuctionHouseProgram.instructions
 
@@ -117,8 +116,9 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
     txt.feePayer = publicKey
 
     const signed = await signTransaction(txt)
+
     const signature = await connection.sendRawTransaction(signed.serialize());
-    toast("Transaction Sent!");
+
     await connection.confirmTransaction(signature, 'processed');
   }
 

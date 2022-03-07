@@ -5,9 +5,7 @@ import { Link } from 'react-router-dom';
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house';
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata';
 import { Transaction, PublicKey, LAMPORTS_PER_SOL, SYSVAR_INSTRUCTIONS_PUBKEY } from '@solana/web3.js';
-import { toast } from 'react-toastify';
-import { Nft, Marketplace } from '../../types';
-
+import { Nft, Marketplace } from '../../types'
 
 const { createPublicBuyInstruction, createPrintBidReceiptInstruction } = AuctionHouseProgram.instructions;
 interface OfferForm {
@@ -96,7 +94,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
     const signed = await signTransaction(txt);
 
     const signature = await connection.sendRawTransaction(signed.serialize());
-    toast("Transaction Sent!");
+
     await connection.confirmTransaction(signature, 'processed');
   }
 

@@ -20,7 +20,6 @@ import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata';
 import { format } from 'timeago.js';
 import { Transaction, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { toSOL } from "../../modules/lamports";
-import { toast } from "react-toastify"
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
@@ -262,7 +261,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     const signed = await signTransaction(txt);
 
     const signature = await connection.sendRawTransaction(signed.serialize());
-    toast("Transaction Sent!");
     await connection.confirmTransaction(signature, 'processed');
   }
 
@@ -324,7 +322,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     const signed = await signTransaction(txt);
 
     const signature = await connection.sendRawTransaction(signed.serialize());
-    toast("Transaction Sent!");
+
     await connection.confirmTransaction(signature, 'processed');
   }
 
