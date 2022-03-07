@@ -132,7 +132,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           <p className='mt-4 max-w-prose'>{marketplace.description}</p>
         </div>
         <div className='flex'>
-          <div className='flex-row flex-none hidden w-80 mr-10 space-y-2 sm:block'>
+          <div className='flex-row flex-none hidden mr-10 space-y-2 w-80 sm:block'>
             <form
               onSubmit={e => {
                 e.preventDefault()
@@ -150,7 +150,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                   <h4>Unlisted</h4>
                 </li>
               </ul>
-              <label className="label mb-2">Creators</label>
+              <label className="mb-2 label">Creators</label>
               <ul className="flex flex-col flex-grow mb-6">
                 <li>
                   <Link href={`/creators/${marketplace.ownerAddress}`}>
@@ -170,7 +170,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               emptyComponent={(
                 <div className='w-full p-10 text-center border border-gray-800 rounded-lg'>
                   <h3>No NFTs found</h3>
-                  <p className='mt- text-gray-500'>No NFTs found matching these criteria.</p>
+                  <p className='text-gray-500 mt-'>No NFTs found matching these criteria.</p>
                 </div>
               )}
               itemRender={(nft) => {

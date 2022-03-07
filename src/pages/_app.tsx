@@ -25,6 +25,9 @@ import { useNavigate } from "react-router-dom";
 import { clusterApiUrl } from '@solana/web3.js';
 import client from '../client';
 import withReactRouter from '../react-router';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const network = WalletAdapterNetwork.Mainnet;
 
@@ -64,6 +67,7 @@ function App({ Component, pageProps }: AppProps) {
       <ConnectionProvider endpoint={endpoint}>
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
+          <ToastContainer autoClose={5000} hideProgressBar={true} position={'bottom-center'} className="w-full max-w-full font-sans text-sm text-white bottom-4 sm:right-4 sm:left-auto sm:w-96 sm:translate-x-0 " toastClassName="bg-gray-900 bg-opacity-80 rounded-lg items-center"/>
                 <Component {...pageProps} />
           </WalletModalProvider>
         </WalletProvider>
