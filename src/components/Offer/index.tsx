@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { useForm } from 'react-hook-form'
-import { Link, Navigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { useRouter } from 'next/router'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
 import {
@@ -30,6 +31,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
   const { handleSubmit, register } = useForm<OfferForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
+  const router = useRouter()
 
   const placeOfferTransaction = async ({ amount }: OfferForm) => {
     if (!publicKey || !signTransaction) {
@@ -131,7 +133,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
       )
     } finally {
       toast('Transaction successful!')
-      return <Navigate to={'/nfts/' + nft.address} />
+      return router.push(`'/nfts/' + ${nft.address}`)
     }
   }
 

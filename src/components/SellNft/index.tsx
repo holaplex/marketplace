@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
-import { Link, Navigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
@@ -12,6 +12,7 @@ import {
 } from '@solana/web3.js'
 import { Nft, Marketplace } from '../../types'
 import { toast } from 'react-toastify'
+import { useRouter } from 'next/router';
 
 const {
   createSellInstruction,
@@ -31,6 +32,7 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
   const { control, watch, handleSubmit } = useForm<SellNftForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
+  const router = useRouter()
 
   const sellNftTransaction = async ({ amount }: SellNftForm) => {
     const buyerPrice = Number(amount) * LAMPORTS_PER_SOL
@@ -146,7 +148,7 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
       )
     } finally {
       toast('Transaction successful!')
-      return <Navigate to={'/nfts/' + nft.address} />
+      return router.push(`'/nfts/' + ${nft.address}`)
     }
   }
 

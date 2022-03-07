@@ -13,7 +13,8 @@ import {
   filter,
 } from 'ramda'
 import client from '../../client'
-import { Link, Navigate } from 'react-router-dom'
+import { useRouter } from 'next/router'
+import { Link } from 'react-router-dom'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import NextLink from 'next/link'
 import { Route, Routes } from 'react-router-dom'
@@ -155,6 +156,7 @@ interface NftPageProps extends AppProps {
 const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
+  const router = useRouter()
 
   const isMarketplaceAuctionHouse = equals(marketplace.auctionHouse.address)
   const pickAuctionHouse = prop('auctionHouse')
@@ -362,7 +364,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
       )
     } finally {
       toast('Transaction successful!')
-      return <Navigate to={'/nfts/' + nft.address} />
+      return router.push(`'/nfts/' + ${nft.address}`)
     }
   }
 
