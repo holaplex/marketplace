@@ -1453,7 +1453,7 @@ babel-literal-to-ast@^2.1.0:
 
 babel-plugin-graphql-tag@^3.3.0:
   version "3.3.0"
-  resolved "https://registry.npmjs.org/babel-plugin-graphql-tag/-/babel-plugin-graphql-tag-3.3.0.tgz"
+  resolved "https://registry.yarnpkg.com/babel-plugin-graphql-tag/-/babel-plugin-graphql-tag-3.3.0.tgz#77d8ce04fb8f2ca56bce9af0ca7d5ad2b91f53bc"
   integrity sha512-27qfJhFJ2jQg+ktcC3cdppE2RrXZ5uiDz+39YC5lhkmftWPuJW8ET9Ehskwv7ujScZ1jSKhs5/JZKlESCkwIBg==
   dependencies:
     "@babel/helper-plugin-utils" "^7.0.0"

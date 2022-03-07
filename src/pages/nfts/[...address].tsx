@@ -32,6 +32,8 @@ const {
   createPrintPurchaseReceiptInstruction,
 } = AuctionHouseProgram.instructions;
 
+const pickAuctionHouse = prop('auctionHouse');
+
 export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'];
 
@@ -141,7 +143,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   const { connection } = useConnection();
 
   const isMarketplaceAuctionHouse = equals(marketplace.auctionHouse.address);
-  const pickAuctionHouse = prop('auctionHouse');
   const isOwner = equals(nft.owner.address, publicKey?.toBase58());
   const listing = find<Listing>(pipe(pickAuctionHouse, isMarketplaceAuctionHouse))(nft.listings);
   const offers = filter<Offer>(pipe(pickAuctionHouse, isMarketplaceAuctionHouse))(nft.offers);

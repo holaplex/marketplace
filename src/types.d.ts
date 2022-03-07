@@ -1,5 +1,3 @@
-import { To } from "react-router";
-
 export interface Marketplace {
   subdomain: string;
   name: string;
@@ -8,6 +6,12 @@ export interface Marketplace {
   bannerUrl: string;
   auctionHouse: AuctionHouse;
   ownerAddress: string;
+  creators: MarketplaceCreator[];
+}
+
+export interface MarketplaceCreator {
+  creatorAddress: string;
+  storeConfigAddress: string;
 }
 
 export interface AuctionHouse {
@@ -93,4 +97,15 @@ export interface Nft extends KeyType {
   owner: UserWallet;
   listings: Listing[];
   offers: Offer[];
+};
+
+export interface AttributeFilter {
+  traitType: string
+  values: string[]
+};
+
+export enum PresetNftFilter {
+  All = 'All',
+  Listed = 'Listed',
+  Owned = 'Owned'
 };
