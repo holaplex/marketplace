@@ -133,7 +133,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
       )
     } finally {
       toast('Transaction successful!')
-      return router.push(`'/nfts/' + ${nft.address}`)
+      return router.push(`/nfts/${nft.address}`)
     }
   }
 

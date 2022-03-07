@@ -364,7 +364,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
       )
     } finally {
       toast('Transaction successful!')
-      return router.push(`'/nfts/' + ${nft.address}`)
+      return router.push(`/nfts/${nft.address}`)
     }
   }
 

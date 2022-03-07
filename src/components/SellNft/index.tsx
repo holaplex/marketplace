@@ -148,7 +148,7 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
       )
     } finally {
       toast('Transaction successful!')
-      return router.push(`'/nfts/' + ${nft.address}`)
+      return router.push(`/nfts/${nft.address}`)
     }
   }
 
