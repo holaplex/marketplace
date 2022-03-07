@@ -15,7 +15,7 @@ import Avatar from '../../components/Avatar';
 import { truncateAddress } from "../../modules/address";
 import { Marketplace, Nft, Listing, Offer } from "../../types";
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { AuctionHouseProgram } from '@holaplex/mpl-auction-house';
+import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house';
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata';
 import { format } from 'timeago.js';
 import { Transaction, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, LAMPORTS_PER_SOL } from '@solana/web3.js';
@@ -446,7 +446,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
         </div>
         <div className="flex justify-between px-4 mt-10 mb-10 text-sm sm:text-base md:text-lg ">
           <div className="w-full">
-            <h2 className="text-xl md:text-2xl mb-4 text-bold">
+            <h2 className="mb-4 text-xl md:text-2xl text-bold">
               Offers
             </h2>
             {ifElse(
@@ -454,18 +454,18 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               always((
                 <div className='w-full p-10 text-center border border-gray-800 rounded-lg'>
                   <h3>No offers found</h3>
-                  <p className='mt- text-gray-500'>There are currently no offers on this NFT.</p>
+                  <p className='text-gray-500 mt-'>There are currently no offers on this NFT.</p>
                 </div>
               )),
               (offers: Offer[]) => (
                 <section className="w-full">
-                  <header className="grid grid-cols-3 mb-2 px-4">
+                  <header className="grid grid-cols-3 px-4 mb-2">
                     <span className="label">FROM</span>
                     <span className="label">PRICE</span>
                     <span className="label">WHEN</span>
                   </header>
                   {offers.map(({ address, buyer, price, createdAt }: Offer) => (
-                    <article key={address} className="grid grid-cols-3 border border-gray-700 rounded p-4">
+                    <article key={address} className="grid grid-cols-3 p-4 border border-gray-700 rounded">
                       <div>
                         <a href={`https://holaplex.com/profiles/${buyer}`} rel="nofollower">
                           {truncateAddress(buyer)}

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
-import { AuctionHouseProgram } from '@holaplex/mpl-auction-house';
+import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house';
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata';
 import { Transaction, PublicKey, LAMPORTS_PER_SOL, SYSVAR_INSTRUCTIONS_PUBKEY } from '@solana/web3.js';
 import { Nft, Marketplace } from '../../types'
@@ -38,10 +38,9 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
 
     const [escrowPaymentAccount, escrowPaymentBump] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(auctionHouse, publicKey);
 
-    const [buyerTradeState, tradeStateBump] = await AuctionHouseProgram.findTradeStateAddress(
+    const [buyerTradeState, tradeStateBump] = await AuctionHouseProgram.findPublicBidTradeStateAddress(
       publicKey,
       auctionHouse,
-      tokenAccount,
       treasuryMint,
       tokenMint,
       buyerPrice,
@@ -56,7 +55,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
       {
         wallet: publicKey,
         paymentAccount: publicKey,
-        transferAuthority: publicKey,
+        transferAuthority: publicKey, 
         treasuryMint,
         tokenAccount,
         metadata,
