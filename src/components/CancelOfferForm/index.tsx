@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form'
+import { OperationVariables, ApolloQueryResult } from '@apollo/client'
 import Button, { ButtonType } from './../../components/Button'
 import { toast } from 'react-toastify'
 import {
@@ -7,13 +8,14 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
 } from '@solana/web3.js'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
-import { Marketplace, Nft, Listing, Offer } from '../../types'
+import { Marketplace, Nft, Offer } from '../../types'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 
 interface CancelOfferFormProps {
-  offer: Offer
-  nft: Nft
-  marketplace: Marketplace
+  offer: Offer;
+  nft?: Nft;
+  marketplace: Marketplace;
+  refetch: (variables?: Partial<OperationVariables> | undefined) => Promise<ApolloQueryResult<_>>;
 }
 
 
@@ -22,13 +24,13 @@ const {
     createCancelBidReceiptInstruction
   } = AuctionHouseProgram.instructions
 
-const CancelOfferForm = ({ offer, nft, marketplace }: CancelOfferFormProps) => {
+const CancelOfferForm = ({ offer, nft, marketplace, refetch }: CancelOfferFormProps) => {
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
   const cancelOfferForm = useForm()
 
   const cancelOfferTransaction = async () => {
-    if (!publicKey || !signTransaction || !offer) {
+    if (!publicKey || !signTransaction || !offer || !nft) {
       return
     }
     const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
@@ -105,13 +107,15 @@ const CancelOfferForm = ({ offer, nft, marketplace }: CancelOfferFormProps) => {
     let signature: string  = ""
 
     try {
-      signature = await connection.sendRawTransaction(signed.serialize())
-
       toast('Sending the transaction to Solana.')
+
+      signature = await connection.sendRawTransaction(signed.serialize())
 
       await connection.confirmTransaction(signature, 'processed')
 
       toast('The transaction was confirmed.')
+
+      await refetch();
     } catch {
       toast.error(
         <>

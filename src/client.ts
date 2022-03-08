@@ -1,4 +1,5 @@
 import { ApolloClient, InMemoryCache } from "@apollo/client";
+
 const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT;
 
 const client = new ApolloClient({
@@ -6,7 +7,7 @@ const client = new ApolloClient({
     cache: new InMemoryCache({
         typePolicies: {
             Marketplace: {
-                keyFields: ['subdomain'],
+                keyFields: ['ownerAddress'],
             },
             Nft: {
                 keyFields: ['address']

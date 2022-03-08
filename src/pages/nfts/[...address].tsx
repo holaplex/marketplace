@@ -5,15 +5,20 @@ import {
   isNil,
   pipe,
   ifElse,
+  or,
   always,
   equals,
   length,
   find,
   prop,
   filter,
+  and,
+  not,
 } from 'ramda'
-import client from '../../client'
-import { useRouter } from 'next/router'
+import cx from 'classnames';
+import client from '../../client';
+import { useRouter } from 'next/router';
+import { useQuery } from '@apollo/client';
 import { Link } from 'react-router-dom'
 import Button, { ButtonType } from './../../components/Button';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
@@ -53,39 +58,9 @@ const {
 
 const pickAuctionHouse = prop('auctionHouse');
 
-export async function getServerSideProps({ req, query }: NextPageContext) {
-  const subdomain = req?.headers['x-holaplex-subdomain'];
-
-  const {
-    data: { marketplace, nft },
-  } = await client.query<GetNftPage>({
-    query: gql`
-      query GetNftPage($subdomain: String!, $address: String!) {
-        marketplace(subdomain: $subdomain) {
-          subdomain
-          name
-          description
-          logoUrl
-          bannerUrl
-          ownerAddress
-          auctionHouse {
-            address
-            treasuryMint
-            auctionHouseTreasury
-            treasuryWithdrawalDestination
-            feeWithdrawalDestination
-            authority
-            creator
-            auctionHouseFeeAccount
-            bump
-            treasuryBump
-            feePayerBump
-            sellerFeeBasisPoints
-            requiresSignOff
-            canChangeSalePrice
-          }
-        }
-        nft(address: $address) {
+const GET_NFT = gql`
+  query GetNft($address: String!) {
+    nft(address: $address) {
           name
           address
           image
@@ -125,6 +100,48 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             canceledAt
           }
         }
+  }
+`
+
+export async function getServerSideProps({ req, query }: NextPageContext) {
+  const subdomain = req?.headers['x-holaplex-subdomain'];
+
+  const {
+    data: { marketplace, nft },
+  } = await client.query<GetNftPage>({
+    fetchPolicy: 'no-cache',
+    query: gql`
+      query GetNftPage($subdomain: String!, $address: String!) {
+        marketplace(subdomain: $subdomain) {
+          subdomain
+          name
+          description
+          logoUrl
+          bannerUrl
+          ownerAddress
+          auctionHouse {
+            address
+            treasuryMint
+            auctionHouseTreasury
+            treasuryWithdrawalDestination
+            feeWithdrawalDestination
+            authority
+            creator
+            auctionHouseFeeAccount
+            bump
+            treasuryBump
+            feePayerBump
+            sellerFeeBasisPoints
+            requiresSignOff
+            canChangeSalePrice
+          }
+        }
+        nft(address: $address) {
+          address
+          creators {
+            address
+          }
+        }
       }
     `,
     variables: {
@@ -133,7 +150,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
     },
   })
 
-  if (isNil(marketplace)) {
+  if (or(isNil(marketplace), isNil(nft))) {
     return {
       notFound: true,
     }
@@ -142,45 +159,51 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   return {
     props: {
       marketplace,
-      nft,
     },
   }
 }
 
 interface GetNftPage {
-  marketplace: Marketplace | null
-  nft: Nft | null
+  marketplace: Marketplace | null;
+  nft: Nft | null;
 }
 
 interface NftPageProps extends AppProps {
   marketplace: Marketplace
-  nft: Nft
 }
 
-const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
+interface GetNftData {
+  nft: Nft;
+}
+
+const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
   const router = useRouter();
   const cancelListingForm = useForm();
-  const cancelOfferForm = useForm();
   const buyNowForm = useForm();
 
+  const { data, loading, refetch } = useQuery<GetNftData>(GET_NFT, {
+    variables: {
+      address: (router.query?.address || [])[0],
+    },
+  });
+
   const isMarketplaceAuctionHouse = equals(marketplace.auctionHouse.address);
-  const pickAuctionHouse = prop('auctionHouse');
-  const isOwner = equals(nft.owner.address, publicKey?.toBase58());
+  const isOwner = equals(data?.nft.owner.address, publicKey?.toBase58());
   const listing = find<Listing>(
     pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
-  )(nft.listings);
+  )(data?.nft.listings || []);
   const offers = filter<Offer>(
     pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
-  )(nft.offers);
+  )(data?.nft.offers || []);
 
   const offer = find<Offer>(
     pipe(prop('buyer'), equals(publicKey?.toBase58()))
   )(nft.offers);
 
   const buyNftTransaction = async () => {
-    if (!publicKey || !signTransaction || !listing || isOwner) {
+    if (!publicKey || !signTransaction || !listing || isOwner || !data) {
       return
     }
 
@@ -191,7 +214,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     )
     const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
     const seller = new PublicKey(listing.seller)
-    const tokenMint = new PublicKey(nft.mintAddress)
+    const tokenMint = new PublicKey(data?.nft.mintAddress)
     const auctionHouseTreasury = new PublicKey(
       marketplace.auctionHouse.auctionHouseTreasury
     )
@@ -201,7 +224,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
       tokenAccount,
     ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
       tokenMint,
-      new PublicKey(nft.owner.address)
+      new PublicKey(data?.nft.owner.address)
     )
     const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
 
@@ -375,11 +398,11 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     let signature: string;
 
     try {
-      signature = await connection.sendRawTransaction(signed.serialize());
-
       toast('Sending the transaction to Solana.');
 
-      await connection.confirmTransaction(signature, 'processed');
+      signature = await connection.sendRawTransaction(signed.serialize());
+
+      await connection.confirmTransaction(signature, 'confirmed');
 
       toast('The transaction was confirmed.');
     } catch {
@@ -390,7 +413,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   }
 
   const cancelListingTransaction = async () => {
-    if (!publicKey || !signTransaction || !listing || !isOwner) {
+    if (!publicKey || !signTransaction || !listing || !isOwner || !data) {
       return
     }
 
@@ -399,14 +422,14 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     const auctionHouseFeeAccount = new PublicKey(
       marketplace.auctionHouse.auctionHouseFeeAccount
     )
-    const tokenMint = new PublicKey(nft.mintAddress)
+    const tokenMint = new PublicKey(data?.nft.mintAddress)
     const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
     const receipt = new PublicKey(listing.address)
     const [
       tokenAccount,
     ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
       tokenMint,
-      new PublicKey(nft.owner.address)
+      new PublicKey(data?.nft.owner.address)
     )
 
     const [tradeState] = await AuctionHouseProgram.findTradeStateAddress(
@@ -465,102 +488,18 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     let signature: string;
 
     try {
-      signature = await connection.sendRawTransaction(signed.serialize());
-
       toast('Sending the transaction to Solana.');
 
-      await connection.confirmTransaction(signature, 'processed');
+      signature = await connection.sendRawTransaction(signed.serialize());
+
+      await connection.confirmTransaction(signature, 'confirmed');
+
+      await refetch();
 
       toast('The transaction was confirmed.');
     } catch {
       toast.error(
         <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
-      )
-    }
-  }
-
-  const cancelOfferTransaction = (address: string, price: number) => async () => {
-    if (!publicKey || !signTransaction || !offer) { 
-      return
-    }
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
-    const authority = new PublicKey(marketplace.auctionHouse.authority)
-    const auctionHouseFeeAccount = new PublicKey(
-      marketplace.auctionHouse.auctionHouseFeeAccount
-    )
-    const tokenMint = new PublicKey(nft.mintAddress)
-    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
-    const receipt = new PublicKey(address)
-    const [
-      tokenAccount,
-    ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-      tokenMint,
-      new PublicKey(nft.owner.address)
-    )
-
-    const [tradeState] = await AuctionHouseProgram.findPublicBidTradeStateAddress(
-      publicKey,
-      auctionHouse,
-      treasuryMint,
-      tokenMint,
-      price,
-      1
-    )
-
-    const txt = new Transaction()
-
-    const cancelInstructionAccounts = {
-      wallet: publicKey,
-      tokenAccount: tokenAccount,
-      tokenMint: tokenMint,
-      authority: authority,
-      auctionHouse: auctionHouse,
-      auctionHouseFeeAccount: auctionHouseFeeAccount,
-      tradeState: tradeState,
-    }
-
-
-    const cancelInstructionArgs = {
-      buyerPrice: price,
-      tokenSize: 1,
-    }
-
-    const cancelBidReceiptInstructionAccounts = {
-      receipt: receipt,
-      instruction: SYSVAR_INSTRUCTIONS_PUBKEY
-    }
-
-    const cancelBidInstruction = createCancelInstruction(cancelInstructionAccounts, cancelInstructionArgs)
-
-    const cancelBidReceiptInstruction = createCancelBidReceiptInstruction(cancelBidReceiptInstructionAccounts)
-
-    txt.add(cancelBidInstruction).add(cancelBidReceiptInstruction)
-
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
-    txt.feePayer = publicKey
-
-    let signed: Transaction;
-
-    try {
-      signed = await signTransaction(txt);
-    } catch (e: any) {
-      toast.error(e.message);
-      return;
-    }
-
-    let signature: string;
-
-    try {
-      signature = await connection.sendRawTransaction(signed.serialize());
-
-      toast('Sending the transaction to Solana.');
-
-      await connection.confirmTransaction(signature, 'processed');
-
-      toast('The transaction was confirmed.');
-    } catch {
-      toast.error(
-        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explorer</a>.</>
       )
     }
   }
@@ -585,47 +524,83 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
         <div className='grid items-start grid-cols-1 gap-6 mt-12 mb-10 lg:grid-cols-2'>
           <div className='block mb-4 lg:mb-0 lg:flex lg:items-center lg:justify-center '>
             <div className='block mb-6 lg:hidden'>
-              <p className='mb-4 text-2xl lg:text-4xl md:text-3xl'>
-                <b>{nft.name}</b>
-              </p>
-              <p className='text-lg'>{nft.description}</p>
+              {loading ? (
+                <div className="w-full h-32 bg-gray-800 rounded-lg" />
+              ) : (
+                <>
+                  <h1 className='mb-4 text-2xl'>{data?.nft.name}</h1>
+                  <p className='text-lg'>{data?.nft.description}</p>
+                </>
+              )}
             </div>
-            <img
-              src={nft.image}
-              className='block h-auto max-w-full border-none rounded-lg shadow'
-            />
+            {loading ? (
+              <div className='aspect-square border-none bg-gray-800 w-full rounded-lg' />
+            ) : (
+              <img
+                src={data?.nft.image}
+                className='block h-auto max-w-full border-none rounded-lg shadow'
+              />
+            )}
           </div>
           <div>
             <div className='hidden mb-8 lg:block'>
-              <p className='mb-4 text-2xl lg:text-4xl md:text-3xl'>
-                <b>{nft.name}</b>
-              </p>
-              <p className='text-lg'>{nft.description}</p>
+              {loading ? (
+                <div className="w-full h-32 bg-gray-800 rounded-lg" />
+              ) : (
+                <>
+                  <h1 className='mb-4 text-2xl lg:text-4xl md:text-3xl'>{data?.nft.name}</h1>
+                  <p className='text-lg'>{data?.nft.description}</p>
+                </>
+              )}
             </div>
             <div className='flex-1 mb-8'>
               <div className='mb-1 label'>
-                {ifElse(
-                  pipe(length, equals(1)),
-                  always('CREATOR'),
-                  always('CREATORS')
-                )(nft.creators)}
+                {loading ? (
+                  <div className="w-14 h-4 bg-gray-800 rounded" />
+                ) : (
+                  ifElse(
+                    pipe(length, equals(1)),
+                    always('CREATOR'),
+                    always('CREATORS')
+                  )(data?.nft.creators || "")
+                )}
               </div>
               <ul>
-                {nft.creators.map(({ address }) => (
-                  <li key={address}>
-                    <a
-                      href={`https://holaplex.com/profiles/${address}`}
-                      rel='noreferrer'
-                      target='_blank'
-                    >
-                      <Avatar name={truncateAddress(address)} />
-                    </a>
+                {loading ? (
+                  <li>
+                    <div className="w-20 h-6 bg-gray-800 rounded" />
                   </li>
-                ))}
+                ) : (
+                  data?.nft.creators.map(({ address }) => (
+                    <li key={address}>
+                      <a
+                        href={`https://holaplex.com/profiles/${address}`}
+                        rel='noreferrer'
+                        target='_blank'
+                      >
+                        <Avatar name={truncateAddress(address)} />
+                      </a>
+                    </li>
+                  ))
+                )}
               </ul>
             </div>
-            <div className='w-full p-6 mt-8 bg-gray-800 rounded-lg'>
-              <div className='flex mb-6'>
+            <div className={
+              cx(
+                'w-full p-6 mt-8 bg-gray-800 rounded-lg',
+                {
+                  'h-44': loading,
+                }
+              )
+            }>
+              <div className={
+                cx(
+                  'flex mb-6',
+                  {
+                    'hidden': loading,
+                  }
+                )
+              }>
                 {listing && (
                   <div className='flex-1'>
                     <div className='label'>PRICE</div>
@@ -637,23 +612,23 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 <div className='flex-1'>
                   <div className='mb-1 label'>OWNER</div>
                   <a
-                    href={`https://holaplex.com/profiles/${nft.owner.address}`}
+                    href={`https://holaplex.com/profiles/${data?.nft.owner.address}`}
                     rel='noreferrer'
                     target='_blank'
                   >
-                    <Avatar name={truncateAddress(nft.owner.address)} />
+                    <Avatar name={truncateAddress(data?.nft.owner.address || "")} />
                   </a>
                 </div>
               </div>
-              <div className='flex gap-4 overflow-visible'>
+              <div className={cx('flex gap-4', { hidden: loading })}>
                 <Routes>
                   <Route
-                    path={`/nfts/${nft.address}`}
+                    path={`/nfts/${data?.nft.address}`}
                     element={
                       <>
                         {!isOwner && !offer && (
                           <Link
-                            to={`/nfts/${nft.address}/offers/new`}
+                            to={`/nfts/${data?.nft.address}/offers/new`}
                             className='flex-1'
                           >
                             <Button type={ButtonType.Secondary}>
@@ -663,7 +638,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         )}
                         {isOwner && !listing && (
                           <Link
-                            to={`/nfts/${nft.address}/listings/new`}
+                            to={`/nfts/${data?.nft.address}/listings/new`}
                             className='flex-1'
                           >
                             <Button>
@@ -681,7 +656,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                             </Button>
                           </form>
                         )}
-                        {listing && isOwner &&  (
+                        {listing && isOwner && (
                           <form className="flex-1" onSubmit={cancelListingForm.handleSubmit(cancelListingTransaction)}>
                             <Button
                               loading={cancelListingForm.formState.isSubmitting}
@@ -696,38 +671,48 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                     }
                   />
                   <Route
-                    path={`/nfts/${nft.address}/offers/new`}
-                    element={<OfferPage nft={nft} marketplace={marketplace} />}
+                    path={`/nfts/${data?.nft.address}/offers/new`}
+                    element={<OfferPage nft={data?.nft} marketplace={marketplace} refetch={refetch} />}
                   />
                   <Route
-                    path={`/nfts/${nft.address}/listings/new`}
+                    path={`/nfts/${data?.nft.address}/listings/new`}
                     element={
-                      <SellNftPage nft={nft} marketplace={marketplace} />
+                      <SellNftPage nft={data?.nft} marketplace={marketplace} refetch={refetch} />
                     }
                   />
                 </Routes>
               </div>
             </div>
             <div className='grid grid-cols-2 gap-6 mt-8'>
-              {nft.attributes.map(a => (
-                <div
-                  key={a.traitType}
-                  className='p-3 border border-gray-700 rounded'
-                >
-                  <p className='uppercase label'>{a.traitType}</p>
-                  <p className='truncate text-ellipsis' title={a.value}>
-                    {a.value}
-                  </p>
-                </div>
-              ))}
+              {loading ? (
+                <>
+                  <div className="h-16 rounded bg-gray-800" />
+                  <div className="h-16 rounded bg-gray-800" />
+                  <div className="h-16 rounded bg-gray-800" />
+                  <div className="h-16 rounded bg-gray-800" />
+                </>
+              ) : (
+                data?.nft.attributes.map(a => (
+                  <div
+                    key={a.traitType}
+                    className='p-3 border border-gray-700 rounded'
+                  >
+                    <p className='uppercase label'>{a.traitType}</p>
+                    <p className='truncate text-ellipsis' title={a.value}>
+                      {a.value}
+                    </p>
+                  </div>
+                ))
+              )}
+
             </div>
           </div>
-        </div>
+        </div >
         <div className='flex justify-between px-4 mt-10 mb-10 text-sm sm:text-base md:text-lg '>
           <div className='w-full'>
             <h2 className='mb-4 text-xl md:text-2xl text-bold'>Offers</h2>
             {ifElse(
-              pipe(length, equals(0)),
+              (offers: Offer[]) => and(pipe(length, equals(0))(offers), not(loading)),
               always(
                 <div className='w-full p-10 text-center border border-gray-800 rounded-lg'>
                   <h3>No offers found</h3>
@@ -744,33 +729,41 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                     <span className='label'>WHEN</span>
                     <span className='label'>ACTION</span>
                   </header>
-                  {offers.map((offer: Offer) => (
-                    <article
-                      key={offer.address}
-                      className='grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded'
-                    >
-                      <div>
-                        <a
-                          href={`https://holaplex.com/profiles/${offer.buyer}`}
-                          rel='nofollower'
-                        >
-                          {truncateAddress(offer.buyer)}
-                          {offer && <span className="px-3 py-1 ml-1 text-xs text-black bg-white rounded-full ">You</span>}
-                        </a>
-                      </div>
-                      <div>
-                        <span className='sol-amount'>{toSOL(offer.price)}</span>
-                      </div>
-                      <div>{format(offer.createdAt, 'en_US')}</div>
-                      <CancelOfferForm nft={nft} marketplace={marketplace} offer={offer}/>
-                    </article>
-                  ))}
+                  {loading ? (
+                    <>
+                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                    </>
+                  ) : (
+                    offers.map((offer: Offer) => (
+                      <article
+                        key={offer.address}
+                        className='grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded'
+                      >
+                        <div>
+                          <a
+                            href={`https://holaplex.com/profiles/${offer.buyer}`}
+                            rel='nofollower'
+                          >
+                            {truncateAddress(offer.buyer)}
+                            {offer && <span className="px-3 py-1 ml-1 text-xs text-black bg-white rounded-full ">You</span>}
+                          </a>
+                        </div>
+                        <div>
+                          <span className='sol-amount'>{toSOL(offer.price)}</span>
+                        </div>
+                        <div>{format(offer.createdAt, 'en_US')}</div>
+                        <CancelOfferForm nft={data?.nft} marketplace={marketplace} offer={offer} refetch={refetch} />
+                      </article>
+                    ))
+                  )}
                 </section>
               )
             )(offers)}
           </div>
         </div>
-      </div>
+      </div >
     </>
   )
 }
