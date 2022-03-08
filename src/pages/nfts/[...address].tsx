@@ -36,6 +36,7 @@ import {
 import { toSOL } from '../../modules/lamports'
 import { toast } from 'react-toastify'
 import { useForm } from 'react-hook-form'
+import CancelOfferForm from '../../components/CancelOfferForm'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -478,7 +479,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     }
   }
 
-  const cancelOfferTransaction = async () => {
+  const cancelOfferTransaction = (address: string, price: number) => async () => {
     if (!publicKey || !signTransaction || !offer) { 
       return
     }
@@ -489,7 +490,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     )
     const tokenMint = new PublicKey(nft.mintAddress)
     const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
-    const receipt = new PublicKey(offer.address)
+    const receipt = new PublicKey(address)
     const [
       tokenAccount,
     ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
@@ -497,13 +498,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
       new PublicKey(nft.owner.address)
     )
 
-    const [tradeState] = await AuctionHouseProgram.findTradeStateAddress(
+    const [tradeState] = await AuctionHouseProgram.findPublicBidTradeStateAddress(
       publicKey,
       auctionHouse,
-      tokenAccount,
       treasuryMint,
       tokenMint,
-      offer.price,
+      price,
       1
     )
 
@@ -521,7 +521,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
 
 
     const cancelInstructionArgs = {
-      buyerPrice: offer.price,
+      buyerPrice: price,
       tokenSize: 1,
     }
 
@@ -681,7 +681,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                             </Button>
                           </form>
                         )}
-                        {listing &&  (
+                        {listing && isOwner &&  (
                           <form className="flex-1" onSubmit={cancelListingForm.handleSubmit(cancelListingTransaction)}>
                             <Button
                               loading={cancelListingForm.formState.isSubmitting}
@@ -689,17 +689,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                               type={ButtonType.Secondary}
                             >
                               Cancel Listing
-                            </Button>
-                          </form>
-                        )}
-                        {offer && (
-                          <form className="flex-1" onSubmit={cancelOfferForm.handleSubmit(cancelOfferTransaction)}>
-                            <Button
-                              loading={cancelOfferForm.formState.isSubmitting}
-                              htmlType="submit"
-                              type={ButtonType.Primary}
-                            >
-                              Cancel Offer
                             </Button>
                           </form>
                         )}
@@ -749,29 +738,31 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               ),
               (offers: Offer[]) => (
                 <section className='w-full'>
-                  <header className='grid grid-cols-3 px-4 mb-2'>
+                  <header className='grid grid-cols-4 px-4 mb-2'>
                     <span className='label'>FROM</span>
                     <span className='label'>PRICE</span>
                     <span className='label'>WHEN</span>
+                    <span className='label'>ACTION</span>
                   </header>
-                  {offers.map(({ address, buyer, price, createdAt }: Offer) => (
+                  {offers.map((offer: Offer) => (
                     <article
-                      key={address}
-                      className='grid grid-cols-3 p-4 mb-4 border border-gray-700 rounded'
+                      key={offer.address}
+                      className='grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded'
                     >
                       <div>
                         <a
-                          href={`https://holaplex.com/profiles/${buyer}`}
+                          href={`https://holaplex.com/profiles/${offer.buyer}`}
                           rel='nofollower'
                         >
-                          {truncateAddress(buyer)}
+                          {truncateAddress(offer.buyer)}
                           {offer && <span className="px-3 py-1 ml-1 text-xs text-black bg-white rounded-full ">You</span>}
                         </a>
                       </div>
                       <div>
-                        <span className='sol-amount'>{toSOL(price)}</span>
+                        <span className='sol-amount'>{toSOL(offer.price)}</span>
                       </div>
-                      <div>{format(createdAt, 'en_US')}</div>
+                      <div>{format(offer.createdAt, 'en_US')}</div>
+                      <CancelOfferForm nft={nft} marketplace={marketplace} offer={offer}/>
                     </article>
                   ))}
                 </section>
