@@ -36,6 +36,7 @@ import {
 import { toSOL } from '../../modules/lamports'
 import { toast } from 'react-toastify'
 import { useForm } from 'react-hook-form'
+import CancelOfferForm from '../../components/CancelOfferForm'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -46,6 +47,8 @@ const {
   createPrintBidReceiptInstruction,
   createCancelListingReceiptInstruction,
   createPrintPurchaseReceiptInstruction,
+  createCancelBidReceiptInstruction
+
 } = AuctionHouseProgram.instructions
 
 const pickAuctionHouse = prop('auctionHouse');
@@ -159,6 +162,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   const { connection } = useConnection();
   const router = useRouter();
   const cancelListingForm = useForm();
+  const cancelOfferForm = useForm();
   const buyNowForm = useForm();
 
   const isMarketplaceAuctionHouse = equals(marketplace.auctionHouse.address);
@@ -169,6 +173,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   )(nft.listings);
   const offers = filter<Offer>(
     pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
+  )(nft.offers);
+
+  const offer = find<Offer>(
+    pipe(prop('buyer'), equals(publicKey?.toBase58()))
   )(nft.offers);
 
   const buyNftTransaction = async () => {
@@ -471,6 +479,92 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     }
   }
 
+  const cancelOfferTransaction = (address: string, price: number) => async () => {
+    if (!publicKey || !signTransaction || !offer) { 
+      return
+    }
+    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
+    const authority = new PublicKey(marketplace.auctionHouse.authority)
+    const auctionHouseFeeAccount = new PublicKey(
+      marketplace.auctionHouse.auctionHouseFeeAccount
+    )
+    const tokenMint = new PublicKey(nft.mintAddress)
+    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
+    const receipt = new PublicKey(address)
+    const [
+      tokenAccount,
+    ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
+      tokenMint,
+      new PublicKey(nft.owner.address)
+    )
+
+    const [tradeState] = await AuctionHouseProgram.findPublicBidTradeStateAddress(
+      publicKey,
+      auctionHouse,
+      treasuryMint,
+      tokenMint,
+      price,
+      1
+    )
+
+    const txt = new Transaction()
+
+    const cancelInstructionAccounts = {
+      wallet: publicKey,
+      tokenAccount: tokenAccount,
+      tokenMint: tokenMint,
+      authority: authority,
+      auctionHouse: auctionHouse,
+      auctionHouseFeeAccount: auctionHouseFeeAccount,
+      tradeState: tradeState,
+    }
+
+
+    const cancelInstructionArgs = {
+      buyerPrice: price,
+      tokenSize: 1,
+    }
+
+    const cancelBidReceiptInstructionAccounts = {
+      receipt: receipt,
+      instruction: SYSVAR_INSTRUCTIONS_PUBKEY
+    }
+
+    const cancelBidInstruction = createCancelInstruction(cancelInstructionAccounts, cancelInstructionArgs)
+
+    const cancelBidReceiptInstruction = createCancelBidReceiptInstruction(cancelBidReceiptInstructionAccounts)
+
+    txt.add(cancelBidInstruction).add(cancelBidReceiptInstruction)
+
+    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+    txt.feePayer = publicKey
+
+    let signed: Transaction;
+
+    try {
+      signed = await signTransaction(txt);
+    } catch (e: any) {
+      toast.error(e.message);
+      return;
+    }
+
+    let signature: string;
+
+    try {
+      signature = await connection.sendRawTransaction(signed.serialize());
+
+      toast('Sending the transaction to Solana.');
+
+      await connection.confirmTransaction(signature, 'processed');
+
+      toast('The transaction was confirmed.');
+    } catch {
+      toast.error(
+        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explorer</a>.</>
+      )
+    }
+  }
+
   return (
     <>
       <div className='sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow'>
@@ -557,7 +651,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                     path={`/nfts/${nft.address}`}
                     element={
                       <>
-                        {!isOwner && (
+                        {!isOwner && !offer && (
                           <Link
                             to={`/nfts/${nft.address}/offers/new`}
                             className='flex-1'
@@ -587,7 +681,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                             </Button>
                           </form>
                         )}
-                        {listing && isOwner && (
+                        {listing && isOwner &&  (
                           <form className="flex-1" onSubmit={cancelListingForm.handleSubmit(cancelListingTransaction)}>
                             <Button
                               loading={cancelListingForm.formState.isSubmitting}
@@ -644,28 +738,31 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               ),
               (offers: Offer[]) => (
                 <section className='w-full'>
-                  <header className='grid grid-cols-3 px-4 mb-2'>
+                  <header className='grid grid-cols-4 px-4 mb-2'>
                     <span className='label'>FROM</span>
                     <span className='label'>PRICE</span>
                     <span className='label'>WHEN</span>
+                    <span className='label'>ACTION</span>
                   </header>
-                  {offers.map(({ address, buyer, price, createdAt }: Offer) => (
+                  {offers.map((offer: Offer) => (
                     <article
-                      key={address}
-                      className='grid grid-cols-3 p-4 border border-gray-700 rounded mb-4'
+                      key={offer.address}
+                      className='grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded'
                     >
                       <div>
                         <a
-                          href={`https://holaplex.com/profiles/${buyer}`}
+                          href={`https://holaplex.com/profiles/${offer.buyer}`}
                           rel='nofollower'
                         >
-                          {truncateAddress(buyer)}
+                          {truncateAddress(offer.buyer)}
+                          {offer && <span className="px-3 py-1 ml-1 text-xs text-black bg-white rounded-full ">You</span>}
                         </a>
                       </div>
                       <div>
-                        <span className='sol-amount'>{toSOL(price)}</span>
+                        <span className='sol-amount'>{toSOL(offer.price)}</span>
                       </div>
-                      <div>{format(createdAt, 'en_US')}</div>
+                      <div>{format(offer.createdAt, 'en_US')}</div>
+                      <CancelOfferForm nft={nft} marketplace={marketplace} offer={offer}/>
                     </article>
                   ))}
                 </section>
