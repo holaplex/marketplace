@@ -181,10 +181,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
   const { connection } = useConnection();
   const router = useRouter();
   const cancelListingForm = useForm();
-  const cancelOfferForm = useForm();
   const buyNowForm = useForm();
 
-  const { data, loading } = useQuery<GetNftData>(GET_NFT, {
+  const { data, loading, refetch } = useQuery<GetNftData>(GET_NFT, {
     variables: {
       address: (router.query?.address || [])[0],
     },
@@ -399,11 +398,11 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     let signature: string;
 
     try {
-      signature = await connection.sendRawTransaction(signed.serialize());
-
       toast('Sending the transaction to Solana.');
 
-      await connection.confirmTransaction(signature, 'processed');
+      signature = await connection.sendRawTransaction(signed.serialize());
+
+      await connection.confirmTransaction(signature, 'confirmed');
 
       toast('The transaction was confirmed.');
     } catch {
@@ -489,102 +488,18 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     let signature: string;
 
     try {
-      signature = await connection.sendRawTransaction(signed.serialize());
-
       toast('Sending the transaction to Solana.');
 
-      await connection.confirmTransaction(signature, 'processed');
+      signature = await connection.sendRawTransaction(signed.serialize());
+
+      await connection.confirmTransaction(signature, 'confirmed');
+
+      await refetch();
 
       toast('The transaction was confirmed.');
     } catch {
       toast.error(
         <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
-      )
-    }
-  }
-
-  const cancelOfferTransaction = (address: string, price: number) => async () => {
-    if (!publicKey || !signTransaction || !offer) {
-      return
-    }
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
-    const authority = new PublicKey(marketplace.auctionHouse.authority)
-    const auctionHouseFeeAccount = new PublicKey(
-      marketplace.auctionHouse.auctionHouseFeeAccount
-    )
-    const tokenMint = new PublicKey(nft.mintAddress)
-    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
-    const receipt = new PublicKey(address)
-    const [
-      tokenAccount,
-    ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-      tokenMint,
-      new PublicKey(nft.owner.address)
-    )
-
-    const [tradeState] = await AuctionHouseProgram.findPublicBidTradeStateAddress(
-      publicKey,
-      auctionHouse,
-      treasuryMint,
-      tokenMint,
-      price,
-      1
-    )
-
-    const txt = new Transaction()
-
-    const cancelInstructionAccounts = {
-      wallet: publicKey,
-      tokenAccount: tokenAccount,
-      tokenMint: tokenMint,
-      authority: authority,
-      auctionHouse: auctionHouse,
-      auctionHouseFeeAccount: auctionHouseFeeAccount,
-      tradeState: tradeState,
-    }
-
-
-    const cancelInstructionArgs = {
-      buyerPrice: price,
-      tokenSize: 1,
-    }
-
-    const cancelBidReceiptInstructionAccounts = {
-      receipt: receipt,
-      instruction: SYSVAR_INSTRUCTIONS_PUBKEY
-    }
-
-    const cancelBidInstruction = createCancelInstruction(cancelInstructionAccounts, cancelInstructionArgs)
-
-    const cancelBidReceiptInstruction = createCancelBidReceiptInstruction(cancelBidReceiptInstructionAccounts)
-
-    txt.add(cancelBidInstruction).add(cancelBidReceiptInstruction)
-
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
-    txt.feePayer = publicKey
-
-    let signed: Transaction;
-
-    try {
-      signed = await signTransaction(txt);
-    } catch (e: any) {
-      toast.error(e.message);
-      return;
-    }
-
-    let signature: string;
-
-    try {
-      signature = await connection.sendRawTransaction(signed.serialize());
-
-      toast('Sending the transaction to Solana.');
-
-      await connection.confirmTransaction(signature, 'processed');
-
-      toast('The transaction was confirmed.');
-    } catch {
-      toast.error(
-        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explorer</a>.</>
       )
     }
   }
@@ -757,12 +672,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                   />
                   <Route
                     path={`/nfts/${data?.nft.address}/offers/new`}
-                    element={<OfferPage nft={data?.nft} marketplace={marketplace} />}
+                    element={<OfferPage nft={data?.nft} marketplace={marketplace} refetch={refetch} />}
                   />
                   <Route
                     path={`/nfts/${data?.nft.address}/listings/new`}
                     element={
-                      <SellNftPage nft={data?.nft} marketplace={marketplace} />
+                      <SellNftPage nft={data?.nft} marketplace={marketplace} refetch={refetch} />
                     }
                   />
                 </Routes>
@@ -839,7 +754,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                           <span className='sol-amount'>{toSOL(offer.price)}</span>
                         </div>
                         <div>{format(offer.createdAt, 'en_US')}</div>
-                        <CancelOfferForm nft={data?.nft} marketplace={marketplace} offer={offer} />
+                        <CancelOfferForm nft={data?.nft} marketplace={marketplace} offer={offer} refetch={refetch} />
                       </article>
                     ))
                   )}
