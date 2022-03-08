@@ -11,7 +11,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ENV NEXT_PUBLIC_GRAPHQL_ENDPOINT https://graph-test.holaplex.com/v0
+ARG GRAPHQL_URI=https://graph-test.holaplex.com/v0
+ENV NEXT_PUBLIC_GRAPHQL_ENDPOINT $GRAPHQL_URI
 RUN yarn build
 
 
