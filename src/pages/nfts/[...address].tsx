@@ -197,10 +197,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
   const offers = filter<Offer>(
     pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
   )(data?.nft.offers || []);
-
   const offer = find<Offer>(
     pipe(prop('buyer'), equals(publicKey?.toBase58()))
-  )(nft.offers);
+  )(data?.nft.offers || []);
 
   const buyNftTransaction = async () => {
     if (!publicKey || !signTransaction || !listing || isOwner || !data) {
