@@ -38,7 +38,7 @@ const Button = ({
     <button
       className={cx(
         className,
-        'relative block h-12 text-sm transition-colors duration-150 rounded-full lg:text-xl md:text-base focus:shadow-outline',
+        'relative block h-12 text-sm duration-150 rounded-full lg:text-xl md:text-base focus:shadow-outline hover:scale-[1.02] transition-transform grow',
         {
           'w-full': block,
           'text-black bg-white': isPrimary(type),

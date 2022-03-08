@@ -42,9 +42,8 @@ const GET_NFTS = gql`
 export async function getServerSideProps({ req }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'];
 
-  const {
-    data: { marketplace },
-  } = await client.query<GetMarketplace>({
+  const response = await client.query<GetMarketplace>({
+    fetchPolicy: 'no-cache',
     query: gql`
       query GetMarketplace($subdomain: String!) {
         marketplace(subdomain: $subdomain) {
@@ -80,6 +79,8 @@ export async function getServerSideProps({ req }: NextPageContext) {
       subdomain: (subdomain || SUBDOMAIN),
     },
   })
+
+  const { data: { marketplace } } = response;
 
   if (isNil(marketplace)) {
     return {

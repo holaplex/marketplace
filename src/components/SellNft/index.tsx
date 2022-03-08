@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import { OperationVariables, ApolloQueryResult } from '@apollo/client'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
 import Button, { ButtonType } from './../../components/Button';
 import {
@@ -25,17 +26,22 @@ interface SellNftForm {
 }
 
 interface SellNftProps {
-  nft: Nft
+  nft?: Nft
   marketplace: Marketplace
+  refetch: (variables?: Partial<OperationVariables> | undefined) => Promise<ApolloQueryResult<_>>
 }
 
-const SellNft = ({ nft, marketplace }: SellNftProps) => {
+const SellNft = ({ nft, marketplace, refetch }: SellNftProps) => {
   const { control, handleSubmit, formState: { isSubmitting } } = useForm<SellNftForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
   const router = useRouter()
 
   const sellNftTransaction = async ({ amount }: SellNftForm) => {
+    if (!publicKey || !signTransaction || !nft) {
+      return
+    }
+
     const buyerPrice = Number(amount) * LAMPORTS_PER_SOL
     const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
     const authority = new PublicKey(marketplace.auctionHouse.authority)
@@ -44,10 +50,6 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
     )
     const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
     const tokenMint = new PublicKey(nft.mintAddress)
-
-    if (!publicKey || !signTransaction) {
-      return
-    }
 
     const [
       associatedTokenAccount,
@@ -150,11 +152,13 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
     let signature: string;
 
     try {
+      toast('Sending the transaction to Solana.');
+      
       signature = await connection.sendRawTransaction(signed.serialize());
 
-      toast('Sending the transaction to Solana.');
+      await connection.confirmTransaction(signature, 'confirmed');
 
-      await connection.confirmTransaction(signature, 'processed');
+      await refetch();
 
       toast('The transaction was confirmed.');
     } catch {
@@ -232,7 +236,7 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
         />
       </div>
       <div className='grid flex-grow grid-cols-2 gap-4'>
-        <Link to={`/nfts/${nft.address}`}>
+        <Link to={`/nfts/${nft?.address}`}>
           <Button type={ButtonType.Secondary}>
             Cancel
           </Button>

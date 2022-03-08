@@ -79,6 +79,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           }
         }
         creator(address: $creator) {
+          address
           attributeGroups {
             name
             variants {

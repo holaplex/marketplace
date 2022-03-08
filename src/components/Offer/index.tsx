@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { useRouter } from 'next/router'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import { OperationVariables, ApolloQueryResult } from '@apollo/client'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
 import {
   Transaction,
@@ -13,7 +14,7 @@ import {
 } from '@solana/web3.js'
 import { toast } from 'react-toastify'
 import { Nft, Marketplace } from './../../types'
-import Button from './../Button'
+import Button, { ButtonType } from './../Button'
 
 const {
   createPublicBuyInstruction,
@@ -24,18 +25,19 @@ interface OfferForm {
 }
 
 interface OfferProps {
-  nft: Nft
+  nft?: Nft;
   marketplace: Marketplace
+  refetch: (variables?: Partial<OperationVariables> | undefined) => Promise<ApolloQueryResult<_>>
 }
 
-const Offer = ({ nft, marketplace }: OfferProps) => {
+const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
   const { handleSubmit, register, formState: { isSubmitting } } = useForm<OfferForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
   const router = useRouter()
 
   const placeOfferTransaction = async ({ amount }: OfferForm) => {
-    if (!publicKey || !signTransaction) {
+    if (!publicKey || !signTransaction || !nft) {
       return
     }
 
@@ -135,11 +137,13 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
     let signature: string;
 
     try {
-      signature = await connection.sendRawTransaction(signed.serialize());
-
       toast('Sending the transaction to Solana.');
 
-      await connection.confirmTransaction(signature, 'processed');
+      signature = await connection.sendRawTransaction(signed.serialize());
+
+      await connection.confirmTransaction(signature, 'confirmed');
+
+      await refetch();
 
       toast('The transaction was confirmed.');
     } catch {
@@ -166,8 +170,10 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
         />
       </div>
       <div className='grid grid-cols-2 gap-4'>
-        <Link to={`/nfts/${nft.address}`} className='button secondary'>
+        <Link to={`/nfts/${nft?.address}`}>
+          <Button type={ButtonType.Secondary}>
           Cancel
+          </Button>
         </Link>
         <Button htmlType="submit" loading={isSubmitting}>Place offer</Button>
       </div>
