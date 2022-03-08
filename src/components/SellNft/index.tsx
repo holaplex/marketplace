@@ -25,7 +25,7 @@ interface SellNftForm {
 }
 
 interface SellNftProps {
-  nft: Nft
+  nft?: Nft
   marketplace: Marketplace
 }
 
@@ -36,6 +36,10 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
   const router = useRouter()
 
   const sellNftTransaction = async ({ amount }: SellNftForm) => {
+    if (!publicKey || !signTransaction || !nft) {
+      return
+    }
+
     const buyerPrice = Number(amount) * LAMPORTS_PER_SOL
     const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
     const authority = new PublicKey(marketplace.auctionHouse.authority)
@@ -44,10 +48,6 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
     )
     const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
     const tokenMint = new PublicKey(nft.mintAddress)
-
-    if (!publicKey || !signTransaction) {
-      return
-    }
 
     const [
       associatedTokenAccount,
@@ -232,7 +232,7 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
         />
       </div>
       <div className='grid flex-grow grid-cols-2 gap-4'>
-        <Link to={`/nfts/${nft.address}`}>
+        <Link to={`/nfts/${nft?.address}`}>
           <Button type={ButtonType.Secondary}>
             Cancel
           </Button>

@@ -24,7 +24,7 @@ interface OfferForm {
 }
 
 interface OfferProps {
-  nft: Nft
+  nft?: Nft;
   marketplace: Marketplace
 }
 
@@ -35,7 +35,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
   const router = useRouter()
 
   const placeOfferTransaction = async ({ amount }: OfferForm) => {
-    if (!publicKey || !signTransaction) {
+    if (!publicKey || !signTransaction || !nft) {
       return
     }
 
@@ -166,7 +166,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
         />
       </div>
       <div className='grid grid-cols-2 gap-4'>
-        <Link to={`/nfts/${nft.address}`}>
+        <Link to={`/nfts/${nft?.address}`}>
           <Button type={ButtonType.Secondary}>
           Cancel
           </Button>

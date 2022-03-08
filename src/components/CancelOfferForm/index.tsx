@@ -12,7 +12,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 
 interface CancelOfferFormProps {
   offer: Offer
-  nft: Nft
+  nft?: Nft
   marketplace: Marketplace
 }
 
@@ -28,7 +28,7 @@ const CancelOfferForm = ({ offer, nft, marketplace }: CancelOfferFormProps) => {
   const cancelOfferForm = useForm()
 
   const cancelOfferTransaction = async () => {
-    if (!publicKey || !signTransaction || !offer) {
+    if (!publicKey || !signTransaction || !offer || !nft) {
       return
     }
     const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
@@ -105,9 +105,9 @@ const CancelOfferForm = ({ offer, nft, marketplace }: CancelOfferFormProps) => {
     let signature: string  = ""
 
     try {
-      signature = await connection.sendRawTransaction(signed.serialize())
-
       toast('Sending the transaction to Solana.')
+      
+      signature = await connection.sendRawTransaction(signed.serialize())
 
       await connection.confirmTransaction(signature, 'processed')
 
