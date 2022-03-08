@@ -32,7 +32,6 @@ import {
   Transaction,
   PublicKey,
   SYSVAR_INSTRUCTIONS_PUBKEY,
-  LAMPORTS_PER_SOL,
 } from '@solana/web3.js'
 import { toSOL } from '../../modules/lamports'
 import { toast } from 'react-toastify'
@@ -360,7 +359,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
 
     try {
       signed = await signTransaction(txt);
-    } catch(e: any) {
+    } catch (e: any) {
       toast.error(e.message);
       return;
     }
@@ -450,7 +449,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
 
     try {
       signed = await signTransaction(txt);
-    } catch(e: any) {
+    } catch (e: any) {
       toast.error(e.message);
       return;
     }
@@ -561,17 +560,21 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         {!isOwner && (
                           <Link
                             to={`/nfts/${nft.address}/offers/new`}
-                            className='flex-1 button secondary'
+                            className='flex-1'
                           >
-                            Make Offer
+                            <Button type={ButtonType.Secondary}>
+                              Make Offer
+                            </Button>
                           </Link>
                         )}
                         {isOwner && !listing && (
                           <Link
                             to={`/nfts/${nft.address}/listings/new`}
-                            className='flex-1 button'
+                            className='flex-1'
                           >
-                            Sell NFT
+                            <Button>
+                              Sell NFT
+                            </Button>
                           </Link>
                         )}
                         {listing && !isOwner && (
@@ -649,7 +652,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   {offers.map(({ address, buyer, price, createdAt }: Offer) => (
                     <article
                       key={address}
-                      className='grid grid-cols-3 p-4 border border-gray-700 rounded'
+                      className='grid grid-cols-3 p-4 border border-gray-700 rounded mb-4'
                     >
                       <div>
                         <a

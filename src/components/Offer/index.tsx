@@ -13,7 +13,7 @@ import {
 } from '@solana/web3.js'
 import { toast } from 'react-toastify'
 import { Nft, Marketplace } from './../../types'
-import Button from './../Button'
+import Button, { ButtonType } from './../Button'
 
 const {
   createPublicBuyInstruction,
@@ -166,8 +166,10 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
         />
       </div>
       <div className='grid grid-cols-2 gap-4'>
-        <Link to={`/nfts/${nft.address}`} className='button secondary'>
+        <Link to={`/nfts/${nft.address}`}>
+          <Button type={ButtonType.Secondary}>
           Cancel
+          </Button>
         </Link>
         <Button htmlType="submit" loading={isSubmitting}>Place offer</Button>
       </div>
