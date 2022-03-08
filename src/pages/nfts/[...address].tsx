@@ -383,8 +383,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   }
 
   const cancelListingTransaction = async () => {
-    console.log("we here fam")
-
     if (!publicKey || !signTransaction || !listing || !isOwner) {
       return
     }
