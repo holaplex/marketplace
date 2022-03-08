@@ -217,6 +217,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       marketplace.auctionHouse.auctionHouseTreasury
     )
     const listingReceipt = new PublicKey(listing.address)
+    const sellerPaymentReceiptAccount = new PublicKey(listing.seller)
 
     const [
       tokenAccount,
@@ -317,7 +318,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       metadata,
       treasuryMint,
       escrowPaymentAccount,
-      sellerPaymentReceiptAccount: tokenAccount,
+      sellerPaymentReceiptAccount,
       buyerReceiptTokenAccount,
       authority,
       auctionHouse,
@@ -328,6 +329,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       freeTradeState,
       programAsSigner,
     }
+
     const executeSaleInstructionArgs = {
       escrowPaymentBump,
       freeTradeStateBump,

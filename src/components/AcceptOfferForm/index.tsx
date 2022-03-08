@@ -19,6 +19,8 @@ interface AcceptOfferFormProps {
 }
 
 const {
+  createSellInstruction,
+  createPrintListingReceiptInstruction,
   createExecuteSaleInstruction,
   createPrintPurchaseReceiptInstruction,
 } = AuctionHouseProgram.instructions
@@ -50,11 +52,13 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
     )
 
     const bidReceipt = new PublicKey(offer.address)
+    const buyerPubkey = new PublicKey(offer.buyer)
+
 
     const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
 
     const [
-      sellerTradeState,
+      sellerTradeState,sellerTradeStateBump
     ] = await AuctionHouseProgram.findTradeStateAddress(
       publicKey,
       auctionHouse,
@@ -68,7 +72,7 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
     const [
       buyerTradeState,
     ] = await AuctionHouseProgram.findPublicBidTradeStateAddress(
-      new PublicKey(offer.buyer),
+      buyerPubkey,
       auctionHouse,
       treasuryMint,
       tokenMint,
@@ -87,7 +91,7 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
       escrowPaymentBump,
     ] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(
       auctionHouse,
-      publicKey
+      buyerPubkey
     )
 
     const [
@@ -108,10 +112,47 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
       1
     )
 
-    const [listingReceipt] = await AuctionHouseProgram.findListingReceiptAddress(sellerTradeState)
+    const [
+      buyerReceiptTokenAccount,
+    ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
+      publicKey,
+      tokenMint
+    )
+
+    const [listingReceipt, listingReceiptBump] = await AuctionHouseProgram.findListingReceiptAddress(sellerTradeState)
+
+    const sellInstructionAccounts = {
+      wallet: publicKey,
+      tokenAccount: tokenAccount,
+      metadata: metadata,
+      authority: authority,
+      auctionHouse: auctionHouse,
+      auctionHouseFeeAccount: auctionHouseFeeAccount,
+      sellerTradeState: sellerTradeState,
+      freeSellerTradeState: freeTradeState,
+      programAsSigner: programAsSigner,
+    }
+    
+    const sellInstructionArgs = {
+      tradeStateBump: sellerTradeStateBump,
+      freeTradeStateBump: freeTradeStateBump,
+      programAsSignerBump: programAsSignerBump,
+      buyerPrice: offer.price,
+      tokenSize: 1
+    }
+
+    const printListingReceiptInstructionAccounts = {
+      receipt: listingReceipt,
+      bookkeeper: publicKey,
+      instruction: SYSVAR_INSTRUCTIONS_PUBKEY,
+    }
+
+    const printListingReceiptInstructionArgs = {
+      receiptBump: listingReceiptBump
+    }
 
     const executeSaleInstructionAccounts = {
-      buyer: new PublicKey(offer.buyer),
+      buyer: buyerPubkey,
       seller: publicKey,
       tokenAccount: tokenAccount,
       tokenMint: tokenMint,
@@ -119,7 +160,7 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
       treasuryMint: treasuryMint,
       escrowPaymentAccount: escrowPaymentAccount,
       sellerPaymentReceiptAccount: publicKey,
-      buyerReceiptTokenAccount: new PublicKey(offer.buyer),
+      buyerReceiptTokenAccount: buyerReceiptTokenAccount,
       authority: authority,
       auctionHouse: auctionHouse,
       auctionHouseFeeAccount: auctionHouseFeeAccount,
@@ -136,12 +177,6 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
       buyerPrice: offer.price,
       tokenSize: 1,
     }
-
-    const executeSaleInstruction = createExecuteSaleInstruction(
-      executeSaleInstructionAccounts,
-      executeSaleInstructionArgs
-    )
-
     const executePrintPurchaseReceiptInstructionAccounts = {
       purchaseReceipt: purchaseReceipt,
       listingReceipt: listingReceipt,
@@ -154,14 +189,19 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
       purchaseReceiptBump: purchaseReceiptBump
     }
 
-    const executePrintPurchaseReceiptInstruction = createPrintPurchaseReceiptInstruction(
-      executePrintPurchaseReceiptInstructionAccounts,
-      executePrintPurchaseReceiptInstructionArgs
-    )
+
+    const createListingInstruction = createSellInstruction(sellInstructionAccounts, sellInstructionArgs)
+    const createPrintListingInstruction = createPrintListingReceiptInstruction(printListingReceiptInstructionAccounts, printListingReceiptInstructionArgs)
+    const executeSaleInstruction = createExecuteSaleInstruction(executeSaleInstructionAccounts,executeSaleInstructionArgs)
+    const executePrintPurchaseReceiptInstruction = createPrintPurchaseReceiptInstruction(executePrintPurchaseReceiptInstructionAccounts,executePrintPurchaseReceiptInstructionArgs)
 
     const txt = new Transaction()
 
-    txt.add(executeSaleInstruction).add(executePrintPurchaseReceiptInstruction)
+    txt
+    .add(createListingInstruction)
+    .add(createPrintListingInstruction)
+    .add(executeSaleInstruction)
+    .add(executePrintPurchaseReceiptInstruction)
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
