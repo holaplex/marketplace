@@ -27,7 +27,7 @@ jobs:
 
     - name: Build, tag, and push image to Amazon ECR (dev)
       if: github.ref == 'refs/heads/dev'
-      id: build-image
+      id: build-image-dev
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ github.event.repository.name }}
@@ -40,8 +40,8 @@ jobs:
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_REF##*/}-$git_hash"
 
     - name: Build, tag, and push image to Amazon ECR (prod)
-      if: github.ref == 'refs/heads/dev'
-      id: build-image
+      if: github.ref == 'refs/heads/prod'
+      id: build-image-prod
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ github.event.repository.name }}
