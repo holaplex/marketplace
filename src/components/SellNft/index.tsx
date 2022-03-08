@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
+import Button, { ButtonType } from './../../components/Button';
 import {
   Transaction,
   PublicKey,
@@ -29,7 +30,7 @@ interface SellNftProps {
 }
 
 const SellNft = ({ nft, marketplace }: SellNftProps) => {
-  const { control, watch, handleSubmit } = useForm<SellNftForm>({})
+  const { control, handleSubmit, formState: { isSubmitting } } = useForm<SellNftForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
   const router = useRouter()
@@ -136,19 +137,32 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    const signed = await signTransaction(txt)
+    let signed: Transaction;
 
     try {
-      const signature = await connection.sendRawTransaction(signed.serialize())
-      toast('Transaction Sent!')
-      await connection.confirmTransaction(signature, 'processed')
+      signed = await signTransaction(txt);
+    } catch(e: any) {
+      toast.error(e.message);
+
+      return;
+    }
+
+    let signature: string;
+
+    try {
+      signature = await connection.sendRawTransaction(signed.serialize());
+
+      toast('Sending the transaction to Solana.');
+
+      await connection.confirmTransaction(signature, 'processed');
+
+      toast('The transaction was confirmed.');
     } catch {
       toast.error(
-        'Something went wrong!  <a href={`https://explorer.solana.com/tx/${signature}`}>{TX: signature}</a>'
+        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
       )
     } finally {
-      toast('Transaction successful!')
-      return router.push(`/nfts/${nft.address}`)
+      return router.push(`/nfts/${nft.address}`);
     }
   }
 
@@ -164,13 +178,11 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
           control={control}
           name='amount'
           render={({ field: { onChange, value } }) => {
-            const auctionHouseFeeBasisPoints = 200
-            const amount = Number(value || 0) * LAMPORTS_PER_SOL
+            const amount = Number(value || 0) * LAMPORTS_PER_SOL;
 
             const royalties = (amount * nft.sellerFeeBasisPoints) / 10000
 
-            const auctionHouseFee =
-              (amount * auctionHouseFeeBasisPoints) / 10000
+            const auctionHouseFee = (amount * marketplace.auctionHouse.sellerFeeBasisPoints) / 10000
 
             return (
               <>
@@ -196,7 +208,7 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
                   </div>
                   <div className='flex justify-between'>
                     <span className='text-gray-400'>
-                      {auctionHouseFeeBasisPoints / 100}% transaction fee
+                      {marketplace.auctionHouse.sellerFeeBasisPoints / 100}% transaction fee
                     </span>
                     <div className='flex justify-center gap-2'>
                       <span className='icon-sol'></span>
@@ -221,13 +233,13 @@ const SellNft = ({ nft, marketplace }: SellNftProps) => {
       </div>
       <div className='grid flex-grow grid-cols-2 gap-4'>
         <Link to={`/nfts/${nft.address}`}>
-          <button className='w-full h-12 text-sm text-white transition-colors duration-150 bg-black rounded-full lg:text-xl md:text-base focus:shadow-outline hover:bg-black'>
+          <Button type={ButtonType.Secondary}>
             Cancel
-          </button>
+          </Button>
         </Link>
-        <button className='h-12 text-sm text-black transition-colors duration-150 bg-white rounded-full lg:text-xl md:text-base focus:shadow-outline hover:bg-white'>
+        <Button htmlType="submit" loading={isSubmitting}>
           List for sale
-        </button>
+        </Button>
       </div>
     </form>
   )

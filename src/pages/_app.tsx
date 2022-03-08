@@ -61,14 +61,20 @@ function App({ Component, pageProps }: AppProps) {
       router.events.off('routeChangeComplete', handleRouteChange)
     }
   }, [router, navigate]);
-  
+
   return (
     <ApolloProvider client={client}>
       <ConnectionProvider endpoint={endpoint}>
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
-          <ToastContainer autoClose={5000} hideProgressBar={true} position={'bottom-center'} className="w-full max-w-full font-sans text-sm text-white bottom-4 sm:right-4 sm:left-auto sm:w-96 sm:translate-x-0 " toastClassName="bg-gray-900 bg-opacity-80 rounded-lg items-center"/>
-                <Component {...pageProps} />
+            <ToastContainer
+              theme="dark"
+              hideProgressBar={true}
+              position='bottom-center'
+              className="w-full max-w-full font-sans text-sm text-white bottom-4 sm:right-4 sm:left-auto sm:w-96 sm:translate-x-0 "
+              toastClassName="bg-gray-900 bg-opacity-80 rounded-lg items-center"
+            />
+            <Component {...pageProps} />
           </WalletModalProvider>
         </WalletProvider>
       </ConnectionProvider>
