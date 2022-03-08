@@ -159,6 +159,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   const { connection } = useConnection();
   const router = useRouter();
   const cancelListingForm = useForm();
+  const cancelOfferForm = useForm();
   const buyNowForm = useForm();
 
   const isMarketplaceAuctionHouse = equals(marketplace.auctionHouse.address);
@@ -382,6 +383,8 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   }
 
   const cancelListingTransaction = async () => {
+    console.log("we here fam")
+
     if (!publicKey || !signTransaction || !listing || !isOwner) {
       return
     }
@@ -441,6 +444,103 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     const txt = new Transaction()
 
     txt.add(cancelInstruction).add(cancelListingReceiptInstruction)
+
+    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+    txt.feePayer = publicKey
+
+    let signed: Transaction;
+
+    try {
+      signed = await signTransaction(txt);
+    } catch (e: any) {
+      toast.error(e.message);
+      return;
+    }
+
+    let signature: string;
+
+    try {
+      signature = await connection.sendRawTransaction(signed.serialize());
+
+      toast('Sending the transaction to Solana.');
+
+      await connection.confirmTransaction(signature, 'processed');
+
+      toast('The transaction was confirmed.');
+    } catch {
+      toast.error(
+        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
+      )
+    }
+  }
+
+  const cancelOfferTransaction = async () => {
+    if (!publicKey || !signTransaction || !listing) { // Do we need another conditional for this person owned the listing
+      return
+    }
+
+    const offer = find<Offer>(
+      pipe(prop('buyer'), equals(publicKey.toBase58()))
+    )(nft.offers);
+
+    if (!offer){
+      return
+    }
+
+
+    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
+    const authority = new PublicKey(marketplace.auctionHouse.authority)
+    const auctionHouseFeeAccount = new PublicKey(
+      marketplace.auctionHouse.auctionHouseFeeAccount
+    )
+    const tokenMint = new PublicKey(nft.mintAddress)
+    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
+    const receipt = new PublicKey(listing.address)
+    const [
+      tokenAccount,
+    ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
+      tokenMint,
+      new PublicKey(nft.owner.address)
+    )
+
+    const [tradeState] = await AuctionHouseProgram.findTradeStateAddress(
+      publicKey,
+      auctionHouse,
+      tokenAccount,
+      treasuryMint,
+      tokenMint,
+      listing.price,
+      1
+    )
+
+    const txt = new Transaction()
+
+    const cancelInstructionAccounts = {
+      wallet: publicKey,
+      tokenAccount: tokenAccount,
+      tokenMint: tokenMint,
+      authority: authority,
+      auctionHouse: auctionHouse,
+      auctionHouseFeeAccount: auctionHouseFeeAccount,
+      tradeState: tradeState,
+    }
+
+
+    const cancelInstructionArgs = {
+      buyerPrice: offer.price,
+      tokenSize: "1",
+    }
+
+    const cancelBidReceiptInstructionAccounts = {
+      receipt: receipt,
+      instruction: new PublicKey(PublicKey.default), // WTF is this?
+    }
+
+    const cancelBidInstruction = AuctionHouseProgram.instructions.createCancelInstruction(cancelInstructionAccounts, cancelInstructionArgs)
+
+    const cancelBidReceiptInstruction = AuctionHouseProgram.instructions.createCancelBidReceiptInstruction(cancelBidReceiptInstructionAccounts)
+
+    txt.add(cancelBidInstruction).add(cancelBidReceiptInstruction)
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
@@ -644,15 +744,16 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               ),
               (offers: Offer[]) => (
                 <section className='w-full'>
-                  <header className='grid grid-cols-3 px-4 mb-2'>
+                  <header className='grid grid-cols-4 px-4 mb-2'>
                     <span className='label'>FROM</span>
                     <span className='label'>PRICE</span>
                     <span className='label'>WHEN</span>
+                    <span className='label'>ACTION</span>
                   </header>
                   {offers.map(({ address, buyer, price, createdAt }: Offer) => (
                     <article
                       key={address}
-                      className='grid grid-cols-3 p-4 border border-gray-700 rounded mb-4'
+                      className='grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded'
                     >
                       <div>
                         <a
@@ -666,6 +767,17 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         <span className='sol-amount'>{toSOL(price)}</span>
                       </div>
                       <div>{format(createdAt, 'en_US')}</div>
+                      <div>{buyer == publicKey?.toBase58() && (
+                          <form className="flex-1" onSubmit={cancelOfferForm.handleSubmit(cancelOfferTransaction)}>
+                            <Button
+                              loading={cancelOfferForm.formState.isSubmitting}
+                              htmlType="submit"
+                              type={ButtonType.Primary}
+                            >
+                              Cancel Listing
+                            </Button>
+                          </form>
+                        )}</div>
                     </article>
                   ))}
                 </section>
