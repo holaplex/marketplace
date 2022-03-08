@@ -12,7 +12,8 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
 } from '@solana/web3.js'
 import { toast } from 'react-toastify'
-import { Nft, Marketplace } from '../../types'
+import { Nft, Marketplace } from './../../types'
+import Button from './../Button'
 
 const {
   createPublicBuyInstruction,
@@ -28,7 +29,7 @@ interface OfferProps {
 }
 
 const Offer = ({ nft, marketplace }: OfferProps) => {
-  const { handleSubmit, register } = useForm<OfferForm>({})
+  const { handleSubmit, register, formState: { isSubmitting } } = useForm<OfferForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
   const router = useRouter()
@@ -121,19 +122,32 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    const signed = await signTransaction(txt)
+    let signed: Transaction;
 
     try {
-      const signature = await connection.sendRawTransaction(signed.serialize())
-      toast('Transaction sent!')
-      await connection.confirmTransaction(signature, 'processed')
+      signed = await signTransaction(txt);
+    } catch(e: any) {
+      toast.error(e.message);
+
+      return;
+    }
+
+    let signature: string;
+
+    try {
+      signature = await connection.sendRawTransaction(signed.serialize());
+
+      toast('Sending the transaction to Solana.');
+
+      await connection.confirmTransaction(signature, 'processed');
+
+      toast('The transaction was confirmed.');
     } catch {
       toast.error(
-        'Something went wrong!  <a href={`https://explorer.solana.com/tx/${signature}`}>{TX: signature}</a>'
+        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
       )
     } finally {
-      toast('Transaction successful!')
-      return router.push(`/nfts/${nft.address}`)
+      return router.push(`/nfts/${nft.address}`);
     }
   }
 
@@ -155,7 +169,7 @@ const Offer = ({ nft, marketplace }: OfferProps) => {
         <Link to={`/nfts/${nft.address}`} className='button secondary'>
           Cancel
         </Link>
-        <button className='button'>Place offer</button>
+        <Button htmlType="submit" loading={isSubmitting}>Place offer</Button>
       </div>
     </form>
   )

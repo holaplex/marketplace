@@ -15,6 +15,7 @@ import {
 import client from '../../client'
 import { useRouter } from 'next/router'
 import { Link } from 'react-router-dom'
+import Button, { ButtonType } from './../../components/Button';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import NextLink from 'next/link'
 import { Route, Routes } from 'react-router-dom'
@@ -35,6 +36,7 @@ import {
 } from '@solana/web3.js'
 import { toSOL } from '../../modules/lamports'
 import { toast } from 'react-toastify'
+import { useForm } from 'react-hook-form'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -154,19 +156,21 @@ interface NftPageProps extends AppProps {
 }
 
 const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
-  const { publicKey, signTransaction } = useWallet()
-  const { connection } = useConnection()
-  const router = useRouter()
+  const { publicKey, signTransaction } = useWallet();
+  const { connection } = useConnection();
+  const router = useRouter();
+  const cancelListingForm = useForm();
+  const buyNowForm = useForm();
 
-  const isMarketplaceAuctionHouse = equals(marketplace.auctionHouse.address)
-  const pickAuctionHouse = prop('auctionHouse')
-  const isOwner = equals(nft.owner.address, publicKey?.toBase58())
+  const isMarketplaceAuctionHouse = equals(marketplace.auctionHouse.address);
+  const pickAuctionHouse = prop('auctionHouse');
+  const isOwner = equals(nft.owner.address, publicKey?.toBase58());
   const listing = find<Listing>(
     pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
-  )(nft.listings)
+  )(nft.listings);
   const offers = filter<Offer>(
     pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
-  )(nft.offers)
+  )(nft.offers);
 
   const buyNftTransaction = async () => {
     if (!publicKey || !signTransaction || !listing || isOwner) {
@@ -352,19 +356,29 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    const signed = await signTransaction(txt)
+    let signed: Transaction;
 
     try {
-      const signature = await connection.sendRawTransaction(signed.serialize())
-      toast('Transaction Sent!')
-      await connection.confirmTransaction(signature, 'processed')
+      signed = await signTransaction(txt);
+    } catch(e: any) {
+      toast.error(e.message);
+      return;
+    }
+
+    let signature: string;
+
+    try {
+      signature = await connection.sendRawTransaction(signed.serialize());
+
+      toast('Sending the transaction to Solana.');
+
+      await connection.confirmTransaction(signature, 'processed');
+
+      toast('The transaction was confirmed.');
     } catch {
       toast.error(
-        'Something went wrong!  <a href={`https://explorer.solana.com/tx/${signature}`}>{TX: signature}</a>'
+        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
       )
-    } finally {
-      toast('Transaction successful!')
-      return router.push(`/nfts/${nft.address}`)
     }
   }
 
@@ -432,11 +446,30 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    const signed = await signTransaction(txt)
+    let signed: Transaction;
 
-    const signature = await connection.sendRawTransaction(signed.serialize())
-    toast('Transaction Sent!')
-    await connection.confirmTransaction(signature, 'processed')
+    try {
+      signed = await signTransaction(txt);
+    } catch(e: any) {
+      toast.error(e.message);
+      return;
+    }
+
+    let signature: string;
+
+    try {
+      signature = await connection.sendRawTransaction(signed.serialize());
+
+      toast('Sending the transaction to Solana.');
+
+      await connection.confirmTransaction(signature, 'processed');
+
+      toast('The transaction was confirmed.');
+    } catch {
+      toast.error(
+        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
+      )
+    }
   }
 
   return (
@@ -504,7 +537,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   <div className='flex-1'>
                     <div className='label'>PRICE</div>
                     <p className='text-base md:text-xl lg:text-3xl'>
-                      <b className='sol-input'>{toSOL(listing.price)}</b>
+                      <b className='sol-amount'>{toSOL(listing.price)}</b>
                     </p>
                   </div>
                 )}
@@ -519,7 +552,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   </a>
                 </div>
               </div>
-
               <div className='flex gap-4 overflow-visible'>
                 <Routes>
                   <Route
@@ -543,20 +575,25 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                           </Link>
                         )}
                         {listing && !isOwner && (
-                          <button
-                            className='flex-1 button'
-                            onClick={buyNftTransaction}
-                          >
-                            Buy Now
-                          </button>
+                          <form className="flex-1" onSubmit={buyNowForm.handleSubmit(buyNftTransaction)}>
+                            <Button
+                              loading={buyNowForm.formState.isSubmitting}
+                              htmlType="submit"
+                            >
+                              Buy Now
+                            </Button>
+                          </form>
                         )}
                         {listing && isOwner && (
-                          <button
-                            className='flex-1 button secondary'
-                            onClick={cancelListingTransaction}
-                          >
-                            Cancel Listing
-                          </button>
+                          <form className="flex-1" onSubmit={cancelListingForm.handleSubmit(cancelListingTransaction)}>
+                            <Button
+                              loading={cancelListingForm.formState.isSubmitting}
+                              htmlType="submit"
+                              type={ButtonType.Secondary}
+                            >
+                              Cancel Listing
+                            </Button>
+                          </form>
                         )}
                       </>
                     }
