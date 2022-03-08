@@ -42,6 +42,7 @@ import { toSOL } from '../../modules/lamports'
 import { toast } from 'react-toastify'
 import { useForm } from 'react-hook-form'
 import CancelOfferForm from '../../components/CancelOfferForm'
+import AcceptOfferForm from '../../components/AcceptOfferForm'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -730,42 +731,47 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                     <span className='label'>WHEN</span>
                     <span className='label'></span>
                   </header>
-                  {loading ? (
-                    <>
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                    </>
-                  ) : (
-                    offers.map((offer: Offer) => (
-                      <article
-                        key={offer.address}
-                        className='grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded'
-                      >
-                        <div>
-                          <a
-                            href={`https://holaplex.com/profiles/${offer.buyer}`}
-                            rel='nofollower'
-                          >
-                            {truncateAddress(offer.buyer)}
-                            {offer && <span className="px-3 py-1 ml-1 text-xs text-black bg-white rounded-full ">You</span>}
-                          </a>
-                        </div>
-                        <div>
-                          <span className='sol-amount'>{toSOL(offer.price)}</span>
-                        </div>
-                        <div>{format(offer.createdAt, 'en_US')}</div>
-                        <div className="flex w-full justify-end">
-                        <CancelOfferForm nft={data?.nft} marketplace={marketplace} offer={offer} refetch={refetch} />
-                        </div>
-                      </article>
-                    ))
-                  )}
-                </section>
+                  {
+                    loading ? (
+                      <>
+                        <article className="bg-gray-800 mb-4 h-16 rounded" />
+                        <article className="bg-gray-800 mb-4 h-16 rounded" />
+                        <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      </>
+                    ) : (
+                      offers.map((offer: Offer) => (
+                        <article
+                          key={offer.address}
+                          className='grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded'
+                        >
+                          <div>
+                            <a
+                              href={`https://holaplex.com/profiles/${offer.buyer}`}
+                              rel='nofollower'
+                            >
+                              {truncateAddress(offer.buyer)}
+                              {offer && <span className="px-3 py-1 ml-1 text-xs text-black bg-white rounded-full ">You</span>}
+                            </a>
+                          </div>
+                          <div>
+                            <span className='sol-amount'>{toSOL(offer.price)}</span>
+                          </div>
+                          <div>{format(offer.createdAt, 'en_US')}</div>
+                          {(offer || isOwner) && (
+                            <div className="flex w-full justify-end">
+                              {equals(offer.buyer, publicKey?.toBase58() as string) && <CancelOfferForm nft={data?.nft} marketplace={marketplace} offer={offer} refetch={refetch} />}
+                              {isOwner && (<AcceptOfferForm nft={data?.nft} marketplace={marketplace} offer={offer} refetch={refetch} />)}
+                            </div>
+                          )}
+                        </article>
+                      ))
+                    )
+                  }
+                </section >
               )
             )(offers)}
-          </div>
-        </div>
+          </div >
+        </div >
       </div >
     </>
   )
