@@ -18,7 +18,10 @@ interface AcceptOfferFormProps {
   refetch: (variables?: Partial<OperationVariables> | undefined) => Promise<ApolloQueryResult<_>>;
 }
 
-const { createExecuteSaleInstruction } = AuctionHouseProgram.instructions
+const {
+  createExecuteSaleInstruction,
+  createPrintPurchaseReceiptInstruction,
+} = AuctionHouseProgram.instructions
 
 const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormProps) => {
   const { publicKey, signTransaction } = useWallet()
@@ -46,13 +49,16 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
       new PublicKey(nft.owner.address)
     )
 
+    const bidReceipt = new PublicKey(offer.address)
+
     const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
 
     const [
       sellerTradeState,
-    ] = await AuctionHouseProgram.findPublicBidTradeStateAddress(
+    ] = await AuctionHouseProgram.findTradeStateAddress(
       publicKey,
       auctionHouse,
+      tokenAccount,
       treasuryMint,
       tokenMint,
       offer.price,
@@ -69,6 +75,12 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
       offer.price,
       1
     )
+
+    const [
+      purchaseReceipt,purchaseReceiptBump
+    ] = await AuctionHouseProgram.findPurchaseReceiptAddress(sellerTradeState,buyerTradeState)
+    
+
 
     const [
       escrowPaymentAccount,
@@ -95,6 +107,8 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
       0,
       1
     )
+
+    const [listingReceipt] = await AuctionHouseProgram.findListingReceiptAddress(sellerTradeState)
 
     const executeSaleInstructionAccounts = {
       buyer: new PublicKey(offer.buyer),
@@ -128,9 +142,26 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
       executeSaleInstructionArgs
     )
 
+    const executePrintPurchaseReceiptInstructionAccounts = {
+      purchaseReceipt: purchaseReceipt,
+      listingReceipt: listingReceipt,
+      bidReceipt: bidReceipt,
+      bookkeeper: publicKey,
+      instruction: SYSVAR_INSTRUCTIONS_PUBKEY,
+    }
+
+    const executePrintPurchaseReceiptInstructionArgs = {
+      purchaseReceiptBump: purchaseReceiptBump
+    }
+
+    const executePrintPurchaseReceiptInstruction = createPrintPurchaseReceiptInstruction(
+      executePrintPurchaseReceiptInstructionAccounts,
+      executePrintPurchaseReceiptInstructionArgs
+    )
+
     const txt = new Transaction()
 
-    txt.add(executeSaleInstruction)
+    txt.add(executeSaleInstruction).add(executePrintPurchaseReceiptInstruction)
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
@@ -139,7 +170,7 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
 
     try {
       signed = await signTransaction(txt)
-    } catch (e) {
+    } catch (e: any) {
       toast.error(e.message)
       return
     }
