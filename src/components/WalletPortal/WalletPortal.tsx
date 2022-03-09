@@ -1,5 +1,4 @@
 import { always, isNil, ifElse, not, or } from 'ramda';
-import Image from 'next/image';
 import { useQuery, gql } from '@apollo/client';
 import { useWallet } from "@solana/wallet-adapter-react";
 import * as Popover from '@radix-ui/react-popover';
@@ -47,7 +46,7 @@ const WalletPortal = () => {
         <Popover.Trigger>
           <div className="w-12 h-12 rounded-full bg-gray-800">
             {not(isLoading) && (
-              <Image height="48px" width="48px" className="rounded-full" alt="profile image" src="/static/gradient-3.png" />
+              <div className="user-avatar h-[48px] w-[48px]" />
             )}
           </div>
         </Popover.Trigger>
@@ -57,7 +56,7 @@ const WalletPortal = () => {
           <div className="flex items-center mb-6">
             <div className="w-16 h-16 inline-block rounded-full bg-gray-700 mr-4">
               {not(isLoading) && (
-                <Image height="64px" width="64px" className="rounded-full" alt="profile image" src="/static/gradient-3.png" />
+                <div className="user-avatar w-full h-full block" />
               )}
             </div>
             {not(isLoading) && (
