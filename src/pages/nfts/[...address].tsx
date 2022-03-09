@@ -220,6 +220,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     )
     const listingReceipt = new PublicKey(listing.address)
     const sellerPaymentReceiptAccount = new PublicKey(listing.seller)
+    const sellerTradeState = new PublicKey(listing.tradeState);
 
     const [
       tokenAccount,
@@ -243,15 +244,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     ] = await AuctionHouseProgram.findPublicBidTradeStateAddress(
       publicKey,
       auctionHouse,
-      treasuryMint,
-      tokenMint,
-      listing.price,
-      1
-    )
-    const [sellerTradeState] = await AuctionHouseProgram.findTradeStateAddress(
-      seller,
-      auctionHouse,
-      tokenAccount,
       treasuryMint,
       tokenMint,
       listing.price,
@@ -295,7 +287,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
 
     const publicBuyInstructionAccounts = {
       wallet: publicKey,
-      paymentAccount: tokenAccount,
+      paymentAccount: publicKey,
       transferAuthority: publicKey,
       treasuryMint,
       tokenAccount,
@@ -365,13 +357,13 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       publicBuyInstructionAccounts,
       publicBuyInstructionArgs
     )
-    const executeSaleInstruction = createExecuteSaleInstruction(
-      executeSaleInstructionAccounts,
-      executeSaleInstructionArgs
-    )
     const printBidReceiptInstruction = createPrintBidReceiptInstruction(
       printBidReceiptAccounts,
       printBidReceiptArgs
+    )
+    const executeSaleInstruction = createExecuteSaleInstruction(
+      executeSaleInstructionAccounts,
+      executeSaleInstructionArgs
     )
     const printPurchaseReceiptInstruction = createPrintPurchaseReceiptInstruction(
       printPurchaseReceiptAccounts,
@@ -383,7 +375,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     txt
       .add(publicBuyInstruction)
       .add(printBidReceiptInstruction)
-      .add(executeSaleInstruction)
       .add(new TransactionInstruction({
         programId: AuctionHouseProgram.PUBKEY,
         data: executeSaleInstruction.data,
@@ -414,6 +405,8 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       signature = await connection.sendRawTransaction(signed.serialize());
 
       await connection.confirmTransaction(signature, 'confirmed');
+
+      await refetch();
 
       toast('The transaction was confirmed.');
     } catch {
