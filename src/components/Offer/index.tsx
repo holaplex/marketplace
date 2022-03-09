@@ -171,11 +171,11 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
       </div>
       <div className='grid grid-cols-2 gap-4'>
         <Link to={`/nfts/${nft?.address}`}>
-          <Button type={ButtonType.Secondary}>
+          <Button type={ButtonType.Secondary} block>
           Cancel
           </Button>
         </Link>
-        <Button htmlType="submit" loading={isSubmitting}>Place offer</Button>
+        <Button htmlType="submit" loading={isSubmitting} block>Place offer</Button>
       </div>
     </form>
   )

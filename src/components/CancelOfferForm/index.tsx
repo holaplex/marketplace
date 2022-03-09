@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { OperationVariables, ApolloQueryResult } from '@apollo/client'
-import Button, { ButtonType } from './../../components/Button'
+import Button, { ButtonSize, ButtonType } from './../../components/Button'
 import { toast } from 'react-toastify'
 import {
   Transaction,
@@ -135,7 +135,6 @@ const CancelOfferForm = ({ offer, nft, marketplace, refetch }: CancelOfferFormPr
 
   return (
     <form
-      className='flex-1'
       onSubmit={cancelOfferForm.handleSubmit(
         cancelOfferTransaction
       )}
@@ -143,6 +142,7 @@ const CancelOfferForm = ({ offer, nft, marketplace, refetch }: CancelOfferFormPr
       <Button
         loading={cancelOfferForm.formState.isSubmitting}
         htmlType='submit'
+        size={ButtonSize.Small}
         type={ButtonType.Primary}
       >
         Cancel Offer

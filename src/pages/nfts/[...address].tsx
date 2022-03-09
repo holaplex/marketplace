@@ -19,9 +19,9 @@ import cx from 'classnames';
 import client from '../../client';
 import { useRouter } from 'next/router';
 import { useQuery } from '@apollo/client';
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
+import WalletPortal from '../../components/WalletPortal';
 import Button, { ButtonType } from './../../components/Button';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import NextLink from 'next/link'
 import { Route, Routes } from 'react-router-dom'
 import OfferPage from '../../components/Offer'
@@ -52,8 +52,6 @@ const {
   createPrintBidReceiptInstruction,
   createCancelListingReceiptInstruction,
   createPrintPurchaseReceiptInstruction,
-  createCancelBidReceiptInstruction
-
 } = AuctionHouseProgram.instructions
 
 const pickAuctionHouse = prop('auctionHouse');
@@ -517,7 +515,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
             </button>
           </a>
         </NextLink>
-        <WalletMultiButton>Connect</WalletMultiButton>
+        <div className="block">
+          <WalletPortal />
+        </div>
       </div>
       <div className='container px-4 pb-10 mx-auto text-white'>
         <div className='grid items-start grid-cols-1 gap-6 mt-12 mb-10 lg:grid-cols-2'>
@@ -630,7 +630,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                             to={`/nfts/${data?.nft.address}/offers/new`}
                             className='flex-1'
                           >
-                            <Button type={ButtonType.Secondary}>
+                            <Button type={ButtonType.Secondary} block>
                               Make Offer
                             </Button>
                           </Link>
@@ -640,7 +640,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                             to={`/nfts/${data?.nft.address}/listings/new`}
                             className='flex-1'
                           >
-                            <Button>
+                            <Button block>
                               Sell NFT
                             </Button>
                           </Link>
@@ -650,6 +650,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                             <Button
                               loading={buyNowForm.formState.isSubmitting}
                               htmlType="submit"
+                              block
                             >
                               Buy Now
                             </Button>
@@ -658,6 +659,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                         {listing && isOwner && (
                           <form className="flex-1" onSubmit={cancelListingForm.handleSubmit(cancelListingTransaction)}>
                             <Button
+                              block
                               loading={cancelListingForm.formState.isSubmitting}
                               htmlType="submit"
                               type={ButtonType.Secondary}
@@ -726,7 +728,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                     <span className='label'>FROM</span>
                     <span className='label'>PRICE</span>
                     <span className='label'>WHEN</span>
-                    <span className='label'>ACTION</span>
+                    <span className='label'></span>
                   </header>
                   {loading ? (
                     <>
@@ -753,7 +755,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                           <span className='sol-amount'>{toSOL(offer.price)}</span>
                         </div>
                         <div>{format(offer.createdAt, 'en_US')}</div>
+                        <div className="flex w-full justify-end">
                         <CancelOfferForm nft={data?.nft} marketplace={marketplace} offer={offer} refetch={refetch} />
+                        </div>
                       </article>
                     ))
                   )}

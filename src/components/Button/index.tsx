@@ -8,9 +8,15 @@ export enum ButtonType {
   Tertiary = 'tertiary',
 }
 
+export enum ButtonSize {
+  Small = 'sm',
+  Large = 'lg',
+};
+
 interface ButtonProps {
   children?: any;
   htmlType?: 'button' | 'submit' | 'reset' | undefined;
+  size?: ButtonSize;
   block?: boolean;
   type?: ButtonType;
   disabled?: boolean;
@@ -22,28 +28,32 @@ interface ButtonProps {
 const isPrimary = equals(ButtonType.Primary);
 const isSecondary = equals(ButtonType.Secondary);
 const isTertiary = equals(ButtonType.Tertiary);
+const isLarge = equals(ButtonSize.Large);
+const isSmall = equals(ButtonSize.Small);
 
 const Button = ({
   children,
+  size = ButtonSize.Large,
   htmlType = 'button',
   disabled = false,
   loading = false,
   type = ButtonType.Primary,
   className = '',
-  block = true,
+  block = false,
   onClick,
 }: ButtonProps) => {
-
   return (
     <button
       className={cx(
         className,
-        'relative block h-12 text-sm duration-150 rounded-full lg:text-xl md:text-base focus:shadow-outline hover:scale-[1.02] transition-transform grow',
+        'block relative duration-150 rounded-full focus:shadow-outline hover:scale-[1.02] transition-transform grow',
         {
           'w-full': block,
           'text-black bg-white': isPrimary(type),
           'text-white bg-gray-900': isSecondary(type),
           'text-gray-300 bg-gray-700': isTertiary(type),
+          'text-sm p-2': isSmall(size),
+          'p-4': isLarge(size),
         }
       )}
       disabled={disabled}

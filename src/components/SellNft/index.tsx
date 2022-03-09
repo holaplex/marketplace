@@ -182,6 +182,10 @@ const SellNft = ({ nft, marketplace, refetch }: SellNftProps) => {
           control={control}
           name='amount'
           render={({ field: { onChange, value } }) => {
+            if (!nft) {
+              return <></>;
+            }
+
             const amount = Number(value || 0) * LAMPORTS_PER_SOL;
 
             const royalties = (amount * nft.sellerFeeBasisPoints) / 10000
@@ -237,11 +241,11 @@ const SellNft = ({ nft, marketplace, refetch }: SellNftProps) => {
       </div>
       <div className='grid flex-grow grid-cols-2 gap-4'>
         <Link to={`/nfts/${nft?.address}`}>
-          <Button type={ButtonType.Secondary}>
+          <Button block type={ButtonType.Secondary}>
             Cancel
           </Button>
         </Link>
-        <Button htmlType="submit" loading={isSubmitting}>
+        <Button block htmlType="submit" loading={isSubmitting}>
           List for sale
         </Button>
       </div>
