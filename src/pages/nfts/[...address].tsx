@@ -14,6 +14,7 @@ import {
   filter,
   and,
   not,
+  concat
 } from 'ramda'
 import cx from 'classnames';
 import client from '../../client';
@@ -37,11 +38,13 @@ import {
   Transaction,
   PublicKey,
   SYSVAR_INSTRUCTIONS_PUBKEY,
+  TransactionInstruction,
 } from '@solana/web3.js'
 import { toSOL } from '../../modules/lamports'
 import { toast } from 'react-toastify'
 import { useForm } from 'react-hook-form'
 import CancelOfferForm from '../../components/CancelOfferForm'
+import AcceptOfferForm from '../../components/AcceptOfferForm'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -216,6 +219,8 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       marketplace.auctionHouse.auctionHouseTreasury
     )
     const listingReceipt = new PublicKey(listing.address)
+    const sellerPaymentReceiptAccount = new PublicKey(listing.seller)
+    const sellerTradeState = new PublicKey(listing.tradeState);
 
     const [
       tokenAccount,
@@ -244,15 +249,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       listing.price,
       1
     )
-    const [sellerTradeState] = await AuctionHouseProgram.findTradeStateAddress(
-      seller,
-      auctionHouse,
-      tokenAccount,
-      treasuryMint,
-      tokenMint,
-      listing.price,
-      1
-    )
     const [
       freeTradeState,
       freeTradeStateBump,
@@ -272,8 +268,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     const [
       buyerReceiptTokenAccount,
     ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-      publicKey,
-      tokenMint
+      tokenMint,
+      publicKey
+      
     )
 
     const [
@@ -290,7 +287,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
 
     const publicBuyInstructionAccounts = {
       wallet: publicKey,
-      paymentAccount: tokenAccount,
+      paymentAccount: publicKey,
       transferAuthority: publicKey,
       treasuryMint,
       tokenAccount,
@@ -316,7 +313,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       metadata,
       treasuryMint,
       escrowPaymentAccount,
-      sellerPaymentReceiptAccount: tokenAccount,
+      sellerPaymentReceiptAccount,
       buyerReceiptTokenAccount,
       authority,
       auctionHouse,
@@ -327,6 +324,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       freeTradeState,
       programAsSigner,
     }
+
     const executeSaleInstructionArgs = {
       escrowPaymentBump,
       freeTradeStateBump,
@@ -359,13 +357,13 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       publicBuyInstructionAccounts,
       publicBuyInstructionArgs
     )
-    const executeSaleInstruction = createExecuteSaleInstruction(
-      executeSaleInstructionAccounts,
-      executeSaleInstructionArgs
-    )
     const printBidReceiptInstruction = createPrintBidReceiptInstruction(
       printBidReceiptAccounts,
       printBidReceiptArgs
+    )
+    const executeSaleInstruction = createExecuteSaleInstruction(
+      executeSaleInstructionAccounts,
+      executeSaleInstructionArgs
     )
     const printPurchaseReceiptInstruction = createPrintPurchaseReceiptInstruction(
       printPurchaseReceiptAccounts,
@@ -377,7 +375,14 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     txt
       .add(publicBuyInstruction)
       .add(printBidReceiptInstruction)
-      .add(executeSaleInstruction)
+      .add(new TransactionInstruction({
+        programId: AuctionHouseProgram.PUBKEY,
+        data: executeSaleInstruction.data,
+        keys: concat(
+          executeSaleInstruction.keys,
+          data?.nft.creators.map(creator => ({ pubkey: new PublicKey(creator.address), isSigner: false, isWritable: true }))
+        )
+      }))
       .add(printPurchaseReceiptInstruction)
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
@@ -400,6 +405,8 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       signature = await connection.sendRawTransaction(signed.serialize());
 
       await connection.confirmTransaction(signature, 'confirmed');
+
+      await refetch();
 
       toast('The transaction was confirmed.');
     } catch {
@@ -533,7 +540,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
               )}
             </div>
             {loading ? (
-              <div className='aspect-square border-none bg-gray-800 w-full rounded-lg' />
+              <div className='w-full bg-gray-800 border-none rounded-lg aspect-square' />
             ) : (
               <img
                 src={data?.nft.image}
@@ -555,7 +562,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
             <div className='flex-1 mb-8'>
               <div className='mb-1 label'>
                 {loading ? (
-                  <div className="w-14 h-4 bg-gray-800 rounded" />
+                  <div className="h-4 bg-gray-800 rounded w-14" />
                 ) : (
                   ifElse(
                     pipe(length, equals(1)),
@@ -687,10 +694,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
             <div className='grid grid-cols-2 gap-6 mt-8'>
               {loading ? (
                 <>
-                  <div className="h-16 rounded bg-gray-800" />
-                  <div className="h-16 rounded bg-gray-800" />
-                  <div className="h-16 rounded bg-gray-800" />
-                  <div className="h-16 rounded bg-gray-800" />
+                  <div className="h-16 bg-gray-800 rounded" />
+                  <div className="h-16 bg-gray-800 rounded" />
+                  <div className="h-16 bg-gray-800 rounded" />
+                  <div className="h-16 bg-gray-800 rounded" />
                 </>
               ) : (
                 data?.nft.attributes.map(a => (
@@ -730,42 +737,46 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                     <span className='label'>WHEN</span>
                     <span className='label'></span>
                   </header>
-                  {loading ? (
-                    <>
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                    </>
-                  ) : (
-                    offers.map((offer: Offer) => (
-                      <article
-                        key={offer.address}
-                        className='grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded'
-                      >
-                        <div>
-                          <a
-                            href={`https://holaplex.com/profiles/${offer.buyer}`}
-                            rel='nofollower'
-                          >
-                            {truncateAddress(offer.buyer)}
-                            {offer && <span className="px-3 py-1 ml-1 text-xs text-black bg-white rounded-full ">You</span>}
-                          </a>
-                        </div>
-                        <div>
-                          <span className='sol-amount'>{toSOL(offer.price)}</span>
-                        </div>
-                        <div>{format(offer.createdAt, 'en_US')}</div>
-                        <div className="flex w-full justify-end">
-                        <CancelOfferForm nft={data?.nft} marketplace={marketplace} offer={offer} refetch={refetch} />
-                        </div>
-                      </article>
-                    ))
-                  )}
-                </section>
+                  {
+                    loading ? (
+                      <>
+                        <article className="bg-gray-800 mb-4 h-16 rounded" />
+                        <article className="bg-gray-800 mb-4 h-16 rounded" />
+                        <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      </>
+                    ) : (
+                      offers.map((offer: Offer) => (
+                        <article
+                          key={offer.address}
+                          className='grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded'
+                        >
+                          <div>
+                            <a
+                              href={`https://holaplex.com/profiles/${offer.buyer}`}
+                              rel='nofollower'
+                            >
+                              {truncateAddress(offer.buyer)}
+                            </a>
+                          </div>
+                          <div>
+                            <span className='sol-amount'>{toSOL(offer.price)}</span>
+                          </div>
+                          <div>{format(offer.createdAt, 'en_US')}</div>
+                          {(offer || isOwner) && (
+                            <div className="flex w-full justify-end">
+                              {equals(offer.buyer, publicKey?.toBase58() as string) && <CancelOfferForm nft={data?.nft} marketplace={marketplace} offer={offer} refetch={refetch} />}
+                              {isOwner && (<AcceptOfferForm nft={data?.nft} marketplace={marketplace} offer={offer} refetch={refetch} />)}
+                            </div>
+                          )}
+                        </article>
+                      ))
+                    )
+                  }
+                </section >
               )
             )(offers)}
-          </div>
-        </div>
+          </div >
+        </div >
       </div >
     </>
   )

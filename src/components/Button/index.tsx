@@ -46,7 +46,7 @@ const Button = ({
     <button
       className={cx(
         className,
-        'block relative duration-150 rounded-full focus:shadow-outline hover:scale-[1.02] transition-transform grow',
+        'flex items-center text-center justify-center relative duration-150 rounded-full focus:shadow-outline hover:scale-[1.02] transition-transform grow',
         {
           'w-full': block,
           'text-black bg-white': isPrimary(type),
@@ -62,8 +62,8 @@ const Button = ({
     >
         {loading && (
           <TailSpin
-            height="2rem"
-            width="2rem"
+            height="20px"
+            width="20px"
             color={cond(
               [
                 [isPrimary, always("grey")],
@@ -71,7 +71,7 @@ const Button = ({
               ]
               )(type)}
             ariaLabel="loading"
-            wrapperClass="absolute left-4 top-2 w-8 aspect-square"
+            wrapperClass="inline aspect-square mr-1"
           />
         )}
         {children}
