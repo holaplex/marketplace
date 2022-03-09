@@ -1,15 +1,18 @@
 import { useForm } from 'react-hook-form'
-import Button, { ButtonType } from './../../components/Button'
+import Button, { ButtonSize, ButtonType } from './../../components/Button'
 import { OperationVariables, ApolloQueryResult } from '@apollo/client'
 import { toast } from 'react-toastify'
 import {
   Transaction,
   PublicKey,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
+  TransactionInstruction
 } from '@solana/web3.js'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { Marketplace, Nft, Offer } from '../../types'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
+import { concat } from 'ramda'
 
 interface AcceptOfferFormProps {
   offer: Offer
@@ -58,7 +61,8 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
     const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
 
     const [
-      sellerTradeState,sellerTradeStateBump
+      sellerTradeState,
+      sellerTradeStateBump
     ] = await AuctionHouseProgram.findTradeStateAddress(
       publicKey,
       auctionHouse,
@@ -81,7 +85,8 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
     )
 
     const [
-      purchaseReceipt,purchaseReceiptBump
+      purchaseReceipt,
+      purchaseReceiptBump
     ] = await AuctionHouseProgram.findPurchaseReceiptAddress(sellerTradeState,buyerTradeState)
     
 
@@ -115,17 +120,17 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
     const [
       buyerReceiptTokenAccount,
     ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-      publicKey,
-      tokenMint
+      tokenMint,
+      buyerPubkey,
     )
 
     const [listingReceipt, listingReceiptBump] = await AuctionHouseProgram.findListingReceiptAddress(sellerTradeState)
 
     const sellInstructionAccounts = {
       wallet: publicKey,
-      tokenAccount: tokenAccount,
-      metadata: metadata,
-      authority: authority,
+      tokenAccount,
+      metadata,
+      authority,
       auctionHouse: auctionHouse,
       auctionHouseFeeAccount: auctionHouseFeeAccount,
       sellerTradeState: sellerTradeState,
@@ -154,33 +159,33 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
     const executeSaleInstructionAccounts = {
       buyer: buyerPubkey,
       seller: publicKey,
-      tokenAccount: tokenAccount,
-      tokenMint: tokenMint,
-      metadata: metadata,
-      treasuryMint: treasuryMint,
-      escrowPaymentAccount: escrowPaymentAccount,
+      auctionHouse,
+      tokenAccount,
+      tokenMint,
+      treasuryMint,
+      metadata,
+      authority,
+      sellerTradeState,
+      buyerTradeState,
+      freeTradeState,
       sellerPaymentReceiptAccount: publicKey,
-      buyerReceiptTokenAccount: buyerReceiptTokenAccount,
-      authority: authority,
-      auctionHouse: auctionHouse,
-      auctionHouseFeeAccount: auctionHouseFeeAccount,
-      auctionHouseTreasury: auctionHouseTreasury,
-      buyerTradeState: buyerTradeState,
-      sellerTradeState: sellerTradeState,
-      freeTradeState: freeTradeState,
-      programAsSigner: programAsSigner,
+      escrowPaymentAccount,
+      buyerReceiptTokenAccount,
+      auctionHouseFeeAccount,
+      auctionHouseTreasury,
+      programAsSigner,
     }
     const executeSaleInstructionArgs = {
-      escrowPaymentBump: escrowPaymentBump,
-      freeTradeStateBump: freeTradeStateBump,
-      programAsSignerBump: programAsSignerBump,
+      escrowPaymentBump,
+      freeTradeStateBump,
+      programAsSignerBump,
       buyerPrice: offer.price,
       tokenSize: 1,
     }
     const executePrintPurchaseReceiptInstructionAccounts = {
-      purchaseReceipt: purchaseReceipt,
-      listingReceipt: listingReceipt,
-      bidReceipt: bidReceipt,
+      purchaseReceipt,
+      listingReceipt,
+      bidReceipt,
       bookkeeper: publicKey,
       instruction: SYSVAR_INSTRUCTIONS_PUBKEY,
     }
@@ -192,7 +197,7 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
 
     const createListingInstruction = createSellInstruction(sellInstructionAccounts, sellInstructionArgs)
     const createPrintListingInstruction = createPrintListingReceiptInstruction(printListingReceiptInstructionAccounts, printListingReceiptInstructionArgs)
-    const executeSaleInstruction = createExecuteSaleInstruction(executeSaleInstructionAccounts,executeSaleInstructionArgs)
+    const executeSaleInstruction = createExecuteSaleInstruction(executeSaleInstructionAccounts, executeSaleInstructionArgs)
     const executePrintPurchaseReceiptInstruction = createPrintPurchaseReceiptInstruction(executePrintPurchaseReceiptInstructionAccounts,executePrintPurchaseReceiptInstructionArgs)
 
     const txt = new Transaction()
@@ -200,7 +205,14 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
     txt
     .add(createListingInstruction)
     .add(createPrintListingInstruction)
-    .add(executeSaleInstruction)
+    .add(new TransactionInstruction({
+      programId: AuctionHouseProgram.PUBKEY,
+      data: executeSaleInstruction.data,
+      keys: concat(
+        executeSaleInstruction.keys,
+        nft.creators.map(creator => ({ pubkey: new PublicKey(creator.address), isSigner: false, isWritable: true }))
+      )
+    }))
     .add(executePrintPurchaseReceiptInstruction)
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
@@ -246,12 +258,12 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
 
   return (
     <form
-      className='flex-1'
       onSubmit={acceptOfferForm.handleSubmit(acceptOfferTransaction)}
     >
       <Button
         loading={acceptOfferForm.formState.isSubmitting}
         htmlType='submit'
+        size={ButtonSize.Small}
         type={ButtonType.Primary}
       >
         Accept Offer
