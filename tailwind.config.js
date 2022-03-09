@@ -4,6 +4,9 @@ module.exports = {
     colors: {
       'black': '#000000',
       'white': '#ffffff',
+      'green': {
+        500: 'var(--green-500)'
+      },
       'gray': {
           100: 'var(--gray-100)',
           300: 'var(--gray-300)',

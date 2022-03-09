@@ -9,6 +9,7 @@
 }
 
 :root {
+  --green-500: #22c55e;
   --gray-100: #E0E0E0;
   --gray-300: #A8A8A8;
   --gray-500: #6F6F6F;
@@ -65,7 +66,12 @@
 
   .sol-amount:before {
     content: "◎";
-    @apply h-full text-gray-500 pr-2;
+    @apply h-full text-gray-500 mr-1;
+  }
+
+  .connected-status:before {
+    content: "";
+    @apply inline-block w-2 h-2 rounded-full bg-green-500 mr-1;
   }
 }
 
@@ -111,14 +117,17 @@ h4 {
   @apply inline-block text-gray-500 mr-1;
 }
 
-.wallet-adapter-button.wallet-adapter-button-trigger, .wallet-adapter-button:not([disabled]):hover {
-  @apply bg-white text-black hover:bg-gray-100 font-normal rounded-full h-14;
-
-}
-.wallet-adapter-button[disabled].wallet-adapter-button-trigger {
-  @apply text-black bg-gray-100 border-0 outline-0;
+.wallet-modal-theme .wallet-adapter-modal-wrapper {
+  @apply bg-gray-900 font-sans;
 }
 
+.wallet-modal-theme .wallet-adapter-button:not([disabled]):hover {
+  @apply bg-gray-800;
+}
+
+.wallet-modal-theme .wallet-adapter-modal-button-close {
+  @apply bg-gray-800;
+}
 .select-base-theme .base__control {
   @apply bg-gray-800 border-0 text-white outline-0 shadow-none cursor-pointer rounded-md py-1 px-4;
 }
