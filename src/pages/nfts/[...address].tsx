@@ -763,7 +763,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                               rel='nofollower'
                             >
                               {truncateAddress(offer.buyer)}
-                              {offer && <span className="px-3 py-1 ml-1 text-xs text-black bg-white rounded-full ">You</span>}
                             </a>
                           </div>
                           <div>

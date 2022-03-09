@@ -22,7 +22,7 @@ import { useRouter } from 'next/router';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import '@solana/wallet-adapter-react-ui/styles.css';
 import { useNavigate } from "react-router-dom";
-import { clusterApiUrl } from '@solana/web3.js';
+import { Cluster } from '@solana/web3.js';
 import client from '../client';
 import withReactRouter from '../react-router';
 import { ToastContainer } from 'react-toastify';
@@ -30,6 +30,10 @@ import { ViewerProvider } from './../providers/Viewer';
 import 'react-toastify/dist/ReactToastify.css';
 
 const network = WalletAdapterNetwork.Mainnet;
+
+const CLUSTER_API_URL = "https://holaplex.rpcpool.com";
+
+const clusterApiUrl = (cluster: Cluster): string => CLUSTER_API_URL;
 
 function App({ Component, pageProps }: AppProps) {
   const navigate = useNavigate();
