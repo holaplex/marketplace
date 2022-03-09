@@ -7,6 +7,7 @@ import Button, { ButtonSize, ButtonType } from "../Button";
 import { toSOL } from '../../modules/lamports';
 import { Viewer } from './../../types.d';
 import { truncateAddress } from '../../modules/address';
+import { WalletReadyState } from '@solana/wallet-adapter-base';
 
 const GET_VIEWER = gql`
   query GetViewer {
@@ -38,7 +39,7 @@ const WalletPortal = () => {
     always(connect),
   )(wallet);
 
-  const isLoading = loading || connecting || not(data?.viewer);
+  const isLoading = loading || connecting;
 
   return (
     or(connected, isLoading) ? (
@@ -65,7 +66,7 @@ const WalletPortal = () => {
           </div>
           <div className="flex items-center justify-between mb-6">
             <div className="sol-amount text-xl flex items-center">
-              {isLoading ? (
+              {or(isLoading, isNil(data?.viewer)) ? (
                 <div className="inline-block h-6 w-14 bg-gray-700 rounded" />
               ) : (
                 toSOL(data?.viewer.balance as number)
