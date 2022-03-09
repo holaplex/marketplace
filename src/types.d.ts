@@ -1,34 +1,34 @@
 export interface Marketplace {
-  subdomain: string;
-  name: string;
-  description: string;
-  logoUrl: string;
-  bannerUrl: string;
-  auctionHouse: AuctionHouse;
-  ownerAddress: string;
-  creators: MarketplaceCreator[];
+  subdomain: string
+  name: string
+  description: string
+  logoUrl: string
+  bannerUrl: string
+  auctionHouse: AuctionHouse
+  ownerAddress: string
+  creators: MarketplaceCreator[]
 }
 
 export interface MarketplaceCreator {
-  creatorAddress: string;
-  storeConfigAddress: string;
+  creatorAddress: string
+  storeConfigAddress: string
 }
 
 export interface AuctionHouse {
-  address: string;
-  treasuryMint: string;
-  auctionHouseTreasury: string;
-  treasuryWithdrawalDestination: string;
-  feeWithdrawalDestination: string;
-  authority: string;
-  creator: string;
-  auctionHouseFeeAccount: string;
-  bump: number;
-  treasuryBump: number;
-  feePayerBump: number;
-  sellerFeeBasisPoints: number;
-  requiresSignOff: boolean;
-  canChangeSalePrice: boolean;
+  address: string
+  treasuryMint: string
+  auctionHouseTreasury: string
+  treasuryWithdrawalDestination: string
+  feeWithdrawalDestination: string
+  authority: string
+  creator: string
+  auctionHouseFeeAccount: string
+  bump: number
+  treasuryBump: number
+  feePayerBump: number
+  sellerFeeBasisPoints: number
+  requiresSignOff: boolean
+  canChangeSalePrice: boolean
 }
 
 export interface AttributeVariant {
@@ -55,11 +55,11 @@ export interface UserWallet {
   address: string
 }
 
-interface AddressKeyType { 
-  [address: string] : string,
-};
+interface AddressKeyType {
+  [address: string]: string
+}
 
-export type KeyType = AddressKeyType;
+export type KeyType = AddressKeyType
 
 export interface Listing {
   address: string
@@ -75,14 +75,14 @@ export interface Listing {
   tradeStateBump: number
   createdAt: string
   canceledAt: string
-};
+}
 
 export interface Offer {
-  address: string;
-  buyer: string;
-  price: number;
-  createdAt: string;
-  auctionHouse: string;
+  address: string
+  buyer: string
+  price: number
+  createdAt: string
+  auctionHouse: string
 }
 
 export interface Nft extends KeyType {
@@ -93,19 +93,24 @@ export interface Nft extends KeyType {
   sellerFeeBasisPoints: number
   mintAddress: string
   attributes: NftAttribute[]
-  creators: UserWallet[];
-  owner: UserWallet;
-  listings: Listing[];
-  offers: Offer[];
-};
+  creators: UserWallet[]
+  owner: UserWallet
+  listings: Listing[]
+  offers: Offer[]
+}
 
 export interface AttributeFilter {
   traitType: string
   values: string[]
-};
+}
 
 export enum PresetNftFilter {
   All = 'All',
   Listed = 'Listed',
-  Owned = 'Owned'
-};
+  Owned = 'Owned',
+}
+
+export enum PresetEditFilter {
+  Marketplace = 'Marketplace',
+  Creators = 'Creators',
+}
