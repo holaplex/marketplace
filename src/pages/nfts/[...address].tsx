@@ -276,8 +276,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     const [
       buyerReceiptTokenAccount,
     ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-      publicKey,
-      tokenMint
+      tokenMint,
+      publicKey
+      
     )
 
     const [
