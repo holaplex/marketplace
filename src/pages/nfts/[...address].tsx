@@ -14,6 +14,7 @@ import {
   filter,
   and,
   not,
+  concat
 } from 'ramda'
 import cx from 'classnames';
 import client from '../../client';
@@ -37,6 +38,7 @@ import {
   Transaction,
   PublicKey,
   SYSVAR_INSTRUCTIONS_PUBKEY,
+  TransactionInstruction,
 } from '@solana/web3.js'
 import { toSOL } from '../../modules/lamports'
 import { toast } from 'react-toastify'
@@ -381,6 +383,14 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       .add(publicBuyInstruction)
       .add(printBidReceiptInstruction)
       .add(executeSaleInstruction)
+      .add(new TransactionInstruction({
+        programId: AuctionHouseProgram.PUBKEY,
+        data: executeSaleInstruction.data,
+        keys: concat(
+          executeSaleInstruction.keys,
+          data?.nft.creators.map(creator => ({ pubkey: new PublicKey(creator.address), isSigner: false, isWritable: true }))
+        )
+      }))
       .add(printPurchaseReceiptInstruction)
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
@@ -536,7 +546,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
               )}
             </div>
             {loading ? (
-              <div className='aspect-square border-none bg-gray-800 w-full rounded-lg' />
+              <div className='w-full bg-gray-800 border-none rounded-lg aspect-square' />
             ) : (
               <img
                 src={data?.nft.image}
@@ -558,7 +568,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
             <div className='flex-1 mb-8'>
               <div className='mb-1 label'>
                 {loading ? (
-                  <div className="w-14 h-4 bg-gray-800 rounded" />
+                  <div className="h-4 bg-gray-800 rounded w-14" />
                 ) : (
                   ifElse(
                     pipe(length, equals(1)),
@@ -690,10 +700,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
             <div className='grid grid-cols-2 gap-6 mt-8'>
               {loading ? (
                 <>
-                  <div className="h-16 rounded bg-gray-800" />
-                  <div className="h-16 rounded bg-gray-800" />
-                  <div className="h-16 rounded bg-gray-800" />
-                  <div className="h-16 rounded bg-gray-800" />
+                  <div className="h-16 bg-gray-800 rounded" />
+                  <div className="h-16 bg-gray-800 rounded" />
+                  <div className="h-16 bg-gray-800 rounded" />
+                  <div className="h-16 bg-gray-800 rounded" />
                 </>
               ) : (
                 data?.nft.attributes.map(a => (
