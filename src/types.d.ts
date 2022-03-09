@@ -9,6 +9,10 @@ export interface Marketplace {
   creators: MarketplaceCreator[];
 }
 
+interface GraphQLObject {
+  __typename: string
+}
+
 export interface MarketplaceCreator {
   creatorAddress: string;
   storeConfigAddress: string;
@@ -109,3 +113,8 @@ export enum PresetNftFilter {
   Listed = 'Listed',
   Owned = 'Owned'
 };
+
+export interface Viewer extends GraphQLObject {
+  id: string;
+  balance: number;
+}

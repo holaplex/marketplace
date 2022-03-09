@@ -1,12 +1,10 @@
 import { useEffect } from 'react'
-import next, { NextPage, NextPageContext } from 'next'
+import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
 import Link from 'next/link'
-import {
-  WalletMultiButton,
-} from '@solana/wallet-adapter-react-ui';
+import WalletPortal from '../components/WalletPortal';
 import cx from 'classnames';
-import { isNil, map, modify, filter, pipe, prop, isEmpty, not, equals, ifElse, always } from 'ramda'
+import { isNil, map, prop, equals, ifElse, always } from 'ramda'
 import { truncateAddress } from '../modules/address';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AppProps } from 'next/app'
@@ -151,8 +149,8 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   return (
     <div className='flex flex-col items-center text-white bg-gray-900'>
       <div className='relative w-full'>
-        <div className="absolute right-8 top-8">
-          <WalletMultiButton>Connect</WalletMultiButton>
+        <div className="absolute right-6 top-[25px]">
+          <WalletPortal />
         </div>
         <img src={marketplace.bannerUrl} alt={marketplace.name} className='object-cover w-full h-80' />
       </div>
