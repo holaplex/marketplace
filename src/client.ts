@@ -1,5 +1,8 @@
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
+import { offsetLimitPagination } from "@apollo/client/utilities";
+
 import { viewerVar } from './cache';
+
 
 const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT;
 
@@ -22,6 +25,7 @@ const client = new ApolloClient({
         typePolicies: {
             Query: {
                 fields: {
+                  nfts: offsetLimitPagination(),
                   viewer: {
                     read() {
                       return viewerVar();

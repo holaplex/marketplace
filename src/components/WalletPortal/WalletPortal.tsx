@@ -7,7 +7,6 @@ import Button, { ButtonSize, ButtonType } from "../Button";
 import { toSOL } from '../../modules/lamports';
 import { Viewer } from './../../types.d';
 import { truncateAddress } from '../../modules/address';
-import { WalletReadyState } from '@solana/wallet-adapter-base';
 
 const GET_VIEWER = gql`
   query GetViewer {

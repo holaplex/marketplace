@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
 import Link from 'next/link'
 import { useWallet } from '@solana/wallet-adapter-react'
 import WalletPortal from '../../components/WalletPortal';
-import { isNil, map, modify, filter, pipe, prop, isEmpty, not, any, equals, ifElse, always } from 'ramda'
+import { isNil, map, modify, filter, pipe, prop, isEmpty, not, any, equals, ifElse, always, when, length } from 'ramda'
 import { useRouter } from "next/router";
 import { AppProps } from 'next/app'
 import Select from 'react-select'
@@ -26,8 +26,15 @@ interface GetNftsData {
 };
 
 const GET_NFTS = gql`
-  query GetNfts($creators: [PublicKey!]!, $attributes: [AttributeFilter!], $owners: [PublicKey!], $listed: [PublicKey!]) {
-    nfts(creators: $creators, attributes: $attributes, owners: $owners, listed: $listed) {
+  query GetNfts(
+    $creators: [PublicKey!]!,
+    $owners: [PublicKey!],
+    $listed: [PublicKey!],
+    $limit: Int!,
+    $offset: Int!,
+    $attributes: [AttributeFilter!]
+  ) {
+    nfts(creators: $creators, owners: $owners, listed: $listed, limit: $limit, offset: $offset, attributes: $attributes) {
       address
       name
       description
@@ -125,12 +132,15 @@ interface NftFilterForm {
 
 const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const { publicKey, connected } = useWallet();
+  const [hasMore, setHasMore] = useState(true);
   const router = useRouter();
-  const nfts = useQuery<GetNftsData>(GET_NFTS, {
+  const  { data, loading, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
     variables: {
       creators: [router.query.creator],
+      offset: 0,
+      limit: 24,
     },
-  })
+  });
 
   const { control, watch } = useForm<NftFilterForm>({
     defaultValues: { preset: PresetNftFilter.All }
@@ -156,15 +166,18 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
         always(null),
       )(preset as PresetNftFilter);
 
-      nfts.refetch({
+      refetch({
         creators: [router.query.creator],
         attributes: nextAttributes,
         owners,
         listed,
+        offset: 0,
+      }).then(({ data: { nfts } }) => {
+        setHasMore(pipe(length, equals(variables?.limit))(nfts));
       });
     })
     return () => subscription.unsubscribe()
-  }, [watch, publicKey, marketplace])
+  }, [watch, publicKey, marketplace, refetch, variables?.limit, router.query.creator, creator]);
 
   return (
     <div className='flex flex-col items-center text-white bg-gray-900'>
@@ -330,8 +343,26 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
           </div>
           <div className='grow'>
             <List
-              data={nfts.data?.nfts}
-              loading={nfts.loading}
+              data={data?.nfts}
+              loading={loading}
+              hasMore={hasMore}
+              onLoadMore={async (inView) => {
+                if (not(inView)) {
+                  return;
+                }
+                
+                const { data: { nfts } } = await fetchMore({
+                  variables: {
+                    ...variables,
+                    offset: length(data?.nfts || []),
+                  }
+                });
+
+                when(
+                  isEmpty,
+                  () => setHasMore(false),
+                )(nfts);
+              }}
               loadingComponent={<NftCard.Skeleton />}
               emptyComponent={(
                 <div className='w-full p-10 text-center border border-gray-800 rounded-lg'>
