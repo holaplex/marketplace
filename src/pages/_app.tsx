@@ -56,7 +56,7 @@ function App({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     const handleRouteChange = (url: string) => {
-      navigate(url);
+      navigate(url, { replace: true });
     }
 
     router.events.on('routeChangeComplete', handleRouteChange)
