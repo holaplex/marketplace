@@ -15,7 +15,8 @@ import {
   and,
   not,
   concat
-} from 'ramda'
+} from 'ramda';
+import Head from 'next/head';
 import cx from 'classnames';
 import client from '../../client';
 import { useRouter } from 'next/router';
@@ -269,7 +270,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
       tokenMint,
       publicKey
-      
+
     )
 
     const [
@@ -509,6 +510,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
 
   return (
     <>
+      <Head>
+        <title>
+          {truncateAddress(router.query?.address as string)} NFT | {marketplace.name}
+        </title>
+        <link rel="icon" href={marketplace.logoUrl} />
+      </Head>
       <div className='sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow'>
         <Link to='/'>
           <a>

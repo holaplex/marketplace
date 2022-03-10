@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
 import { Link } from 'react-router-dom'
+import Head from 'next/head';
 import { useWallet } from '@solana/wallet-adapter-react'
 import WalletPortal from '../../components/WalletPortal';
-import { isNil, map, modify, filter, partial, pipe, prop, isEmpty, not, any, equals, ifElse, always, when, length } from 'ramda'
+import { isNil, map, modify, filter, gt, partial, pipe, prop, isEmpty, not, any, equals, ifElse, always, when, length } from 'ramda'
 import { useRouter } from "next/router";
 import { AppProps } from 'next/app'
 import Select from 'react-select'
@@ -54,6 +55,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   const {
     data: { marketplace, creator },
   } = await client.query<GetCreatorPage>({
+    fetchPolicy: 'no-cache',
     query: gql`
       query GetCreatorPage($subdomain: String!, $creator: String!) {
         marketplace(subdomain: $subdomain) {
@@ -134,7 +136,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const { publicKey, connected } = useWallet();
   const [hasMore, setHasMore] = useState(true);
   const router = useRouter();
-  const  { data, loading, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
+  const { data, loading, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
     variables: {
       creators: [router.query.creator],
       offset: 0,
@@ -181,6 +183,12 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
 
   return (
     <div className='flex flex-col items-center text-white bg-gray-900'>
+      <Head>
+        <title>
+          {truncateAddress(router.query?.creator as string)} NFT Collection | {marketplace.name}
+        </title>
+        <link rel="icon" href={marketplace.logoUrl} />
+      </Head>
       <div className='relative w-full'>
         <div className="absolute right-6 top-[25px]">
           <WalletPortal />
@@ -292,9 +300,11 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
               </ul>
               <div className="flex flex-row justify-between align-top w-full mb-2">
                 <label className="label">Creators</label>
-                <Link to="/">
+                {pipe(length, gt(1))(marketplace.creators) && (
+                  <Link to="/">
                     Show All
-                </Link>
+                  </Link>
+                )}
               </div>
               <ul className="flex flex-col flex-grow mb-6">
                 <li className='flex justify-between w-full px-4 py-2 mb-1 rounded-md bg-gray-800 hover:bg-gray-800'>
@@ -348,7 +358,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                 if (not(inView)) {
                   return;
                 }
-                
+
                 const { data: { nfts } } = await fetchMore({
                   variables: {
                     ...variables,

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
+import Head from 'next/head';
 import { Link } from 'react-router-dom'
 import WalletPortal from '../components/WalletPortal';
 import cx from 'classnames';
@@ -118,7 +119,7 @@ interface NftFilterForm {
 const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const { publicKey, connected } = useWallet();
   const creators = map(prop('creatorAddress'))(marketplace.creators);
-  
+
   const { data, loading, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
     variables: {
       creators,
@@ -163,6 +164,12 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
 
   return (
     <div className='flex flex-col items-center text-white bg-gray-900'>
+      <Head>
+        <title>
+          {marketplace.name}
+        </title>
+        <link rel="icon" href={marketplace.logoUrl} />
+      </Head>
       <div className='relative w-full'>
         <div className="absolute right-6 top-[25px]">
           <WalletPortal />
@@ -216,7 +223,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                   />
                 </li>
                 <li>
-                <Controller
+                  <Controller
                     control={control}
                     name="preset"
                     render={({ field: { value, onChange } }) => (
@@ -244,32 +251,32 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 </li>
                 {connected && (
                   <li>
-                <Controller
-                    control={control}
-                    name="preset"
-                    render={({ field: { value, onChange } }) => (
-                      <label
-                        htmlFor="preset-owned"
-                        className={
-                          cx(
-                            "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
-                            { "bg-gray-800": equals(PresetNftFilter.Owned, value) }
-                          )
-                        }
-                      >
-                        <input
-                          onChange={onChange}
-                          className="hidden"
-                          type="radio"
-                          name="preset"
-                          value={PresetNftFilter.Owned}
-                          id="preset-owned"
-                        />
-                        Owned by me
-                      </label>
+                    <Controller
+                      control={control}
+                      name="preset"
+                      render={({ field: { value, onChange } }) => (
+                        <label
+                          htmlFor="preset-owned"
+                          className={
+                            cx(
+                              "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
+                              { "bg-gray-800": equals(PresetNftFilter.Owned, value) }
+                            )
+                          }
+                        >
+                          <input
+                            onChange={onChange}
+                            className="hidden"
+                            type="radio"
+                            name="preset"
+                            value={PresetNftFilter.Owned}
+                            id="preset-owned"
+                          />
+                          Owned by me
+                        </label>
 
-                    )}
-                  />
+                      )}
+                    />
                   </li>
                 )}
               </ul>
@@ -278,7 +285,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 {creators.map((creator) => (
                   <li key={creator}>
                     <Link to={`/creators/${creator}`} className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
-                        <h4>{truncateAddress(creator)}</h4>
+                      <h4>{truncateAddress(creator)}</h4>
                     </Link>
                   </li>
                 ))}
@@ -295,7 +302,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 if (not(inView)) {
                   return;
                 }
-                
+
                 const { data: { nfts } } = await fetchMore({
                   variables: {
                     ...variables,
