@@ -29,6 +29,9 @@ const GET_NFTS = gql`
       name
       description
       image
+      owner {
+        address
+      }
       listings {
         address
         auctionHouse
@@ -54,6 +57,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
           ownerAddress
           creators {
             creatorAddress
+            storeConfigAddress
           }
           auctionHouse {
             address

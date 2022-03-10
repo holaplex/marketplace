@@ -1,12 +1,12 @@
-import { always, isNil, ifElse, not, or } from 'ramda';
+import { isNil, not, or } from 'ramda';
 import { useQuery, gql } from '@apollo/client';
 import { useWallet } from "@solana/wallet-adapter-react";
 import * as Popover from '@radix-ui/react-popover';
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Button, { ButtonSize, ButtonType } from "../Button";
 import { toSOL } from '../../modules/lamports';
 import { Viewer } from './../../types.d';
 import { truncateAddress } from '../../modules/address';
+import { useLogin } from './../../hooks/login';
 
 const GET_VIEWER = gql`
   query GetViewer {
@@ -21,22 +21,9 @@ interface GetViewerData {
 }
 
 const WalletPortal = () => {
-  const { wallet, connect, connected, publicKey, disconnect, connecting } = useWallet();
+  const login = useLogin();
+  const { connected, publicKey, disconnect, connecting } = useWallet();
   const { loading, data } = useQuery<GetViewerData>(GET_VIEWER);
-
-  const { setVisible } = useWalletModal();
-
-  const openModal = async () => {
-    setVisible(true);
-
-    return Promise.resolve();
-  };
-
-  const onConnect = ifElse(
-    isNil,
-    always(openModal),
-    always(connect),
-  )(wallet);
 
   const isLoading = loading || connecting;
 
@@ -95,7 +82,7 @@ const WalletPortal = () => {
       </Popover.Root>
     ) : (
       <Button
-        onClick={onConnect}
+        onClick={login}
         size={ButtonSize.Small}
       >
         Connect

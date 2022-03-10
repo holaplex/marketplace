@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { useForm } from 'react-hook-form'
-import { Link } from 'react-router-dom'
-import { useRouter } from 'next/router'
+import { Link, useNavigate } from 'react-router-dom'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { OperationVariables, ApolloQueryResult } from '@apollo/client'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
@@ -34,7 +33,7 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
   const { handleSubmit, register, formState: { isSubmitting } } = useForm<OfferForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
-  const router = useRouter()
+  const navigate = useNavigate();
 
   const placeOfferTransaction = async ({ amount }: OfferForm) => {
     if (!publicKey || !signTransaction || !nft) {
@@ -151,13 +150,13 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
         <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
       )
     } finally {
-      return router.push(`/nfts/${nft.address}`);
+      navigate(`/nfts/${nft.address}`)
     }
   }
 
   return (
     <form
-      className='text-left grow'
+      className='text-left grow mt-6'
       onSubmit={handleSubmit(placeOfferTransaction)}
     >
       <h3 className='mb-6 text-xl font-bold md:text-2xl'>Make an offer</h3>

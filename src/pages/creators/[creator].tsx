@@ -5,14 +5,14 @@ import { Link } from 'react-router-dom'
 import Head from 'next/head';
 import { useWallet } from '@solana/wallet-adapter-react'
 import WalletPortal from '../../components/WalletPortal';
-import { isNil, map, modify, filter, gt, partial, pipe, prop, isEmpty, not, any, equals, ifElse, always, when, length } from 'ramda'
+import { isNil, map, modify, filter, gt, partial, pipe, prop, or, indexOf, isEmpty, not, any, equals, ifElse, always, when, length } from 'ramda'
 import { useRouter } from "next/router";
 import { AppProps } from 'next/app'
 import Select from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
 import { truncateAddress } from './../../modules/address';
 import client from '../../client'
-import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter } from './../../types.d';
+import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter, MarketplaceCreator } from './../../types.d';
 import { List } from '../../components/List'
 import { NftCard } from '../../components/NftCard'
 import cx from 'classnames';
@@ -40,6 +40,9 @@ const GET_NFTS = gql`
       name
       description
       image
+      owner {
+        address
+      }
       listings {
         address
         auctionHouse
@@ -67,6 +70,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           ownerAddress
           creators {
             creatorAddress
+            storeConfigAddress
           }
           auctionHouse {
             address
@@ -103,7 +107,12 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
     },
   })
 
-  if (any(isNil)([marketplace, creator])) {
+  if (
+    or(
+      any(isNil)([marketplace, creator]),
+      pipe(map(prop('creatorAddress')), indexOf(query.creator), equals(-1))(marketplace?.creators || [])
+    )
+  ) {
     return {
       notFound: true,
     }
