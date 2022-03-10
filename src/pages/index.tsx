@@ -1,20 +1,20 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
 import Link from 'next/link'
 import WalletPortal from '../components/WalletPortal';
 import cx from 'classnames';
-import { isNil, map, prop, equals, ifElse, always } from 'ramda'
+import { isNil, map, prop, equals, ifElse, always, length, not, when, isEmpty, apply, pipe } from 'ramda'
 import { truncateAddress } from '../modules/address';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AppProps } from 'next/app'
 import { useForm, Controller } from 'react-hook-form'
 import client from '../client'
-import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter, MarketplaceCreator } from '../types.d';
+import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter } from '../types.d';
 import { List } from './../components/List';
 import { NftCard } from './../components/NftCard';
 
-const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
+const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
 interface GetNftsData {
   nfts: Nft[]
@@ -22,8 +22,8 @@ interface GetNftsData {
 }
 
 const GET_NFTS = gql`
-  query GetNfts($creators: [PublicKey!]!, $owners: [PublicKey!], $listed: [PublicKey!]) {
-    nfts(creators: $creators, owners: $owners, listed: $listed) {
+  query GetNfts($creators: [PublicKey!]!, $owners: [PublicKey!], $listed: [PublicKey!], $limit: Int!, $offset: Int!) {
+    nfts(creators: $creators, owners: $owners, listed: $listed, limit: $limit, offset: $offset) {
       address
       name
       description
@@ -86,6 +86,15 @@ export async function getServerSideProps({ req }: NextPageContext) {
     }
   }
 
+  if (pipe(length, equals(1))(marketplace.creators)) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `/creators/${marketplace.creators[0].creatorAddress}`
+      }
+    }
+  }
+
   return {
     props: {
       marketplace,
@@ -109,14 +118,18 @@ interface NftFilterForm {
 const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const { publicKey, connected } = useWallet();
   const creators = map(prop('creatorAddress'))(marketplace.creators);
-
-  const nfts = useQuery<GetNftsData>(GET_NFTS, {
+  
+  const { data, loading, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
     variables: {
       creators,
+      offset: 0,
+      limit: 24,
     },
-  })
+  });
 
-  const { watch, register, control } = useForm<NftFilterForm>({
+  const [hasMore, setHasMore] = useState(data?.nfts.length === 24);
+
+  const { watch, control } = useForm<NftFilterForm>({
     defaultValues: { preset: PresetNftFilter.All }
   });
 
@@ -136,15 +149,17 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         always(null),
       )(preset as PresetNftFilter);
 
-      nfts.refetch({
+      refetch({
         creators,
         owners,
         listed,
+        offset: 0,
+      }).then(({ data: { nfts } }) => {
+        setHasMore(pipe(length, equals(variables?.limit))(nfts));
       });
     })
     return () => subscription.unsubscribe()
-  }, [watch, publicKey, marketplace]);
-
+  }, [watch, publicKey, marketplace, refetch, creators, variables?.limit]);
 
   return (
     <div className='flex flex-col items-center text-white bg-gray-900'>
@@ -274,9 +289,27 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           </div>
           <div className='grow'>
             <List
-              data={nfts.data?.nfts}
-              loading={nfts.loading}
+              data={data?.nfts}
+              loading={loading}
               loadingComponent={<NftCard.Skeleton />}
+              hasMore={hasMore}
+              onLoadMore={async (inView) => {
+                if (not(inView)) {
+                  return;
+                }
+                
+                const { data: { nfts } } = await fetchMore({
+                  variables: {
+                    ...variables,
+                    offset: length(data?.nfts || []),
+                  }
+                });
+
+                when(
+                  isEmpty,
+                  () => setHasMore(false),
+                )(nfts);
+              }}
               emptyComponent={(
                 <div className='w-full p-10 text-center border border-gray-800 rounded-lg'>
                   <h3>No NFTs found</h3>

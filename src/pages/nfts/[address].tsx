@@ -22,7 +22,7 @@ import { useRouter } from 'next/router';
 import { useQuery } from '@apollo/client';
 import { Link } from 'react-router-dom';
 import WalletPortal from '../../components/WalletPortal';
-import Button, { ButtonType } from './../../components/Button';
+import Button, { ButtonType } from '../../components/Button';
 import NextLink from 'next/link'
 import { Route, Routes } from 'react-router-dom'
 import OfferPage from '../../components/Offer'
@@ -147,7 +147,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
     `,
     variables: {
       subdomain: subdomain || SUBDOMAIN,
-      address: (query?.address || [])[0],
+      address: query?.address,
     },
   })
 
@@ -186,7 +186,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
 
   const { data, loading, refetch } = useQuery<GetNftData>(GET_NFT, {
     variables: {
-      address: (router.query?.address || [])[0],
+      address: router.query?.address,
     },
   });
 
