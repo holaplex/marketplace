@@ -1,8 +1,7 @@
 import React from 'react';
 import { find, pipe, prop, equals } from 'ramda';
 import { Nft, Marketplace, Listing } from './../../types';
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { toSOL } from './../../modules/lamports';
 
 interface NftCardProps {
@@ -39,17 +38,13 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
               <p className='label'>Price</p>
               <p className='font-semibold icon-sol'>{toSOL(listing.price)}</p>
             </div>
-            <Link href={`/nfts/${nft.address}`} passHref>
-              <a>
-                <button className='button small grow-0'>Buy Now</button>
-              </a>
+            <Link to={`/nfts/${nft.address}`}>
+              <button className='button small grow-0'>Buy Now</button>
             </Link>
           </>
         ) : (
-          <Link href={`/nfts/${nft.address}/offers/new`} passHref>
-            <a>
-              <button className='button tertiary small grow-0'>Make Offer</button>
-            </a>
+          <Link to={`/nfts/${nft.address}/offers/new`}>
+            <button className='button tertiary small grow-0'>Make Offer</button>
           </Link>
         )}
       </footer>

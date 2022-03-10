@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 import WalletPortal from '../components/WalletPortal';
 import cx from 'classnames';
-import { isNil, map, prop, equals, ifElse, always, length, not, when, isEmpty, apply, pipe } from 'ramda'
+import { isNil, map, prop, equals, partial, ifElse, always, length, not, when, isEmpty, apply, pipe } from 'ramda'
 import { truncateAddress } from '../modules/address';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AppProps } from 'next/app'
@@ -127,7 +127,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     },
   });
 
-  const [hasMore, setHasMore] = useState(data?.nfts.length === 24);
+  const [hasMore, setHasMore] = useState(true);
 
   const { watch, control } = useForm<NftFilterForm>({
     defaultValues: { preset: PresetNftFilter.All }
@@ -155,7 +155,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         listed,
         offset: 0,
       }).then(({ data: { nfts } }) => {
-        setHasMore(pipe(length, equals(variables?.limit))(nfts));
+        pipe(pipe(length, equals(variables?.limit)), setHasMore)(nfts);
       });
     })
     return () => subscription.unsubscribe()
@@ -277,10 +277,8 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               <ul className="flex flex-col flex-grow mb-6">
                 {creators.map((creator) => (
                   <li key={creator}>
-                    <Link href={`/creators/${creator}`}>
-                      <a className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
+                    <Link to={`/creators/${creator}`} className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
                         <h4>{truncateAddress(creator)}</h4>
-                      </a>
                     </Link>
                   </li>
                 ))}
@@ -307,7 +305,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
 
                 when(
                   isEmpty,
-                  () => setHasMore(false),
+                  partial(setHasMore, [false])
                 )(nfts);
               }}
               emptyComponent={(
