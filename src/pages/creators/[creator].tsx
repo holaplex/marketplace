@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 import { useWallet } from '@solana/wallet-adapter-react'
 import WalletPortal from '../../components/WalletPortal';
-import { isNil, map, modify, filter, pipe, prop, isEmpty, not, any, equals, ifElse, always, when, length } from 'ramda'
+import { isNil, map, modify, filter, partial, pipe, prop, isEmpty, not, any, equals, ifElse, always, when, length } from 'ramda'
 import { useRouter } from "next/router";
 import { AppProps } from 'next/app'
 import Select from 'react-select'
@@ -173,7 +173,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
         listed,
         offset: 0,
       }).then(({ data: { nfts } }) => {
-        setHasMore(pipe(length, equals(variables?.limit))(nfts));
+        pipe(pipe(length, equals(variables?.limit)), setHasMore)(nfts);
       });
     })
     return () => subscription.unsubscribe()
@@ -292,10 +292,8 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
               </ul>
               <div className="flex flex-row justify-between align-top w-full mb-2">
                 <label className="label">Creators</label>
-                <Link href="/" passHref>
-                  <a>
+                <Link to="/">
                     Show All
-                  </a>
                 </Link>
               </div>
               <ul className="flex flex-col flex-grow mb-6">
@@ -360,7 +358,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
 
                 when(
                   isEmpty,
-                  () => setHasMore(false),
+                  partial(setHasMore, [false]),
                 )(nfts);
               }}
               loadingComponent={<NftCard.Skeleton />}
@@ -372,10 +370,8 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
               )}
               itemRender={(nft) => {
                 return (
-                  <Link passHref href={`/nfts/${nft.address}`} key={nft.address}>
-                    <a>
-                      <NftCard nft={nft} marketplace={marketplace} />
-                    </a>
+                  <Link to={`/nfts/${nft.address}`} key={nft.address}>
+                    <NftCard nft={nft} marketplace={marketplace} />
                   </Link>
                 )
               }}

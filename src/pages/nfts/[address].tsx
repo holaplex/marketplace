@@ -23,7 +23,6 @@ import { useQuery } from '@apollo/client';
 import { Link } from 'react-router-dom';
 import WalletPortal from '../../components/WalletPortal';
 import Button, { ButtonType } from '../../components/Button';
-import NextLink from 'next/link'
 import { Route, Routes } from 'react-router-dom'
 import OfferPage from '../../components/Offer'
 import SellNftPage from '../../components/SellNft'
@@ -511,7 +510,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
   return (
     <>
       <div className='sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow'>
-        <NextLink href='/'>
+        <Link to='/'>
           <a>
             <button className='flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 rounded-full align h-14 hover:bg-gray-600'>
               <img
@@ -521,7 +520,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
               {marketplace.name}
             </button>
           </a>
-        </NextLink>
+        </Link>
         <div className="block">
           <WalletPortal />
         </div>
