@@ -14,7 +14,7 @@ interface GraphQLObject {
 }
 
 export interface MarketplaceCreator {
-  creatorAddress: string;
+  creatorAddress: string,
   storeConfigAddress: string;
 }
 

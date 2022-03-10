@@ -21,7 +21,7 @@ import {
 import { useRouter } from 'next/router';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import '@solana/wallet-adapter-react-ui/styles.css';
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Cluster } from '@solana/web3.js';
 import client from '../client';
 import withReactRouter from '../react-router';
@@ -36,7 +36,8 @@ const CLUSTER_API_URL = "https://holaplex.rpcpool.com";
 const clusterApiUrl = (cluster: Cluster): string => CLUSTER_API_URL;
 
 function App({ Component, pageProps }: AppProps) {
-  const navigate = useNavigate();
+  const { replace } = useRouter();
+  const location = useLocation();
 
   const endpoint = useMemo(() => clusterApiUrl(network), []);
   const wallets = useMemo(
@@ -52,19 +53,10 @@ function App({ Component, pageProps }: AppProps) {
     []
   );
 
-  const router = useRouter()
 
   useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      navigate(url, { replace: true });
-    }
-
-    router.events.on('routeChangeComplete', handleRouteChange)
-
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange)
-    }
-  }, [router, navigate]);
+    replace(location.pathname);
+  }, [location]);
 
   return (
     <ApolloProvider client={client}>

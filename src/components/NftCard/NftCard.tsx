@@ -1,9 +1,9 @@
 import React from 'react';
-import { find, pipe, prop, equals } from 'ramda';
+import { find, pipe, prop, equals, not } from 'ramda';
 import { Nft, Marketplace, Listing } from './../../types';
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { toSOL } from './../../modules/lamports';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 interface NftCardProps {
   nft: Nft;
@@ -11,12 +11,15 @@ interface NftCardProps {
 }
 
 export const NftCard = ({ nft, marketplace }: NftCardProps) => {
+  const { publicKey } = useWallet();
   const listing = find<Listing>(
     pipe(
       prop('auctionHouse'),
       equals(marketplace.auctionHouse.address)
     )
   )(nft.listings);
+
+  const isOwner = equals(nft.owner.address, publicKey?.toBase58());
 
   return (
     <article className='overflow-hidden rounded-lg transition duration-100 transform cursor-pointer bg-gray-900 shadow-card	hover:scale-[1.02]'>
@@ -32,27 +35,28 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
         <div className='flex items-center'>
         </div>
       </header>
-      <footer className='flex justify-end items-center h-20 gap-2 px-4 border-t-gray-800 border-t-2'>
+      <footer className='flex justify-end items-center gap-2 px-4 h-20 border-t-gray-800 border-t-2'>
         {listing ? (
           <>
             <div className='flex-1 mr-auto'>
               <p className='label'>Price</p>
               <p className='font-semibold icon-sol'>{toSOL(listing.price)}</p>
             </div>
-            <Link href={`/nfts/${nft.address}`} passHref>
-              <a>
+            {not(isOwner) && (
+              <Link to={`/nfts/${nft.address}`}>
                 <button className='button small grow-0'>Buy Now</button>
-              </a>
-            </Link>
+              </Link>
+            )}
           </>
         ) : (
-          <Link href={`/nfts/${nft.address}/offers/new`} passHref>
-            <a>
+          not(isOwner) && (
+            <Link to={`/nfts/${nft.address}/offers/new`}>
               <button className='button tertiary small grow-0'>Make Offer</button>
-            </a>
-          </Link>
+            </Link>
+          )
         )}
       </footer>
+
     </article>
   )
 }

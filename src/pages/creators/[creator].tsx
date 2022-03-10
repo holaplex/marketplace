@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
 import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
+import Head from 'next/head';
 import { useWallet } from '@solana/wallet-adapter-react'
 import WalletPortal from '../../components/WalletPortal';
-import { isNil, map, modify, filter, pipe, prop, isEmpty, not, any, equals, ifElse, always, when, length } from 'ramda'
+import { isNil, map, modify, filter, gt, partial, pipe, prop, or, indexOf, isEmpty, not, any, equals, ifElse, always, when, length } from 'ramda'
 import { useRouter } from "next/router";
 import { AppProps } from 'next/app'
 import Select from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
 import { truncateAddress } from './../../modules/address';
 import client from '../../client'
-import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter } from './../../types.d';
+import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter, MarketplaceCreator } from './../../types.d';
 import { List } from '../../components/List'
 import { NftCard } from '../../components/NftCard'
 import cx from 'classnames';
@@ -39,6 +40,9 @@ const GET_NFTS = gql`
       name
       description
       image
+      owner {
+        address
+      }
       listings {
         address
         auctionHouse
@@ -54,6 +58,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   const {
     data: { marketplace, creator },
   } = await client.query<GetCreatorPage>({
+    fetchPolicy: 'no-cache',
     query: gql`
       query GetCreatorPage($subdomain: String!, $creator: String!) {
         marketplace(subdomain: $subdomain) {
@@ -65,6 +70,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           ownerAddress
           creators {
             creatorAddress
+            storeConfigAddress
           }
           auctionHouse {
             address
@@ -101,7 +107,12 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
     },
   })
 
-  if (any(isNil)([marketplace, creator])) {
+  if (
+    or(
+      any(isNil)([marketplace, creator]),
+      pipe(map(prop('creatorAddress')), indexOf(query.creator), equals(-1))(marketplace?.creators || [])
+    )
+  ) {
     return {
       notFound: true,
     }
@@ -134,7 +145,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const { publicKey, connected } = useWallet();
   const [hasMore, setHasMore] = useState(true);
   const router = useRouter();
-  const  { data, loading, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
+  const { data, loading, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
     variables: {
       creators: [router.query.creator],
       offset: 0,
@@ -173,7 +184,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
         listed,
         offset: 0,
       }).then(({ data: { nfts } }) => {
-        setHasMore(pipe(length, equals(variables?.limit))(nfts));
+        pipe(pipe(length, equals(variables?.limit)), setHasMore)(nfts);
       });
     })
     return () => subscription.unsubscribe()
@@ -181,6 +192,12 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
 
   return (
     <div className='flex flex-col items-center text-white bg-gray-900'>
+      <Head>
+        <title>
+          {truncateAddress(router.query?.creator as string)} NFT Collection | {marketplace.name}
+        </title>
+        <link rel="icon" href={marketplace.logoUrl} />
+      </Head>
       <div className='relative w-full'>
         <div className="absolute right-6 top-[25px]">
           <WalletPortal />
@@ -292,11 +309,11 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
               </ul>
               <div className="flex flex-row justify-between align-top w-full mb-2">
                 <label className="label">Creators</label>
-                <Link href="/" passHref>
-                  <a>
+                {pipe(length, gt(1))(marketplace.creators) && (
+                  <Link to="/">
                     Show All
-                  </a>
-                </Link>
+                  </Link>
+                )}
               </div>
               <ul className="flex flex-col flex-grow mb-6">
                 <li className='flex justify-between w-full px-4 py-2 mb-1 rounded-md bg-gray-800 hover:bg-gray-800'>
@@ -350,7 +367,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                 if (not(inView)) {
                   return;
                 }
-                
+
                 const { data: { nfts } } = await fetchMore({
                   variables: {
                     ...variables,
@@ -360,7 +377,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
 
                 when(
                   isEmpty,
-                  () => setHasMore(false),
+                  partial(setHasMore, [false]),
                 )(nfts);
               }}
               loadingComponent={<NftCard.Skeleton />}
@@ -372,10 +389,8 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
               )}
               itemRender={(nft) => {
                 return (
-                  <Link passHref href={`/nfts/${nft.address}`} key={nft.address}>
-                    <a>
-                      <NftCard nft={nft} marketplace={marketplace} />
-                    </a>
+                  <Link to={`/nfts/${nft.address}`} key={nft.address}>
+                    <NftCard nft={nft} marketplace={marketplace} />
                   </Link>
                 )
               }}
