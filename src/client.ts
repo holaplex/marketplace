@@ -33,6 +33,9 @@ const client = new ApolloClient({
                   }
                 }
             },
+            StoreCreator: {
+                keyFields: ['creatorAddress', 'storeConfigAddress']
+            },
             Marketplace: {
                 keyFields: ['ownerAddress'],
             },
