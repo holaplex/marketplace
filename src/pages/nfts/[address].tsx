@@ -86,6 +86,7 @@ const GET_NFT = gql`
           }
           offers {
             address
+            tradeState
             price
             buyer
             createdAt

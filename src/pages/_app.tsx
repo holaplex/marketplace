@@ -28,6 +28,7 @@ import withReactRouter from '../react-router';
 import { ToastContainer } from 'react-toastify';
 import { ViewerProvider } from './../providers/Viewer';
 import 'react-toastify/dist/ReactToastify.css';
+import { equals } from 'ramda'
 
 const network = WalletAdapterNetwork.Mainnet;
 
@@ -36,7 +37,7 @@ const CLUSTER_API_URL = "https://holaplex.rpcpool.com";
 const clusterApiUrl = (cluster: Cluster): string => CLUSTER_API_URL;
 
 function App({ Component, pageProps }: AppProps) {
-  const { replace } = useRouter();
+  const { replace, asPath } = useRouter();
   const location = useLocation();
 
   const endpoint = useMemo(() => clusterApiUrl(network), []);
@@ -54,7 +55,11 @@ function App({ Component, pageProps }: AppProps) {
   );
 ``
   useEffect(() => {
-    replace(location.pathname);
+    if (equals(location.pathname, asPath)) {
+      return;
+    }
+
+    replace(location.pathname, undefined, { scroll: false });
   }, [location]);
 
   return (
