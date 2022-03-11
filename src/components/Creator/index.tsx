@@ -1,11 +1,15 @@
 import { truncateAddress } from '../../modules/address'
 
+export interface RemoveCreatorForm {
+  walletAddress: string
+}
 interface CreatorProps {
   address: string
   userName?: string
   imageUrl?: string
   nftCount?: number
   showRemove: boolean
+  onRemoveClicked?: (form: RemoveCreatorForm) => void
 }
 
 const Creator = ({
@@ -14,6 +18,7 @@ const Creator = ({
   imageUrl,
   nftCount,
   showRemove,
+  onRemoveClicked,
 }: CreatorProps) => (
   <div className="flex items-center justify-between">
     <div className="flex gap-3">
@@ -27,7 +32,14 @@ const Creator = ({
         )}
       </div>
     </div>
-    {showRemove && <button className="button small grow-0">Remove</button>}
+    {showRemove && (
+      <button
+        className="button small grow-0"
+        onClick={() => onRemoveClicked!({ walletAddress: address })}
+      >
+        Remove
+      </button>
+    )}
   </div>
 )
 

@@ -3,14 +3,31 @@ import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
 import cx from 'classnames'
 import { isNil, equals } from 'ramda'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AppProps } from 'next/app'
 import { useForm, Controller } from 'react-hook-form'
 import client from '../../client'
-import { Marketplace, PresetEditFilter, AttributeFilter } from '../../types.d'
-import EditMarketplace from '../../components/Edit/Marketplace'
-import EditCreators from '../../components/Edit/Creators'
+import {
+  Marketplace,
+  PresetEditFilter,
+  AttributeFilter,
+  MarketplaceCreator,
+} from '../../types.d'
+import EditMarketplace, {
+  EditMarketplaceForm,
+} from '../../components/Edit/Marketplace'
+import EditCreators, { AddCreatorForm } from '../../components/Edit/Creators'
 import FileUpload from 'src/components/Elements/Upload'
+import ipfsSDK from '../../modules/ipfs/client'
+import { Transaction } from '@solana/web3.js'
+import { toast } from 'react-toastify'
+import { programs } from '@metaplex/js'
+import { RemoveCreatorForm } from 'src/components/Creator'
+import { useRouter } from 'next/router'
+
+const {
+  metaplex: { Store, SetStoreV2, StoreConfig },
+} = programs
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -82,8 +99,34 @@ interface NftFilterForm {
   preset: PresetEditFilter
 }
 
+interface InputData {
+  name: string
+  description: string
+  // transactionFees: string
+  logo: {
+    url: string
+    name?: string
+    type?: string
+  }
+  banner: {
+    url: string
+    name?: string
+    type?: string
+  }
+  creators: { address: string }[]
+}
+
 const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
-  const { publicKey, connected } = useWallet()
+  const { connection } = useConnection()
+  const solana = useWallet()
+  const router = useRouter()
+  const { publicKey } = solana
+
+  // console.log('Marketplace', marketplace)
+
+  const refreshProps = () => {
+    router.replace(router.asPath)
+  }
 
   const { watch, register, control } = useForm<NftFilterForm>({
     defaultValues: { preset: PresetEditFilter.Marketplace },
@@ -95,6 +138,139 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
 
   const onBannerUpdateClick = () => {}
   const onLogoUpdateClick = () => {}
+
+  const getInputData = async (data: InputData) => {
+    if (!solana || !publicKey) {
+      return
+    }
+    const storePubkey = await Store.getPDA(publicKey)
+    const storeConfigPubkey = await StoreConfig.getPDA(storePubkey)
+
+    const input = {
+      meta: {
+        name: data.name,
+        description: data.description,
+      },
+      theme: {
+        logo: data.logo,
+        banner: data.banner,
+      },
+      creators: data.creators,
+      subdomain: marketplace.subdomain,
+      address: {
+        owner: publicKey,
+        auctionHouse: marketplace.auctionHouse.address,
+        store: storePubkey.toBase58(),
+        storeConfig: storeConfigPubkey.toBase58(),
+      },
+    } as any
+    return input
+  }
+
+  const onAddCreatorClicked = async (form: AddCreatorForm) => {
+    toast('Saving changes...')
+    const { walletAddress } = form
+
+    const creators = [{ address: walletAddress }]
+    marketplace.creators.forEach((creator) => {
+      creators.push({ address: creator.creatorAddress })
+    })
+
+    const input = await getInputData({
+      name: marketplace.name,
+      description: marketplace.description,
+      logo: { url: marketplace.logoUrl },
+      banner: { url: marketplace.bannerUrl },
+      creators,
+    })
+
+    updateMarketplace(input)
+  }
+
+  const onRemoveCreatorClicked = async (form: RemoveCreatorForm) => {
+    toast('Saving changes...')
+    const { walletAddress } = form
+    const creatorsList = marketplace.creators.filter(
+      (creator) => creator.creatorAddress !== walletAddress
+    )
+
+    let creators: { address: string }[] = []
+    creatorsList.forEach((creator) => {
+      creators.push({ address: creator.creatorAddress })
+    })
+
+    const input = await getInputData({
+      name: marketplace.name,
+      description: marketplace.description,
+      logo: { url: marketplace.logoUrl },
+      banner: { url: marketplace.bannerUrl },
+      creators,
+    })
+
+    updateMarketplace(input)
+  }
+
+  const onUpdateClicked = async (form: EditMarketplaceForm) => {
+    toast('Saving changes...')
+
+    const { marketName, description, transactionFee } = form
+    let creators: { address: string }[] = []
+    marketplace.creators.forEach((creator) => {
+      creators.push({ address: creator.creatorAddress })
+    })
+
+    const input = await getInputData({
+      name: marketName,
+      description: description,
+      logo: { url: marketplace.logoUrl },
+      banner: { url: marketplace.bannerUrl },
+      creators,
+    })
+
+    updateMarketplace(input)
+  }
+
+  const updateMarketplace = async (data: any) => {
+    if (!solana || !publicKey || !data) {
+      return
+    }
+    const settings = new File([JSON.stringify(data)], 'storefront_settings')
+    const { uri } = await ipfsSDK.uploadFile(settings)
+    console.log('URI:', uri)
+
+    const storePubkey = await Store.getPDA(publicKey)
+    const storeConfigPubkey = await StoreConfig.getPDA(storePubkey)
+    const setStorefrontV2Instructions = new SetStoreV2(
+      {
+        feePayer: publicKey,
+      },
+      {
+        admin: publicKey,
+        store: storePubkey,
+        config: storeConfigPubkey,
+        isPublic: false,
+        settingsUri: uri,
+      }
+    )
+    const transaction = new Transaction()
+    transaction.add(setStorefrontV2Instructions)
+    transaction.feePayer = publicKey
+    transaction.recentBlockhash = (
+      await connection.getRecentBlockhash()
+    ).blockhash
+
+    const signedTransaction = await solana.signTransaction!(transaction)
+    const txtId = await connection.sendRawTransaction(
+      signedTransaction.serialize()
+    )
+    console.log('Transaction ID:', txtId)
+    if (txtId) await connection.confirmTransaction(txtId)
+    console.log('Transaction confirmed')
+    toast(<>Marketplace updated successfully!</>, { autoClose: 5000 })
+
+    // Refetch server side props
+    refreshProps()
+  }
 
   useEffect(() => {
     const subscription = watch(({ preset }) => {
@@ -109,8 +285,8 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
       <div className="relative w-full">
         <div className="absolute right-8 top-8">
           <div className="flex gap-2">
-            <text className="text-sm">Marketplace</text>
-            <text className="underline text-sm">Admin Dashboard</text>
+            <div className="text-sm">Marketplace</div>
+            <div className="underline text-sm">Admin Dashboard</div>
           </div>
         </div>
         <img
@@ -126,29 +302,30 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
             alt={marketplace.name}
             className="absolute border-4 border-gray-900 rounded-full w-28 h-28 -top-32"
           />
-          {/* <button
+          <button
             className="absolute -top-12 left-4 button small grow-0"
             onClick={onLogoUpdateClick}
           >
             Update
-          </button> */}
-          <div className="absolute -top-12 left-4">
+          </button>
+          {/* <div className="absolute -top-12 left-4">
             <FileUpload dragger>
               <div className="button small grow-0 w-fit">Update</div>
             </FileUpload>
-          </div>
+          </div> */}
 
-          {/* <button
+          <button
             className="absolute -top-24 left-1/2 transform -translate-x-1/2 button small grow-0"
             onClick={onBannerUpdateClick}
           >
             Update
-          </button> */}
-          <div className="absolute -top-24 left-1/2 transform -translate-x-1/2">
+          </button>
+
+          {/* <div className="absolute -top-24 left-1/2 transform -translate-x-1/2">
             <FileUpload dragger>
               <div className="button small grow-0 w-fit">Update</div>
             </FileUpload>
-          </div>
+          </div> */}
         </div>
         <div className="flex">
           <div className="flex-row flex-none hidden mr-10 space-y-2 w-80 sm:block">
@@ -223,10 +400,17 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
             </form>
           </div>
           {preset === PresetEditFilter.Marketplace && (
-            <EditMarketplace marketplace={marketplace} />
+            <EditMarketplace
+              marketplace={marketplace}
+              onUpdateClicked={onUpdateClicked}
+            />
           )}
           {preset === PresetEditFilter.Creators && (
-            <EditCreators marketplace={marketplace} />
+            <EditCreators
+              marketplace={marketplace}
+              onAddCreatorClicked={onAddCreatorClicked}
+              onRemoveCreatorClicked={onRemoveCreatorClicked}
+            />
           )}
         </div>
       </div>

@@ -34,7 +34,7 @@ import 'react-toastify/dist/ReactToastify.css'
 
 const network = WalletAdapterNetwork.Mainnet
 
-const CLUSTER_API_URL = 'https://holaplex.rpcpool.com'
+const CLUSTER_API_URL = 'https://holaplex.rpcpool.com' // 'http://api.devnet.solana.com'
 
 const clusterApiUrl = (cluster: Cluster): string => CLUSTER_API_URL
 

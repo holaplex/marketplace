@@ -26,17 +26,17 @@ export default function FileUpload({
       return
     }
 
-    uploadFile(file)
-      .then((res) => {
-        upload.onSuccess(res, file)
-      })
-      .catch((e) => {
-        console.error(e)
-        upload.onError(e)
-        toast.error(
-          <>{e instanceof Error ? e.message : 'Upload to Ipfs failed.'}</>
-        )
-      })
+    // uploadFile(file)
+    //   .then((res) => {
+    //     upload.onSuccess(res, file)
+    //   })
+    //   .catch((e) => {
+    //     console.error(e)
+    //     upload.onError(e)
+    //     toast.error(
+    //       <>{e instanceof Error ? e.message : 'Upload to Ipfs failed.'}</>
+    //     )
+    //   })
   }
 
   const Component = dragger ? Upload.Dragger : Upload

@@ -1,28 +1,22 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Marketplace } from '../../../types'
-import { programs, Wallet } from '@metaplex/js'
-import {
-  useConnection,
-  useWallet,
-  WalletContext,
-} from '@solana/wallet-adapter-react'
-import ipfsSDK from '../../../modules/ipfs/client'
-import { Transaction } from '@solana/web3.js'
+import { useWallet } from '@solana/wallet-adapter-react'
 
-const {
-  metaplex: { Store, SetStoreV2, StoreConfig },
-} = programs
 interface EditMarketplaceProps {
   marketplace: Marketplace
+  onUpdateClicked: (form: EditMarketplaceForm) => void
 }
 
-const EditMarketplace = ({ marketplace }: EditMarketplaceProps) => {
-  const solana = useWallet()
-  const { publicKey, connected } = solana
-  const { connection } = useConnection()
-  const [submitting, setSubmitting] = useState(false)
-  // console.log('Solana:', solana)
+export interface EditMarketplaceForm {
+  marketName: string
+  description: string
+  transactionFee: string
+}
+
+const EditMarketplace = ({
+  marketplace,
+  onUpdateClicked,
+}: EditMarketplaceProps) => {
   const {
     register: register,
     handleSubmit: handleSubmit,
@@ -33,70 +27,12 @@ const EditMarketplace = ({ marketplace }: EditMarketplaceProps) => {
   const onCancel = () => console.log('cancel')
   const onSubmit = async (data: any) => {
     // console.log(data)
-    if (!publicKey || !solana) {
-      return
+    const form = {
+      marketName: data.marketName,
+      description: data.description,
+      transactionFee: data.transactionFee,
     }
-
-    setSubmitting(true)
-    const storePubkey = await Store.getPDA(publicKey)
-    const storeConfigPubkey = await StoreConfig.getPDA(storePubkey)
-
-    const input = {
-      meta: {
-        name: data.name,
-        description: data.description,
-      },
-      theme: {
-        logo: {},
-        banner: {},
-      },
-      creators: marketplace.creators,
-      subdomain: marketplace.subdomain,
-      address: {
-        owner: publicKey,
-        auctionHouse: marketplace.auctionHouse.address,
-        store: storePubkey.toBase58(),
-        storeConfig: storeConfigPubkey.toBase58(),
-      },
-    } as any
-
-    const settings = new File([JSON.stringify(input)], 'storefront_settings')
-
-    const { uri } = await ipfsSDK.uploadFile(settings)
-
-    console.log('Settings:', settings)
-    console.log('URI:', uri)
-
-    const setStorefrontV2Instructions = new SetStoreV2(
-      {
-        feePayer: solana.publicKey,
-      },
-      {
-        admin: solana.publicKey!,
-        store: storePubkey,
-        config: storeConfigPubkey,
-        isPublic: false,
-        settingsUri: uri,
-      }
-    )
-
-    const transaction = new Transaction()
-
-    transaction.add(setStorefrontV2Instructions)
-
-    transaction.feePayer = publicKey
-    transaction.recentBlockhash = (
-      await connection.getRecentBlockhash()
-    ).blockhash
-
-    const signedTransaction = await solana.signTransaction!(transaction)
-
-    const txtId = await connection.sendRawTransaction(
-      signedTransaction.serialize()
-    )
-    console.log('Transaction ID:', txtId)
-    if (txtId) await connection.confirmTransaction(txtId)
-    console.log('Transaction confirmed')
+    onUpdateClicked(form)
   }
 
   if (!marketplace) {
@@ -104,8 +40,8 @@ const EditMarketplace = ({ marketplace }: EditMarketplaceProps) => {
   }
 
   return (
-    <div className="grow flex flex-col pb-16">
-      <div className="flex items-center justify-between">
+    <div className="grow flex flex-col pb-16 max-w-xl">
+      <div className="flex items-start justify-between">
         <h2>Edit marketplace</h2>
         <div className="flex">
           <button
@@ -133,7 +69,7 @@ const EditMarketplace = ({ marketplace }: EditMarketplaceProps) => {
           defaultValue={marketplace.subdomain + '.holaplex.market'}
           {...register('domain', { disabled: true })}
         />
-        {errors.marketName && <span>This field is required</span>}
+        {errors.domain && <span>This field is required</span>}
 
         <label className="mb-2 text-lg mt-9">Market Name</label>
         <input
