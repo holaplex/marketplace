@@ -81,7 +81,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
     variables: {
       subdomain: (subdomain || SUBDOMAIN),
     },
-  })
+  });
 
   const { data: { marketplace } } = response;
 
@@ -327,7 +327,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               )}
               itemRender={(nft) => {
                 return (
-                  <Link passHref href={`/nfts/${nft.address}`} key={nft.address}>
+                  <Link to={`/nfts/${nft.address}`} key={nft.address}>
                     <a>
                       <NftCard nft={nft} marketplace={marketplace} />
                     </a>
