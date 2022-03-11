@@ -31,7 +31,7 @@ const {
 const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormProps) => {
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
-  const acceptOfferForm = useForm()
+  const { formState: { isSubmitting }, handleSubmit } = useForm()
 
   const acceptOfferTransaction = async () => {
     if (!publicKey || !signTransaction || !offer || !nft) {
@@ -218,50 +218,40 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    let signed: Transaction
+    let signed: Transaction | undefined = undefined;
 
     try {
-      signed = await signTransaction(txt)
+      signed = await signTransaction(txt);
     } catch (e: any) {
-      toast.error(e.message)
-      return
+      toast.error(e.message);
+      return;
     }
 
-    let signature: string = ''
+    let signature: string | undefined = undefined;
 
     try {
-      signature = await connection.sendRawTransaction(signed.serialize())
+      toast('Sending the transaction to Solana.');
 
-      toast('Sending the transaction to Solana.')
+      signature = await connection.sendRawTransaction(signed.serialize());
 
-      await connection.confirmTransaction(signature, 'processed')
+      
+
+      await connection.confirmTransaction(signature, 'finalized');
 
       await refetch();
 
-      toast('The transaction was confirmed.')
-    } catch {
-      toast.error(
-        <>
-          The transaction failed.{' '}
-          <a
-            target='_blank'
-            rel='noreferrer'
-            href={`https://explorer.solana.com/tx/${signature}`}
-          >
-            View on explorer
-          </a>
-          .
-        </>
-      )
+      toast.success('The transaction was confirmed.');
+    } catch(e: any) {
+      toast.error(e.message);
     }
   }
 
   return (
     <form
-      onSubmit={acceptOfferForm.handleSubmit(acceptOfferTransaction)}
+      onSubmit={handleSubmit(acceptOfferTransaction)}
     >
       <Button
-        loading={acceptOfferForm.formState.isSubmitting}
+        loading={isSubmitting}
         htmlType='submit'
         size={ButtonSize.Small}
         type={ButtonType.Primary}

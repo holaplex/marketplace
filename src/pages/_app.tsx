@@ -52,15 +52,14 @@ function App({ Component, pageProps }: AppProps) {
     ],
     []
   );
-
-
+``
   useEffect(() => {
     replace(location.pathname);
   }, [location]);
 
   return (
     <ApolloProvider client={client}>
-      <ConnectionProvider endpoint={endpoint}>
+      <ConnectionProvider endpoint={endpoint} config={{ confirmTransactionInitialTimeout: 90 * 1000 }}>
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider className="wallet-modal-theme">
             <ViewerProvider>

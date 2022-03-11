@@ -40,7 +40,7 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
           <>
             <div className='flex-1 mr-auto'>
               <p className='label'>Price</p>
-              <p className='font-semibold icon-sol'>{toSOL(listing.price)}</p>
+              <p className='font-semibold icon-sol'>{toSOL(listing.price.toNumber())}</p>
             </div>
             {not(isOwner) && (
               <Link to={`/nfts/${nft.address}`}>
