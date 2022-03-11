@@ -89,6 +89,7 @@ export interface Offer {
   price: BN;
   createdAt: string;
   auctionHouse: string;
+  tradeState: string;
 }
 
 export interface Nft extends KeyType {

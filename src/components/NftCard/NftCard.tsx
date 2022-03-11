@@ -18,8 +18,8 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
       equals(marketplace.auctionHouse.address)
     )
   )(nft.listings);
-
-  const isOwner = equals(nft.owner.address, publicKey?.toBase58());
+  
+  const isOwner = equals(nft.owner?.address, publicKey?.toBase58());
 
   return (
     <article className='overflow-hidden rounded-lg transition duration-100 transform cursor-pointer bg-gray-900 shadow-card	hover:scale-[1.02]'>
