@@ -123,32 +123,29 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    let signed: Transaction;
+    let signed: Transaction | undefined = undefined;
 
     try {
       signed = await signTransaction(txt);
-    } catch(e: any) {
+    } catch (e: any) {
       toast.error(e.message);
-
       return;
     }
 
-    let signature: string;
+    let signature: string | undefined = undefined;
 
     try {
       toast('Sending the transaction to Solana.');
 
       signature = await connection.sendRawTransaction(signed.serialize());
 
-      await connection.confirmTransaction(signature, 'confirmed');
+      await connection.confirmTransaction(signature, 'finalized');
 
       await refetch();
 
-      toast('The transaction was confirmed.');
-    } catch {
-      toast.error(
-        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
-      )
+      toast.success('The transaction was confirmed.');
+    } catch(e: any) {
+      toast.error(e.message);
     } finally {
       navigate(`/nfts/${nft.address}`)
     }

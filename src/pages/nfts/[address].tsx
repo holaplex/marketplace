@@ -222,20 +222,21 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       return
     }
 
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
-    const authority = new PublicKey(marketplace.auctionHouse.authority)
+    const auctionHouse = new PublicKey(marketplace.auctionHouse.address);
+    const authority = new PublicKey(marketplace.auctionHouse.authority);
     const auctionHouseFeeAccount = new PublicKey(
       marketplace.auctionHouse.auctionHouseFeeAccount
-    )
-    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
-    const seller = new PublicKey(listing.seller)
-    const tokenMint = new PublicKey(data?.nft.mintAddress)
+    );
+    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint);
+    const seller = new PublicKey(listing.seller);
+    const tokenMint = new PublicKey(data?.nft.mintAddress);
     const auctionHouseTreasury = new PublicKey(
       marketplace.auctionHouse.auctionHouseTreasury
-    )
-    const listingReceipt = new PublicKey(listing.address)
-    const sellerPaymentReceiptAccount = new PublicKey(listing.seller)
+    );
+    const listingReceipt = new PublicKey(listing.address);
+    const sellerPaymentReceiptAccount = new PublicKey(listing.seller);
     const sellerTradeState = new PublicKey(listing.tradeState);
+    const buyerPrice = listing.price.toNumber();
 
     const [
       tokenAccount,
@@ -261,7 +262,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       auctionHouse,
       treasuryMint,
       tokenMint,
-      listing.price,
+      buyerPrice,
       1
     )
     const [
@@ -285,7 +286,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
       tokenMint,
       publicKey
-
     )
 
     const [
@@ -316,7 +316,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     const publicBuyInstructionArgs = {
       tradeStateBump,
       escrowPaymentBump,
-      buyerPrice: listing.price,
+      buyerPrice,
       tokenSize: 1,
     }
 
@@ -344,7 +344,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       escrowPaymentBump,
       freeTradeStateBump,
       programAsSignerBump,
-      buyerPrice: listing.price,
+      buyerPrice,
       tokenSize: 1,
     }
 
@@ -385,7 +385,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       printPurchaseReceiptArgs
     )
 
-    const txt = new Transaction()
+    const txt = new Transaction();
 
     txt
       .add(publicBuyInstruction)
@@ -398,12 +398,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
           data?.nft.creators.map(creator => ({ pubkey: new PublicKey(creator.address), isSigner: false, isWritable: true }))
         )
       }))
-      .add(printPurchaseReceiptInstruction)
+      .add(printPurchaseReceiptInstruction);
 
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
-    txt.feePayer = publicKey
+    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+    txt.feePayer = publicKey;
 
-    let signed: Transaction;
+    let signed: Transaction | undefined = undefined;
 
     try {
       signed = await signTransaction(txt);
@@ -412,22 +412,20 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       return;
     }
 
-    let signature: string;
+    let signature: string | undefined = undefined;
 
     try {
       toast('Sending the transaction to Solana.');
 
       signature = await connection.sendRawTransaction(signed.serialize());
 
-      await connection.confirmTransaction(signature, 'confirmed');
+      await connection.confirmTransaction(signature, 'finalized');
 
       await refetch();
 
-      toast('The transaction was confirmed.');
-    } catch {
-      toast.error(
-        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
-      )
+      toast.success('The transaction was confirmed.');
+    } catch(e: any) {
+      toast.error(e.message);
     }
   }
 
@@ -450,6 +448,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       tokenMint,
       new PublicKey(data?.nft.owner.address)
     )
+    const buyerPrice = listing.price.toNumber()
 
     const [tradeState] = await AuctionHouseProgram.findTradeStateAddress(
       publicKey,
@@ -457,7 +456,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       tokenAccount,
       treasuryMint,
       tokenMint,
-      listing.price,
+      buyerPrice,
       1
     )
 
@@ -471,7 +470,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       tradeState,
     }
     const cancelInstructionArgs = {
-      buyerPrice: listing.price,
+      buyerPrice,
       tokenSize: 1,
     }
 
@@ -495,7 +494,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    let signed: Transaction;
+    let signed: Transaction | undefined = undefined;
 
     try {
       signed = await signTransaction(txt);
@@ -504,22 +503,20 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       return;
     }
 
-    let signature: string;
+    let signature: string | undefined = undefined;
 
     try {
       toast('Sending the transaction to Solana.');
 
       signature = await connection.sendRawTransaction(signed.serialize());
 
-      await connection.confirmTransaction(signature, 'confirmed');
+      await connection.confirmTransaction(signature, 'finalized');
 
       await refetch();
 
-      toast('The transaction was confirmed.');
-    } catch {
-      toast.error(
-        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
-      )
+      toast.success('The transaction was confirmed.');
+    } catch(e: any) {
+      toast.error(e.message);
     }
   }
 
@@ -632,7 +629,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                   <div className='flex-1'>
                     <div className='label'>PRICE</div>
                     <p className='text-base md:text-xl lg:text-3xl'>
-                      <b className='sol-amount'>{toSOL(listing.price)}</b>
+                      <b className='sol-amount'>{toSOL(listing.price.toNumber())}</b>
                     </p>
                   </div>
                 )}
@@ -741,7 +738,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
             </div>
           </div>
         </div >
-        <div className='flex justify-between px-4 mt-10 mb-10 text-sm sm:text-base md:text-lg '>
+        <div className='flex justify-between mt-10 mb-10 text-sm sm:text-base md:text-lg '>
           <div className='w-full'>
             <h2 className='mb-4 text-xl md:text-2xl text-bold'>Offers</h2>
             {ifElse(
@@ -804,7 +801,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                             </a>
                           </div>
                           <div>
-                            <span className='sol-amount'>{toSOL(o.price)}</span>
+                            <span className='sol-amount'>{toSOL(o.price.toNumber())}</span>
                           </div>
                           <div>{format(o.createdAt, 'en_US')}</div>
                           {(offer || isOwner) && (
