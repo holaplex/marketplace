@@ -9,6 +9,7 @@ interface EditCreatorsProps {
   onAddCreatorClicked: (form: AddCreatorForm) => void
   onRemoveCreatorClicked: (form: RemoveCreatorForm) => void
 }
+
 export interface AddCreatorForm {
   walletAddress: string
 }

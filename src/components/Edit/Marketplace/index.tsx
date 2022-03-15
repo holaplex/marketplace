@@ -10,7 +10,7 @@ interface EditMarketplaceProps {
 export interface EditMarketplaceForm {
   marketName: string
   description: string
-  transactionFee: string
+  transactionFee: number
 }
 
 const EditMarketplace = ({
@@ -93,6 +93,7 @@ const EditMarketplace = ({
         </span>
         <input
           className="w-full px-3 py-2 text-gray-100 text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm"
+          defaultValue={marketplace.auctionHouse.sellerFeeBasisPoints}
           {...register('transactionFee')}
         />
         {errors.transactionFee && <span>This field is required</span>}

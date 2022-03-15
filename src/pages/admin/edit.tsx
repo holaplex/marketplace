@@ -1,29 +1,25 @@
 import { useEffect, useState } from 'react'
 import { NextPage, NextPageContext } from 'next'
-import { gql, useQuery } from '@apollo/client'
+import { gql } from '@apollo/client'
 import cx from 'classnames'
 import { isNil, equals } from 'ramda'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AppProps } from 'next/app'
 import { useForm, Controller } from 'react-hook-form'
 import client from '../../client'
-import {
-  Marketplace,
-  PresetEditFilter,
-  AttributeFilter,
-  MarketplaceCreator,
-} from '../../types.d'
+import { Marketplace, PresetEditFilter, AttributeFilter } from '../../types.d'
 import EditMarketplace, {
   EditMarketplaceForm,
 } from '../../components/Edit/Marketplace'
 import EditCreators, { AddCreatorForm } from '../../components/Edit/Creators'
-import FileUpload from 'src/components/Elements/Upload'
 import ipfsSDK from '../../modules/ipfs/client'
 import { Transaction } from '@solana/web3.js'
 import { toast } from 'react-toastify'
-import { programs } from '@metaplex/js'
+import { programs, Wallet } from '@metaplex/js'
 import { RemoveCreatorForm } from 'src/components/Creator'
 import { useRouter } from 'next/router'
+import { updateAuctionHouse } from '@/modules/auction-house'
+import { getInputData } from '@/modules/edit'
 
 const {
   metaplex: { Store, SetStoreV2, StoreConfig },
@@ -99,30 +95,13 @@ interface NftFilterForm {
   preset: PresetEditFilter
 }
 
-interface InputData {
-  name: string
-  description: string
-  // transactionFees: string
-  logo: {
-    url: string
-    name?: string
-    type?: string
-  }
-  banner: {
-    url: string
-    name?: string
-    type?: string
-  }
-  creators: { address: string }[]
-}
-
 const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
   const { connection } = useConnection()
   const solana = useWallet()
-  const router = useRouter()
   const { publicKey } = solana
+  const router = useRouter()
 
-  // console.log('Marketplace', marketplace)
+  // console.log('Marketplace data', marketplace)
 
   const refreshProps = () => {
     router.replace(router.asPath)
@@ -139,34 +118,6 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
   const onBannerUpdateClick = () => {}
   const onLogoUpdateClick = () => {}
 
-  const getInputData = async (data: InputData) => {
-    if (!solana || !publicKey) {
-      return
-    }
-    const storePubkey = await Store.getPDA(publicKey)
-    const storeConfigPubkey = await StoreConfig.getPDA(storePubkey)
-
-    const input = {
-      meta: {
-        name: data.name,
-        description: data.description,
-      },
-      theme: {
-        logo: data.logo,
-        banner: data.banner,
-      },
-      creators: data.creators,
-      subdomain: marketplace.subdomain,
-      address: {
-        owner: publicKey,
-        auctionHouse: marketplace.auctionHouse.address,
-        store: storePubkey.toBase58(),
-        storeConfig: storeConfigPubkey.toBase58(),
-      },
-    } as any
-    return input
-  }
-
   const onAddCreatorClicked = async (form: AddCreatorForm) => {
     toast('Saving changes...')
     const { walletAddress } = form
@@ -176,15 +127,19 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
       creators.push({ address: creator.creatorAddress })
     })
 
-    const input = await getInputData({
-      name: marketplace.name,
-      description: marketplace.description,
-      logo: { url: marketplace.logoUrl },
-      banner: { url: marketplace.bannerUrl },
-      creators,
-    })
+    const inputData = await getInputData(
+      {
+        name: marketplace.name,
+        description: marketplace.description,
+        logo: { url: marketplace.logoUrl },
+        banner: { url: marketplace.bannerUrl },
+        creators,
+      },
+      marketplace,
+      solana
+    )
 
-    updateMarketplace(input)
+    updateMarketplace(inputData)
   }
 
   const onRemoveCreatorClicked = async (form: RemoveCreatorForm) => {
@@ -199,13 +154,17 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
       creators.push({ address: creator.creatorAddress })
     })
 
-    const input = await getInputData({
-      name: marketplace.name,
-      description: marketplace.description,
-      logo: { url: marketplace.logoUrl },
-      banner: { url: marketplace.bannerUrl },
-      creators,
-    })
+    const input = await getInputData(
+      {
+        name: marketplace.name,
+        description: marketplace.description,
+        logo: { url: marketplace.logoUrl },
+        banner: { url: marketplace.bannerUrl },
+        creators,
+      },
+      marketplace,
+      solana
+    )
 
     updateMarketplace(input)
   }
@@ -219,27 +178,47 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
       creators.push({ address: creator.creatorAddress })
     })
 
-    const input = await getInputData({
-      name: marketName,
-      description: description,
-      logo: { url: marketplace.logoUrl },
-      banner: { url: marketplace.bannerUrl },
-      creators,
-    })
+    const input = await getInputData(
+      {
+        name: marketName,
+        description: description,
+        logo: { url: marketplace.logoUrl },
+        banner: { url: marketplace.bannerUrl },
+        creators,
+      },
+      marketplace,
+      solana
+    )
 
-    updateMarketplace(input)
+    updateMarketplace(input, transactionFee)
   }
 
-  const updateMarketplace = async (data: any) => {
-    if (!solana || !publicKey || !data) {
+  const updateMarketplace = async (inputData: any, transactionFee?: number) => {
+    if (!solana || !publicKey || !inputData) {
       return
     }
-    const settings = new File([JSON.stringify(data)], 'storefront_settings')
+    console.log('data', inputData)
+    const settings = new File(
+      [JSON.stringify(inputData)],
+      'storefront_settings'
+    )
     const { uri } = await ipfsSDK.uploadFile(settings)
     console.log('URI:', uri)
 
     const storePubkey = await Store.getPDA(publicKey)
     const storeConfigPubkey = await StoreConfig.getPDA(storePubkey)
+
+    let auctionHouseCreateInstruction
+    if (
+      transactionFee &&
+      transactionFee != marketplace.auctionHouse.sellerFeeBasisPoints
+    ) {
+      auctionHouseCreateInstruction = await updateAuctionHouse({
+        wallet: solana as Wallet,
+        sellerFeeBasisPoints: transactionFee,
+      })
+    }
+
     const setStorefrontV2Instructions = new SetStoreV2(
       {
         feePayer: publicKey,
@@ -253,6 +232,13 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
       }
     )
     const transaction = new Transaction()
+    if (auctionHouseCreateInstruction) {
+      transaction.add(auctionHouseCreateInstruction)
+      console.log(
+        'auctionHouseCreateInstruction',
+        auctionHouseCreateInstruction
+      )
+    }
     transaction.add(setStorefrontV2Instructions)
     transaction.feePayer = publicKey
     transaction.recentBlockhash = (

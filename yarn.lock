@@ -544,6 +544,17 @@
   resolved "https://registry.yarnpkg.com/@heroicons/react/-/react-1.0.5.tgz#2fe4df9d33eb6ce6d5178a0f862e97b61c01e27d"
   integrity sha512-UDMyLM2KavIu2vlWfMspapw9yii7aoLwzI2Hudx4fyoPwfKfxU8r3cL8dEBXOjcLG0/oOONZzbT14M1HoNtEcg==
 
+"@holaplex/mpl-auction-house@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.npmjs.org/@holaplex/mpl-auction-house/-/mpl-auction-house-0.0.7.tgz#fa3109b2d430ca709aefb45f66ee01a5e4d00037"
+  integrity sha512-n7FYtAZipjA0+4Qq1dqgle8KlZ4f/czq/4ynYZDQPHpOLKRneYB7GjDwVGPVWKsYu3ys2nfdeJ/eUFJ4J+4IuA==
+  dependencies:
+    "@metaplex-foundation/beet" "^0.0.8"
+    "@metaplex-foundation/beet-solana" "^0.0.6"
+    "@metaplex-foundation/mpl-core" "0.0.4"
+    "@solana/web3.js" "^1.35.1"
+    bn.js "^5.2.0"
+
 "@humanwhocodes/config-array@^0.9.2":
   version "0.9.2"
   resolved "https://registry.npmjs.org/@humanwhocodes/config-array/-/config-array-0.9.2.tgz"
