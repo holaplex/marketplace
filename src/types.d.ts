@@ -1,3 +1,5 @@
+import BN from 'bn.js'
+
 export interface Marketplace {
   subdomain: string
   name: string
@@ -72,7 +74,7 @@ export interface Listing {
   seller: string
   metadata: string
   purchaseReceipt: string
-  price: number
+  price: BN
   tokenSize: number
   bump: number
   tradeState: string
@@ -84,9 +86,10 @@ export interface Listing {
 export interface Offer {
   address: string
   buyer: string
-  price: number
+  price: BN
   createdAt: string
   auctionHouse: string
+  tradeState: string
 }
 
 export interface Nft extends KeyType {

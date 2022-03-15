@@ -18,129 +18,139 @@ interface CancelOfferFormProps {
   refetch: (variables?: Partial<OperationVariables> | undefined) => Promise<ApolloQueryResult<_>>;
 }
 
-
 const {
     createCancelInstruction,
-    createCancelBidReceiptInstruction
+    createCancelBidReceiptInstruction,
+    createWithdrawInstruction,
   } = AuctionHouseProgram.instructions
 
 const CancelOfferForm = ({ offer, nft, marketplace, refetch }: CancelOfferFormProps) => {
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
-  const cancelOfferForm = useForm()
+  const { formState: { isSubmitting }, handleSubmit } = useForm()
 
   const cancelOfferTransaction = async () => {
     if (!publicKey || !signTransaction || !offer || !nft) {
       return
     }
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
-    const authority = new PublicKey(marketplace.auctionHouse.authority)
+
+    const auctionHouse = new PublicKey(marketplace.auctionHouse.address);
+    const authority = new PublicKey(marketplace.auctionHouse.authority);
     const auctionHouseFeeAccount = new PublicKey(
       marketplace.auctionHouse.auctionHouseFeeAccount
-    )
-    const tokenMint = new PublicKey(nft.mintAddress)
-    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
+    );
+    const tokenMint = new PublicKey(nft.mintAddress);
     const receipt = new PublicKey(offer.address)
+    const buyerPrice = offer.price.toNumber();
+    const tradeState = new PublicKey(offer.tradeState);
+    const owner = new PublicKey(nft.owner.address);
+    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint);
+
     const [
       tokenAccount,
     ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
       tokenMint,
-      new PublicKey(nft.owner.address)
+      owner,
     )
 
     const [
-      tradeState,
-    ] = await AuctionHouseProgram.findPublicBidTradeStateAddress(
-      publicKey,
+      escrowPaymentAccount,
+      escrowPaymentBump
+    ] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(
       auctionHouse,
-      treasuryMint,
-      tokenMint,
-      offer.price,
-      1
-    )
+      publicKey,
+    );
 
-    const txt = new Transaction()
+    const txt = new Transaction();
 
     const cancelInstructionAccounts = {
       wallet: publicKey,
-      tokenAccount: tokenAccount,
-      tokenMint: tokenMint,
-      authority: authority,
-      auctionHouse: auctionHouse,
-      auctionHouseFeeAccount: auctionHouseFeeAccount,
-      tradeState: tradeState,
-    }
+      tokenAccount,
+      tokenMint,
+      authority,
+      auctionHouse,
+      auctionHouseFeeAccount,
+      tradeState,
+    };
 
     const cancelInstructionArgs = {
-      buyerPrice: offer.price,
+      buyerPrice,
       tokenSize: 1,
-    }
+    };
 
     const cancelBidReceiptInstructionAccounts = {
       receipt: receipt,
       instruction: SYSVAR_INSTRUCTIONS_PUBKEY,
-    }
+    };
 
     const cancelBidInstruction = createCancelInstruction(
       cancelInstructionAccounts,
       cancelInstructionArgs
-    )
+    );
 
     const cancelBidReceiptInstruction = createCancelBidReceiptInstruction(
       cancelBidReceiptInstructionAccounts
     )
 
-    txt.add(cancelBidInstruction).add(cancelBidReceiptInstruction)
+    const withdrawInstructionAccounts = {
+      receiptAccount: publicKey,
+      wallet: publicKey,
+      escrowPaymentAccount,
+      auctionHouse,
+      authority,
+      treasuryMint,
+      auctionHouseFeeAccount,
+    }
+
+    const withdrawInstructionArgs = {
+      escrowPaymentBump,
+      amount: buyerPrice,
+    }
+
+    const withdrawInstruction = createWithdrawInstruction(
+      withdrawInstructionAccounts,
+      withdrawInstructionArgs,
+    )
+
+    txt.add(cancelBidInstruction).add(cancelBidReceiptInstruction).add(withdrawInstruction);
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    let signed: Transaction
+    let signed: Transaction | undefined = undefined;
 
     try {
-      signed = await signTransaction(txt)
+      signed = await signTransaction(txt);
     } catch (e: any) {
-      toast.error(e.message)
-      return
+      toast.error(e.message);
+      return;
     }
 
-    let signature: string  = ""
+    let signature: string | undefined = undefined;
 
     try {
-      toast('Sending the transaction to Solana.')
+      toast('Sending the transaction to Solana.');
 
-      signature = await connection.sendRawTransaction(signed.serialize())
+      signature = await connection.sendRawTransaction(signed.serialize());
 
-      await connection.confirmTransaction(signature, 'processed')
-
-      toast('The transaction was confirmed.')
+      await connection.confirmTransaction(signature, 'finalized');
 
       await refetch();
-    } catch {
-      toast.error(
-        <>
-          The transaction failed.{' '}
-          <a
-            target='_blank'
-            rel='noreferrer'
-            href={`https://explorer.solana.com/tx/${signature}`}
-          >
-            View on explorer
-          </a>
-          .
-        </>
-      )
+
+      toast.success('The transaction was confirmed.');
+    } catch(e: any) {
+      toast.error(e.message);
     }
   }
 
   return (
     <form
-      onSubmit={cancelOfferForm.handleSubmit(
+      onSubmit={handleSubmit(
         cancelOfferTransaction
       )}
     >
       <Button
-        loading={cancelOfferForm.formState.isSubmitting}
+        loading={isSubmitting}
         htmlType='submit'
         size={ButtonSize.Small}
         type={ButtonType.Primary}

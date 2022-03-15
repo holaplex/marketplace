@@ -44,6 +44,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
           ownerAddress
           creators {
             creatorAddress
+            storeConfigAddress
           }
           auctionHouse {
             address

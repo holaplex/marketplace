@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { useForm } from 'react-hook-form'
-import { Link } from 'react-router-dom'
-import { useRouter } from 'next/router'
+import { Link, useNavigate } from 'react-router-dom'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { OperationVariables, ApolloQueryResult } from '@apollo/client'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
@@ -34,7 +33,7 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
   const { handleSubmit, register, formState: { isSubmitting } } = useForm<OfferForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
-  const router = useRouter()
+  const navigate = useNavigate();
 
   const placeOfferTransaction = async ({ amount }: OfferForm) => {
     if (!publicKey || !signTransaction || !nft) {
@@ -124,40 +123,37 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    let signed: Transaction;
+    let signed: Transaction | undefined = undefined;
 
     try {
       signed = await signTransaction(txt);
-    } catch(e: any) {
+    } catch (e: any) {
       toast.error(e.message);
-
       return;
     }
 
-    let signature: string;
+    let signature: string | undefined = undefined;
 
     try {
       toast('Sending the transaction to Solana.');
 
       signature = await connection.sendRawTransaction(signed.serialize());
 
-      await connection.confirmTransaction(signature, 'confirmed');
+      await connection.confirmTransaction(signature, 'finalized');
 
       await refetch();
 
-      toast('The transaction was confirmed.');
-    } catch {
-      toast.error(
-        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
-      )
+      toast.success('The transaction was confirmed.');
+    } catch(e: any) {
+      toast.error(e.message);
     } finally {
-      return router.push(`/nfts/${nft.address}`);
+      navigate(`/nfts/${nft.address}`)
     }
   }
 
   return (
     <form
-      className='text-left grow'
+      className='text-left grow mt-6'
       onSubmit={handleSubmit(placeOfferTransaction)}
     >
       <h3 className='mb-6 text-xl font-bold md:text-2xl'>Make an offer</h3>

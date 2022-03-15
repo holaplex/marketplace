@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { OperationVariables, ApolloQueryResult } from '@apollo/client'
@@ -14,7 +14,6 @@ import {
 } from '@solana/web3.js'
 import { Nft, Marketplace } from '../../types'
 import { toast } from 'react-toastify'
-import { useRouter } from 'next/router';
 
 const {
   createSellInstruction,
@@ -35,7 +34,7 @@ const SellNft = ({ nft, marketplace, refetch }: SellNftProps) => {
   const { control, handleSubmit, formState: { isSubmitting } } = useForm<SellNftForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
-  const router = useRouter()
+  const navigate = useNavigate()
 
   const sellNftTransaction = async ({ amount }: SellNftForm) => {
     if (!publicKey || !signTransaction || !nft) {
@@ -139,40 +138,37 @@ const SellNft = ({ nft, marketplace, refetch }: SellNftProps) => {
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    let signed: Transaction;
+    let signed: Transaction | undefined = undefined;
 
     try {
       signed = await signTransaction(txt);
-    } catch(e: any) {
+    } catch (e: any) {
       toast.error(e.message);
-
       return;
     }
 
-    let signature: string;
+    let signature: string | undefined = undefined;
 
     try {
       toast('Sending the transaction to Solana.');
-      
+
       signature = await connection.sendRawTransaction(signed.serialize());
 
-      await connection.confirmTransaction(signature, 'confirmed');
+      await connection.confirmTransaction(signature, 'finalized');
 
       await refetch();
 
-      toast('The transaction was confirmed.');
-    } catch {
-      toast.error(
-        <>The transaction failed. <a target="_blank" rel="noreferrer" href={`https://explorer.solana.com/tx/${signature}`}>View on explore</a>.</>
-      )
+      toast.success('The transaction was confirmed.');
+    } catch(e: any) {
+      toast.error(e.message);
     } finally {
-      return router.push(`/nfts/${nft.address}`);
+      navigate(`/nfts/${nft.address}`);
     }
   }
 
   return (
     <form
-      className='text-left grow'
+      className='text-left grow mt-6'
       onSubmit={handleSubmit(sellNftTransaction)}
     >
       <h3 className='mb-6 text-xl font-bold md:text-2xl'>Sell this Nft</h3>

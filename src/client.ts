@@ -1,8 +1,11 @@
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 import { offsetLimitPagination } from "@apollo/client/utilities";
+import { construct } from 'ramda';
+import BN from 'bn.js';
 
 import { viewerVar } from './cache';
 
+const asBN = (value: string) => new BN(value);
 
 const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT;
 
@@ -33,6 +36,9 @@ const client = new ApolloClient({
                   }
                 }
             },
+            StoreCreator: {
+                keyFields: ['creatorAddress', 'storeConfigAddress']
+            },
             Marketplace: {
                 keyFields: ['ownerAddress'],
             },
@@ -52,10 +58,20 @@ const client = new ApolloClient({
                 keyFields: ['address']
             },
             ListingReceipt: {
-                keyFields: ['address']
+                keyFields: ['address'],
+                fields: {
+                    price: {
+                        read: asBN,
+                    },
+                },
             },
             BidReceipt: {
-                keyFields: ['address']
+                keyFields: ['address'],
+                fields: {
+                    price: {
+                        read: asBN,
+                    },
+                },
             },
             NftAttribute: {
                 keyFields: ['traitType', 'value']
