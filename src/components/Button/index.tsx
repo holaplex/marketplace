@@ -21,6 +21,7 @@ interface ButtonProps {
   type?: ButtonType;
   disabled?: boolean;
   loading?: boolean;
+  icon?: React.ReactElement;
   className?: string;
   onClick?: () => any;
 }
@@ -33,6 +34,7 @@ const isSmall = equals(ButtonSize.Small);
 
 const Button = ({
   children,
+  icon,
   size = ButtonSize.Large,
   htmlType = 'button',
   disabled = false,
@@ -46,13 +48,13 @@ const Button = ({
     <button
       className={cx(
         className,
-        'flex items-center text-center justify-center relative duration-150 rounded-full focus:shadow-outline hover:scale-[1.02] transition-transform grow',
+        'flex items-center text-center justify-center duration-150 rounded-full focus:shadow-outline hover:scale-[1.02] transition-transform grow',
         {
           'w-full': block,
           'text-black bg-white': isPrimary(type),
           'text-white bg-gray-900': isSecondary(type),
           'text-gray-300 bg-gray-700': isTertiary(type),
-          'text-sm p-2': isSmall(size),
+          'text-sm py-2 px-4': isSmall(size),
           'p-4': isLarge(size),
         }
       )}
@@ -74,6 +76,7 @@ const Button = ({
             wrapperClass="inline aspect-square mr-1"
           />
         )}
+        {icon && icon}
         {children}
     </button>
   );

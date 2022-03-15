@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
   async rewrites() {
-    console.log('register rewrites')
     return [
       {
         source: '/nfts/:address/listings/new',
