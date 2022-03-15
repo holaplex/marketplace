@@ -15,7 +15,10 @@ import client from '../../client'
 import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter, MarketplaceCreator } from './../../types.d';
 import { List } from '../../components/List'
 import { NftCard } from '../../components/NftCard'
+import Button, { ButtonSize } from '../../components/Button';
 import cx from 'classnames';
+import { useSidebar } from '../../hooks/sidebar';
+import { Filter } from 'react-feather';
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
@@ -47,6 +50,21 @@ const GET_NFTS = gql`
         address
         auctionHouse
         price
+      }
+    }
+  }
+`;
+
+const GET_SIDEBAR = gql`
+  query GetCollectionSidebar($creator: String!) {
+    creator(address: $creator) {
+      address
+      attributeGroups {
+        name
+        variants {
+          name
+          count
+        }
       }
     }
   }
@@ -91,21 +109,15 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
         }
         creator(address: $creator) {
           address
-          attributeGroups {
-            name
-            variants {
-              name
-              count
-            }
-          }
         }
       }
     `,
     variables: {
       subdomain: (subdomain || SUBDOMAIN),
       creator: query.creator,
-    },
-  })
+    }
+    ,
+  });
 
   if (
     or(
@@ -131,6 +143,10 @@ interface GetCreatorPage {
   creator: Creator | null;
 }
 
+interface GetCollectionSidebarData {
+  creator: Creator;
+}
+
 interface CreatorPageProps extends AppProps {
   marketplace: Marketplace
   creator: Creator
@@ -145,7 +161,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const { publicKey, connected } = useWallet();
   const [hasMore, setHasMore] = useState(true);
   const router = useRouter();
-  const { data, loading, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
+  const { data, loading: loadingNfts, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
     variables: {
       creators: [router.query.creator],
       offset: 0,
@@ -153,9 +169,19 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     },
   });
 
-  const { control, watch } = useForm<NftFilterForm>({
-    defaultValues: { preset: PresetNftFilter.All }
+  const { data: sidebar, loading: loadingSidebar, } = useQuery<GetCollectionSidebarData>(GET_SIDEBAR, {
+    variables: {
+      creator: router.query.creator,
+    }
   });
+
+  const { sidebarOpen, toggleSidebar } = useSidebar();
+
+  const { control, watch } = useForm<NftFilterForm>({
+    defaultValues: { preset: PresetNftFilter.All },
+  });
+
+  const loading = loadingNfts || loadingSidebar;
 
   useEffect(() => {
     const subscription = watch(({ attributes, preset }) => {
@@ -183,15 +209,17 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
         owners,
         listed,
         offset: 0,
-      }).then(({ data: { nfts } }) => {
-        pipe(pipe(length, equals(variables?.limit)), setHasMore)(nfts);
-      });
+      })
+        .then(({ data: { nfts } }) => {
+          pipe(pipe(length, equals(variables?.limit)), setHasMore)(nfts);
+        });
     })
     return () => subscription.unsubscribe()
   }, [watch, publicKey, marketplace, refetch, variables?.limit, router.query.creator, creator]);
 
+
   return (
-    <div className='flex flex-col items-center text-white bg-gray-900'>
+    <div className={cx('flex flex-col items-center text-white bg-gray-900', { 'overflow-hidden': sidebarOpen })}>
       <Head>
         <title>
           {truncateAddress(router.query?.creator as string)} NFT Collection | {marketplace.name}
@@ -215,80 +243,31 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
           <p className='mt-4 max-w-prose'>{marketplace.description}</p>
         </div>
         <div className='flex'>
-          <div className='flex-row flex-none hidden w-80 mr-10 space-y-2 sm:block'>
-            <form
-              onSubmit={e => {
-                e.preventDefault()
-              }}
-              className='sticky top-0 max-h-screen py-4 overflow-auto'
-            >
-              <ul className='flex flex-col flex-grow mb-6'>
-                <li>
-                  <Controller
-                    control={control}
-                    name="preset"
-                    render={({ field: { value, onChange } }) => (
-                      <label
-                        htmlFor="preset-all"
-                        className={
-                          cx(
-                            "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
-                            { "bg-gray-800": equals(PresetNftFilter.All, value) }
-                          )
-                        }
-                      >
-                        <input
-                          onChange={onChange}
-                          className="hidden"
-                          type="radio"
-                          name="preset"
-                          value={PresetNftFilter.All}
-                          id="preset-all"
-                        />
-                        All
-                      </label>
-                    )}
-                  />
-                </li>
-                <li>
-                  <Controller
-                    control={control}
-                    name="preset"
-                    render={({ field: { value, onChange } }) => (
-                      <label
-                        htmlFor="preset-listed"
-                        className={
-                          cx(
-                            "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
-                            { "bg-gray-800": equals(PresetNftFilter.Listed, value) }
-                          )
-                        }
-                      >
-                        <input
-                          onChange={onChange}
-                          className="hidden"
-                          type="radio"
-                          name="preset"
-                          value={PresetNftFilter.Listed}
-                          id="preset-listed"
-                        />
-                        Listed for sale
-                      </label>
-                    )}
-                  />
-                </li>
-                {connected && (
+          <div className='relative'>
+            <div className={cx(
+              'fixed top-0 right-0 bottom-0 left-0 z-10 bg-gray-900 flex-row flex-none space-y-2 sm:sticky sm:block sm:w-80 sm:mr-10  overflow-auto h-screen',
+              {
+                'hidden': not(sidebarOpen),
+              }
+            )}>
+              <form
+                onSubmit={e => {
+                  e.preventDefault()
+                }}
+                className='px-4 sm:px-0 py-4'
+              >
+                <ul className='flex flex-col flex-grow mb-6'>
                   <li>
                     <Controller
                       control={control}
                       name="preset"
                       render={({ field: { value, onChange } }) => (
-                        <label
-                          htmlFor="preset-owned"
+                         <label
+                          htmlFor="preset-all"
                           className={
                             cx(
                               "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
-                              { "bg-gray-800": equals(PresetNftFilter.Owned, value) }
+                              { "bg-gray-800": equals(PresetNftFilter.All, value) }
                             )
                           }
                         >
@@ -297,66 +276,143 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                             className="hidden"
                             type="radio"
                             name="preset"
-                            value={PresetNftFilter.Owned}
-                            id="preset-owned"
+                            value={PresetNftFilter.All}
+                            id="preset-all"
                           />
-                          Owned by me
+                          All
                         </label>
                       )}
                     />
                   </li>
-                )}
-              </ul>
-              <div className="flex flex-row justify-between align-top w-full mb-2">
-                <label className="label">Creators</label>
-                {pipe(length, gt(1))(marketplace.creators) && (
-                  <Link to="/">
-                    Show All
-                  </Link>
-                )}
-              </div>
-              <ul className="flex flex-col flex-grow mb-6">
-                <li className='flex justify-between w-full px-4 py-2 mb-1 rounded-md bg-gray-800 hover:bg-gray-800'>
-                  <h4>{truncateAddress(marketplace.ownerAddress)}</h4>
-                </li>
-              </ul>
-              <div className='flex flex-col flex-grow gap-4'>
-                {creator.attributeGroups.map(
-                  ({ name: group, variants }, index) => (
-                    <div className='flex flex-col flex-grow gap-2' key={group}>
-                      <label className='label'>
-                        {group}
-                      </label>
+                  <li>
+                    <Controller
+                      control={control}
+                      name="preset"
+                      render={({ field: { value, onChange } }) => (
+                        <label
+                          htmlFor="preset-listed"
+                          className={
+                            cx(
+                              "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
+                              { "bg-gray-800": equals(PresetNftFilter.Listed, value) }
+                            )
+                          }
+                        >
+                          <input
+                            onChange={onChange}
+                            className="hidden"
+                            type="radio"
+                            name="preset"
+                            value={PresetNftFilter.Listed}
+                            id="preset-listed"
+                          />
+                          Listed for sale
+                        </label>
+                      )}
+                    />
+                  </li>
+                  {connected && (
+                    <li>
                       <Controller
                         control={control}
-                        name={`attributes.${index}`}
-                        defaultValue={{ traitType: group, values: [] }}
-                        render={({ field: { onChange, value } }) => {
-                          return (
-                            <Select
-                              value={value.values}
-                              isMulti
-                              className='select-base-theme'
-                              classNamePrefix='base'
-                              onChange={(next: ValueType<OptionType>) => {
-                                onChange({ traitType: group, values: next })
-                              }}
-
-                              options={
-                                variants.map(({ name, count }) => ({
-                                  value: name,
-                                  label: `${name} (${count})`,
-                                })) as OptionsType<OptionType>
-                              }
+                        name="preset"
+                        render={({ field: { value, onChange } }) => (
+                          <label
+                            htmlFor="preset-owned"
+                            className={
+                              cx(
+                                "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
+                                { "bg-gray-800": equals(PresetNftFilter.Owned, value) }
+                              )
+                            }
+                          >
+                            <input
+                              onChange={onChange}
+                              className="hidden"
+                              type="radio"
+                              name="preset"
+                              value={PresetNftFilter.Owned}
+                              id="preset-owned"
                             />
-                          )
-                        }}
+                            Owned by me
+                          </label>
+                        )}
                       />
-                    </div>
-                  )
-                )}
-              </div>
-            </form>
+                    </li>
+                  )}
+                </ul>
+                <div className="flex flex-row justify-between align-top w-full mb-2">
+                  <label className="label">Creators</label>
+                  {pipe(length, gt(1))(marketplace.creators) && (
+                    <Link to="/">
+                      Show All
+                    </Link>
+                  )}
+                </div>
+                <ul className="flex flex-col flex-grow mb-6">
+                  <li className='flex justify-between w-full px-4 py-2 mb-1 rounded-md bg-gray-800 hover:bg-gray-800'>
+                    <h4>{truncateAddress(router.query.creator as string)}</h4>
+                  </li>
+                </ul>
+                <div className='flex flex-col flex-grow gap-4'>
+                  {loading ? (
+                    <>
+                      <div className='flex flex-col flex-grow gap-2'>
+                        <label className='block h-4 w-14 bg-gray-800 rounded' />
+                        <div className="block h-10 w-full bg-gray-800 rounded" />
+                      </div>
+                      <div className='flex flex-col flex-grow gap-2'>
+                        <label className='block h-4 w-14 bg-gray-800 rounded' />
+                        <div className="block h-10 w-full bg-gray-800 rounded" />
+                      </div>
+                      <div className='flex flex-col flex-grow gap-2'>
+                        <label className='block h-4 w-14 bg-gray-800 rounded' />
+                        <div className="block h-10 w-full bg-gray-800 rounded" />
+                      </div>
+                      <div className='flex flex-col flex-grow gap-2'>
+                        <label className='block h-4 w-14 bg-gray-800 rounded' />
+                        <div className="block h-10 w-full bg-gray-800 rounded" />
+                      </div>
+                    </>
+                  ) : (
+                    sidebar?.creator.attributeGroups.map(
+                      ({ name: group, variants }, index) => (
+                        <div className='flex flex-col flex-grow gap-2' key={group}>
+                          <label className='label'>
+                            {group}
+                          </label>
+                          <Controller
+                            control={control}
+                            name={`attributes.${index}`}
+                            defaultValue={{ traitType: group, values: [] }}
+                            render={({ field: { onChange, value } }) => {
+                              return (
+                                <Select
+                                  value={value.values}
+                                  isMulti
+                                  className='select-base-theme'
+                                  classNamePrefix='base'
+                                  onChange={(next: ValueType<OptionType>) => {
+                                    onChange({ traitType: group, values: next })
+                                  }}
+
+                                  options={
+                                    variants.map(({ name, count }) => ({
+                                      value: name,
+                                      label: `${name} (${count})`,
+                                    })) as OptionsType<OptionType>
+                                  }
+                                />
+                              )
+                            }}
+                          />
+                        </div>
+                      )
+                    )
+                  )}
+                </div>
+              </form>
+            </div>
           </div>
           <div className='grow'>
             <List
@@ -398,6 +454,14 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
           </div>
         </div>
       </div>
+      <Button
+        size={ButtonSize.Small}
+        icon={<Filter size={16} className="mr-2" />}
+        className="fixed bottom-4 z-10 sm:hidden"
+        onClick={toggleSidebar}
+      >
+        Filter
+      </Button>
     </div>
   )
 }

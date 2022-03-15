@@ -1,8 +1,6 @@
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 import { offsetLimitPagination } from "@apollo/client/utilities";
-import { construct } from 'ramda';
 import BN from 'bn.js';
-
 import { viewerVar } from './cache';
 
 const asBN = (value: string) => new BN(value);
@@ -10,6 +8,7 @@ const asBN = (value: string) => new BN(value);
 const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT;
 
 const typeDefs = gql`
+
   type Viewer {
     id: ID
     balance: Number
