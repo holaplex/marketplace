@@ -63,7 +63,12 @@ const EditMarketplace = ({
         <label className="text-lg mt-9">Domain</label>
         <span className="mb-2 text-sm text-gray-300">
           Your domain is managed by Holaplex. If you need to change it, please{' '}
-          <a className="underline">contact us.</a>
+          <a
+            href="mailto:hola@holaplex.com?subject=Change Subdomain"
+            className="underline"
+          >
+            contact us.
+          </a>
         </span>
         <input
           className="w-full px-3 py-2 text-gray-100 text-right text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm"
