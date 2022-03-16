@@ -7,11 +7,8 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AppProps } from 'next/app'
 import { useForm, Controller } from 'react-hook-form'
 import client from '../../client'
-import { Marketplace, PresetEditFilter, AttributeFilter } from '../../types.d'
-import EditMarketplace, {
-  EditMarketplaceForm,
-} from '../../components/Edit/Marketplace'
-import EditCreators, { AddCreatorForm } from '../../components/Edit/Creators'
+
+import EditCreators, { AddCreatorForm } from '../../components/Admin/Creators'
 import ipfsSDK from '../../modules/ipfs/client'
 import { Transaction } from '@solana/web3.js'
 import { toast } from 'react-toastify'
@@ -21,6 +18,12 @@ import { useRouter } from 'next/router'
 import { updateAuctionHouse } from '@/modules/auction-house'
 import { getInputData } from '@/modules/edit'
 import UploadFile from 'src/components/UploadFile'
+import WalletPortal from 'src/components/WalletPortal'
+import { Link } from 'react-router-dom'
+import { EditMarketplaceForm } from 'src/components/Admin/Marketplace'
+import EditMarketplace from 'src/components/Admin/Marketplace/EditMarketplace'
+import Activities from 'src/components/Admin/Marketplace/Activities'
+import { AttributeFilter, Marketplace, PresetEditFilter } from '../../types.d'
 
 const {
   metaplex: { Store, SetStoreV2, StoreConfig },
@@ -97,11 +100,12 @@ interface NftFilterForm {
   preset: PresetEditFilter
 }
 
-const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
+const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
   const { connection } = useConnection()
   const solana = useWallet()
   const { publicKey } = solana
   const router = useRouter()
+  const [showEditMarketplace, setShowEditMarketplace] = useState(false)
   const [logo, setLogo] = useState<string>(marketplace.logoUrl)
   const [banner, setBanner] = useState<string>(marketplace.bannerUrl)
 
@@ -270,10 +274,15 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
   return (
     <div className="flex flex-col items-center text-white bg-gray-900">
       <div className="relative w-full">
-        <div className="absolute right-8 top-8">
-          <div className="flex gap-2">
-            <div className="text-sm">Marketplace</div>
+        <div className="absolute right-6 top-[25px]">
+          <div className="flex items-center gap-6">
+            <Link to={'/'}>
+              <div className="text-sm">Marketplace</div>
+            </Link>
             <div className="underline text-sm">Admin Dashboard</div>
+            <div>
+              <WalletPortal />
+            </div>
           </div>
         </div>
         <img
@@ -290,13 +299,16 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
             className="absolute border-4 border-gray-900 rounded-full w-28 h-28 -top-32"
           />
 
-          <div className="absolute -top-12 left-4">
-            <UploadFile setNewFileUrl={setLogo} type="logo" />
-          </div>
-
-          <div className="absolute -top-24 left-1/2 transform -translate-x-1/2">
-            <UploadFile setNewFileUrl={setBanner} type="banner" />
-          </div>
+          {showEditMarketplace && (
+            <div className="absolute -top-12 left-4">
+              <UploadFile setNewFileUrl={setLogo} type="logo" />
+            </div>
+          )}
+          {showEditMarketplace && (
+            <div className="absolute -top-24 left-1/2 transform -translate-x-1/2">
+              <UploadFile setNewFileUrl={setBanner} type="banner" />
+            </div>
+          )}
         </div>
         <div className="flex">
           <div className="flex-row flex-none hidden mr-10 space-y-2 w-80 sm:block">
@@ -370,10 +382,17 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
               </ul>
             </form>
           </div>
-          {preset === PresetEditFilter.Marketplace && (
+          {preset === PresetEditFilter.Marketplace && !showEditMarketplace && (
+            <Activities
+              marketplace={marketplace}
+              setShowEditMarketplace={setShowEditMarketplace}
+            />
+          )}
+          {preset === PresetEditFilter.Marketplace && showEditMarketplace && (
             <EditMarketplace
               marketplace={marketplace}
               onUpdateClicked={onUpdateClicked}
+              setShowEditMarketplace={setShowEditMarketplace}
             />
           )}
           {preset === PresetEditFilter.Creators && (
@@ -389,4 +408,4 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
   )
 }
 
-export default EditPage
+export default AdminPage

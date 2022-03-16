@@ -34,7 +34,7 @@ const EditCreators = ({
   }
 
   return (
-    <div className="grow flex flex-col pb-16 max-w-xl">
+    <div className="grow flex flex-col pb-16 max-w-2xl">
       <div className="flex items-start justify-between">
         <div className="flex flex-col">
           <h2>Creators</h2>

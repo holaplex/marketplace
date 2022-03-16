@@ -33,9 +33,9 @@ import { ViewerProvider } from './../providers/Viewer'
 import 'react-toastify/dist/ReactToastify.css'
 import { equals } from 'ramda'
 
-const network = WalletAdapterNetwork.Mainnet
+const network = WalletAdapterNetwork.Devnet
 
-const CLUSTER_API_URL = 'https://holaplex.rpcpool.com' // 'http://api.devnet.solana.com'
+const CLUSTER_API_URL = 'http://api.devnet.solana.com' //'https://holaplex.rpcpool.com'
 
 const clusterApiUrl = (cluster: Cluster): string => CLUSTER_API_URL
 

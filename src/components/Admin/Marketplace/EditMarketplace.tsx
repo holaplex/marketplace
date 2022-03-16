@@ -1,10 +1,10 @@
 import { useForm } from 'react-hook-form'
 import { Marketplace } from '../../../types'
-import { useWallet } from '@solana/wallet-adapter-react'
 
 interface EditMarketplaceProps {
   marketplace: Marketplace
   onUpdateClicked: (form: EditMarketplaceForm) => void
+  setShowEditMarketplace: (show: boolean) => void
 }
 
 export interface EditMarketplaceForm {
@@ -16,6 +16,7 @@ export interface EditMarketplaceForm {
 const EditMarketplace = ({
   marketplace,
   onUpdateClicked,
+  setShowEditMarketplace,
 }: EditMarketplaceProps) => {
   const {
     register,
@@ -24,7 +25,7 @@ const EditMarketplace = ({
     formState: { errors },
   } = useForm()
 
-  const onCancel = () => console.log('cancel')
+  const onCancel = () => setShowEditMarketplace(false)
   const onSubmit = async (data: any) => {
     // console.log(data)
     const form = {
@@ -40,7 +41,7 @@ const EditMarketplace = ({
   }
 
   return (
-    <div className="grow flex flex-col pb-16 max-w-xl">
+    <div className="grow flex flex-col pb-16 max-w-2xl">
       <div className="flex items-start justify-between">
         <h2>Edit marketplace</h2>
         <div className="flex">
