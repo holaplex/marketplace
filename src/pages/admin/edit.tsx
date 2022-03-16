@@ -20,6 +20,7 @@ import { RemoveCreatorForm } from 'src/components/Creator'
 import { useRouter } from 'next/router'
 import { updateAuctionHouse } from '@/modules/auction-house'
 import { getInputData } from '@/modules/edit'
+import UploadFile from 'src/components/UploadFile'
 
 const {
   metaplex: { Store, SetStoreV2, StoreConfig },
@@ -101,6 +102,8 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
   const solana = useWallet()
   const { publicKey } = solana
   const router = useRouter()
+  const [logo, setLogo] = useState<string>(marketplace.logoUrl)
+  const [banner, setBanner] = useState<string>(marketplace.bannerUrl)
 
   // console.log('Marketplace data', marketplace)
 
@@ -115,9 +118,6 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
   const [preset, setPreset] = useState<PresetEditFilter | undefined>(
     PresetEditFilter.Marketplace
   )
-
-  const onBannerUpdateClick = () => {}
-  const onLogoUpdateClick = () => {}
 
   const onAddCreatorClicked = async (form: AddCreatorForm) => {
     toast('Saving changes...')
@@ -183,8 +183,8 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
       {
         name: marketName,
         description: description,
-        logo: { url: marketplace.logoUrl },
-        banner: { url: marketplace.bannerUrl },
+        logo: { url: logo },
+        banner: { url: banner },
         creators,
       },
       marketplace,
@@ -277,7 +277,7 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
           </div>
         </div>
         <img
-          src={marketplace.bannerUrl}
+          src={banner}
           alt={marketplace.name}
           className="object-cover w-full h-80"
         />
@@ -285,34 +285,18 @@ const EditPage: NextPage<EditPageProps> = ({ marketplace }) => {
       <div className="w-full max-w-[1800px] px-8">
         <div className="relative w-full mt-20 mb-1">
           <img
-            src={marketplace.logoUrl}
+            src={logo}
             alt={marketplace.name}
             className="absolute border-4 border-gray-900 rounded-full w-28 h-28 -top-32"
           />
-          <button
-            className="absolute -top-12 left-4 button small grow-0"
-            onClick={onLogoUpdateClick}
-          >
-            Update
-          </button>
-          {/* <div className="absolute -top-12 left-4">
-            <FileUpload dragger>
-              <div className="button small grow-0 w-fit">Update</div>
-            </FileUpload>
-          </div> */}
 
-          <button
-            className="absolute -top-24 left-1/2 transform -translate-x-1/2 button small grow-0"
-            onClick={onBannerUpdateClick}
-          >
-            Update
-          </button>
+          <div className="absolute -top-12 left-4">
+            <UploadFile setNewFileUrl={setLogo} type="logo" />
+          </div>
 
-          {/* <div className="absolute -top-24 left-1/2 transform -translate-x-1/2">
-            <FileUpload dragger>
-              <div className="button small grow-0 w-fit">Update</div>
-            </FileUpload>
-          </div> */}
+          <div className="absolute -top-24 left-1/2 transform -translate-x-1/2">
+            <UploadFile setNewFileUrl={setBanner} type="banner" />
+          </div>
         </div>
         <div className="flex">
           <div className="flex-row flex-none hidden mr-10 space-y-2 w-80 sm:block">

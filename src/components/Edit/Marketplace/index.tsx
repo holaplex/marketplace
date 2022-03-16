@@ -18,10 +18,10 @@ const EditMarketplace = ({
   onUpdateClicked,
 }: EditMarketplaceProps) => {
   const {
-    register: register,
-    handleSubmit: handleSubmit,
-    watch: watch,
-    formState: { errors: errors },
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
   } = useForm()
 
   const onCancel = () => console.log('cancel')
