@@ -10,7 +10,6 @@ module.exports = {
     return config
   },
   async rewrites() {
-    console.log('register rewrites')
     return [
       {
         source: '/nfts/:address/listings/new',

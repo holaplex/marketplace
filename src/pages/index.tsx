@@ -10,10 +10,13 @@ import { truncateAddress } from '../modules/address';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AppProps } from 'next/app'
 import { useForm, Controller } from 'react-hook-form'
-import client from '../client'
+import client from '../client';
 import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter } from '../types.d';
 import { List } from './../components/List';
 import { NftCard } from './../components/NftCard';
+import Button, { ButtonSize } from '../components/Button';
+import { Filter } from 'react-feather';
+import { useSidebar } from '../hooks/sidebar';
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
@@ -132,6 +135,8 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     },
   });
 
+  const { sidebarOpen, toggleSidebar } = useSidebar();
+
   const [hasMore, setHasMore] = useState(true);
 
   const { watch, control } = useForm<NftFilterForm>({
@@ -191,80 +196,31 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           <p className='mt-4 max-w-prose'>{marketplace.description}</p>
         </div>
         <div className='flex'>
-          <div className='flex-row flex-none hidden mr-10 space-y-2 w-80 sm:block'>
-            <form
-              onSubmit={e => {
-                e.preventDefault()
-              }}
-              className='sticky top-0 max-h-screen py-4 overflow-auto'
-            >
-              <ul className='flex flex-col flex-grow mb-6'>
-                <li>
-                  <Controller
-                    control={control}
-                    name="preset"
-                    render={({ field: { value, onChange } }) => (
-                      <label
-                        htmlFor="preset-all"
-                        className={
-                          cx(
-                            "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
-                            { "bg-gray-800": equals(PresetNftFilter.All, value) }
-                          )
-                        }
-                      >
-                        <input
-                          onChange={onChange}
-                          className="hidden"
-                          type="radio"
-                          name="preset"
-                          value={PresetNftFilter.All}
-                          id="preset-all"
-                        />
-                        All
-                      </label>
-                    )}
-                  />
-                </li>
-                <li>
-                  <Controller
-                    control={control}
-                    name="preset"
-                    render={({ field: { value, onChange } }) => (
-                      <label
-                        htmlFor="preset-listed"
-                        className={
-                          cx(
-                            "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
-                            { "bg-gray-800": equals(PresetNftFilter.Listed, value) }
-                          )
-                        }
-                      >
-                        <input
-                          onChange={onChange}
-                          className="hidden"
-                          type="radio"
-                          name="preset"
-                          value={PresetNftFilter.Listed}
-                          id="preset-listed"
-                        />
-                        Listed for sale
-                      </label>
-                    )}
-                  />
-                </li>
-                {connected && (
+          <div className="relative">
+            <div className={cx(
+              'fixed top-0 right-0 bottom-0 left-0 z-10 bg-gray-900 flex-row flex-none space-y-2 sm:sticky sm:block sm:w-80 sm:mr-10  overflow-auto h-screen',
+              {
+                'hidden': not(sidebarOpen),
+              }
+            )}>
+              <form
+                onSubmit={e => {
+                  e.preventDefault()
+                }}
+                className='py-4 px-4 sm:px-0'
+              >
+                <ul className='flex flex-col flex-grow mb-6'>
                   <li>
                     <Controller
                       control={control}
                       name="preset"
                       render={({ field: { value, onChange } }) => (
                         <label
-                          htmlFor="preset-owned"
+                          htmlFor="preset-all"
                           className={
                             cx(
                               "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
-                              { "bg-gray-800": equals(PresetNftFilter.Owned, value) }
+                              { "bg-gray-800": equals(PresetNftFilter.All, value) }
                             )
                           }
                         >
@@ -273,28 +229,84 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                             className="hidden"
                             type="radio"
                             name="preset"
-                            value={PresetNftFilter.Owned}
-                            id="preset-owned"
+                            value={PresetNftFilter.All}
+                            id="preset-all"
                           />
-                          Owned by me
+                          All
                         </label>
-
                       )}
                     />
                   </li>
-                )}
-              </ul>
-              <label className="mb-2 label">Creators</label>
-              <ul className="flex flex-col flex-grow mb-6">
-                {creators.map((creator) => (
-                  <li key={creator}>
-                    <Link to={`/creators/${creator}`} className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
-                      <h4>{truncateAddress(creator)}</h4>
-                    </Link>
+                  <li>
+                    <Controller
+                      control={control}
+                      name="preset"
+                      render={({ field: { value, onChange } }) => (
+                        <label
+                          htmlFor="preset-listed"
+                          className={
+                            cx(
+                              "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
+                              { "bg-gray-800": equals(PresetNftFilter.Listed, value) }
+                            )
+                          }
+                        >
+                          <input
+                            onChange={onChange}
+                            className="hidden"
+                            type="radio"
+                            name="preset"
+                            value={PresetNftFilter.Listed}
+                            id="preset-listed"
+                          />
+                          Listed for sale
+                        </label>
+                      )}
+                    />
                   </li>
-                ))}
-              </ul>
-            </form>
+                  {connected && (
+                    <li>
+                      <Controller
+                        control={control}
+                        name="preset"
+                        render={({ field: { value, onChange } }) => (
+                          <label
+                            htmlFor="preset-owned"
+                            className={
+                              cx(
+                                "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
+                                { "bg-gray-800": equals(PresetNftFilter.Owned, value) }
+                              )
+                            }
+                          >
+                            <input
+                              onChange={onChange}
+                              className="hidden"
+                              type="radio"
+                              name="preset"
+                              value={PresetNftFilter.Owned}
+                              id="preset-owned"
+                            />
+                            Owned by me
+                          </label>
+
+                        )}
+                      />
+                    </li>
+                  )}
+                </ul>
+                <label className="mb-2 label">Creators</label>
+                <ul className="flex flex-col flex-grow mb-6">
+                  {creators.map((creator) => (
+                    <li key={creator}>
+                      <Link to={`/creators/${creator}`} className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
+                        <h4>{truncateAddress(creator)}</h4>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </form>
+            </div>
           </div>
           <div className='grow'>
             <List
@@ -338,6 +350,14 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           </div>
         </div>
       </div>
+      <Button
+        size={ButtonSize.Small}
+        icon={<Filter size={16} className="mr-2" />}
+        className="fixed bottom-4 z-10 sm:hidden"
+        onClick={toggleSidebar}
+      >
+        Filter
+      </Button>
     </div>
   )
 }

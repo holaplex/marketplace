@@ -48,7 +48,7 @@ export interface AttributeGroup {
 }
 
 export interface Creator {
-  addresss: string
+  address: string
   attributeGroups: AttributeGroup[]
 }
 
