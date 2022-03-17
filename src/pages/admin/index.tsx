@@ -213,12 +213,12 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
     const storePubkey = await Store.getPDA(publicKey)
     const storeConfigPubkey = await StoreConfig.getPDA(storePubkey)
 
-    let auctionHouseCreateInstruction
+    let auctionHouseUpdateInstruction
     if (
       transactionFee &&
       transactionFee != marketplace.auctionHouse.sellerFeeBasisPoints
     ) {
-      auctionHouseCreateInstruction = await updateAuctionHouse({
+      auctionHouseUpdateInstruction = await updateAuctionHouse({
         wallet: solana as Wallet,
         sellerFeeBasisPoints: transactionFee,
       })
@@ -237,11 +237,11 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
       }
     )
     const transaction = new Transaction()
-    if (auctionHouseCreateInstruction) {
-      transaction.add(auctionHouseCreateInstruction)
+    if (auctionHouseUpdateInstruction) {
+      transaction.add(auctionHouseUpdateInstruction)
       console.log(
         'auctionHouseCreateInstruction',
-        auctionHouseCreateInstruction
+        auctionHouseUpdateInstruction
       )
     }
     transaction.add(setStorefrontV2Instructions)
