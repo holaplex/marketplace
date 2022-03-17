@@ -279,7 +279,9 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
             <Link to={'/'}>
               <div className="text-sm">Marketplace</div>
             </Link>
-            <div className="underline text-sm">Admin Dashboard</div>
+            <div className="underline text-sm cursor-pointer">
+              Admin Dashboard
+            </div>
             <div>
               <WalletPortal />
             </div>
@@ -299,12 +301,12 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
             className="absolute border-4 border-gray-900 rounded-full w-28 h-28 -top-32"
           />
 
-          {showEditMarketplace && (
-            <div className="absolute -top-12 left-4">
+          {preset === PresetEditFilter.Marketplace && showEditMarketplace && (
+            <div className="absolute -top-12 left-14 transform -translate-x-1/2">
               <UploadFile setNewFileUrl={setLogo} type="logo" />
             </div>
           )}
-          {showEditMarketplace && (
+          {preset === PresetEditFilter.Marketplace && showEditMarketplace && (
             <div className="absolute -top-24 left-1/2 transform -translate-x-1/2">
               <UploadFile setNewFileUrl={setBanner} type="banner" />
             </div>
@@ -325,7 +327,7 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
                     name="preset"
                     render={({ field: { value, onChange } }) => (
                       <label
-                        htmlFor="preset-all"
+                        htmlFor="preset-marketplace"
                         className={cx(
                           'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
                           {
@@ -342,7 +344,7 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
                           type="radio"
                           name="preset"
                           value={PresetEditFilter.Marketplace}
-                          id="preset-all"
+                          id="preset-marketplace"
                         />
                         Marketplace
                       </label>
@@ -355,7 +357,7 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
                     name="preset"
                     render={({ field: { value, onChange } }) => (
                       <label
-                        htmlFor="preset-listed"
+                        htmlFor="preset-creators"
                         className={cx(
                           'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
                           {
@@ -372,7 +374,7 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
                           type="radio"
                           name="preset"
                           value={PresetEditFilter.Creators}
-                          id="preset-listed"
+                          id="preset-creators"
                         />
                         Creators
                       </label>
