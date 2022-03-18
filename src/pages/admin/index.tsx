@@ -239,10 +239,6 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
     const transaction = new Transaction()
     if (auctionHouseUpdateInstruction) {
       transaction.add(auctionHouseUpdateInstruction)
-      console.log(
-        'auctionHouseCreateInstruction',
-        auctionHouseUpdateInstruction
-      )
     }
     transaction.add(setStorefrontV2Instructions)
     transaction.feePayer = publicKey

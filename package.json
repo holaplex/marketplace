@@ -23,8 +23,6 @@
     "@solana/wallet-adapter-react-ui": "^0.9.4",
     "@solana/wallet-adapter-wallets": "^0.14.2",
     "@solana/web3.js": "^1.31.0",
-    "antd": "^4.19.1",
-    "antd-mobile": "^5.5.0",
     "classnames": "^2.3.1",
     "formidable": "^2.0.1",
     "fs-extra": "^10.0.1",
