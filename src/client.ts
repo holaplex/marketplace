@@ -23,7 +23,6 @@ const client = new ApolloClient({
     uri: GRAPHQL_ENDPOINT,
     typeDefs,
     cache: new InMemoryCache({
-
         typePolicies: {
             Query: {
                 fields: {
@@ -31,9 +30,9 @@ const client = new ApolloClient({
                   viewer: {
                     read() {
                       return viewerVar();
-                    }
-                  }
-                }
+                    },
+                  },
+                },
             },
             StoreCreator: {
                 keyFields: ['creatorAddress', 'storeConfigAddress']

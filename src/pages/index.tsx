@@ -5,7 +5,7 @@ import Head from 'next/head';
 import { Link } from 'react-router-dom'
 import WalletPortal from '../components/WalletPortal';
 import cx from 'classnames';
-import { isNil, map, prop, equals, partial, ifElse, always, length, not, when, isEmpty, apply, pipe } from 'ramda'
+import { isNil, map, prop, equals, partial, ifElse, always, length, not, when, isEmpty, apply, pipe, sum } from 'ramda'
 import { truncateAddress } from '../modules/address';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AppProps } from 'next/app'
@@ -17,6 +17,7 @@ import { NftCard } from './../components/NftCard';
 import Button, { ButtonSize } from '../components/Button';
 import { Filter } from 'react-feather';
 import { useSidebar } from '../hooks/sidebar';
+import { useRouter } from 'next/router';
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
 
@@ -35,6 +36,10 @@ const GET_NFTS = gql`
       owner {
         address
       }
+      offers {
+        address
+        price
+      }
       listings {
         address
         auctionHouse
@@ -43,6 +48,23 @@ const GET_NFTS = gql`
     }
   }
 `
+
+const GET_CREATORS_PREVIEW = gql`
+  query GetCretorsPreview($subdomain: String!) {
+    marketplace(subdomain: $subdomain) {
+      subdomain
+      ownerAddress
+      creators {
+        creatorAddress
+        storeConfigAddress
+        preview {
+          address
+          image
+        }
+      }
+    }
+  }
+`;
 
 export async function getServerSideProps({ req }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'];
@@ -98,7 +120,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
     return {
       redirect: {
         permanent: false,
-        destination: `/creators/${marketplace.creators[0].creatorAddress}`
+        destination: `/collections/${marketplace.creators[0].creatorAddress}`
       }
     }
   }
@@ -114,6 +136,10 @@ interface GetMarketplace {
   marketplace: Marketplace | null
 }
 
+interface GetCreatorPreviews {
+  marketplace: Marketplace;
+}
+
 interface HomePageProps extends AppProps {
   marketplace: Marketplace
 }
@@ -125,15 +151,23 @@ interface NftFilterForm {
 
 const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const { publicKey, connected } = useWallet();
+  const router = useRouter();
   const creators = map(prop('creatorAddress'))(marketplace.creators);
 
   const { data, loading, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
+    fetchPolicy: 'network-only',
     variables: {
       creators,
       offset: 0,
       limit: 24,
     },
   });
+
+  const creatorsQuery = useQuery<GetCreatorPreviews>(GET_CREATORS_PREVIEW, {
+    variables: {
+      subdomain: marketplace.subdomain,
+    }
+  })
 
   const { sidebarOpen, toggleSidebar } = useSidebar();
 
@@ -190,10 +224,58 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           <img
             src={marketplace.logoUrl}
             alt={marketplace.name}
-            className='absolute border-4 border-gray-900 rounded-full w-28 h-28 -top-32'
+            className='absolute border-4 border-gray-900 bg-gray-900 rounded-full w-28 h-28 -top-32'
           />
           <h1>{marketplace.name}</h1>
           <p className='mt-4 max-w-prose'>{marketplace.description}</p>
+        </div>
+        <h2 className="mb-2">Collections</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-20">
+          {creatorsQuery.loading ? (
+            <>
+              <div>
+                <div className="flex flex-grid mb-2">
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                </div>
+                <div className="bg-gray-800 h-6 w-24 block" />
+              </div>
+              <div>
+
+                <div className="flex flex-grid mb-2">
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                </div>
+                <div className="bg-gray-800 h-6 w-24 block" />
+              </div>
+            </>
+          ) : (
+            creatorsQuery.data?.marketplace.creators.map(creator => {
+              return (
+                <Link
+                  key={creator.storeConfigAddress}
+                  to={`/collections/${creator.creatorAddress}`}
+                >
+                  <div key={creator.creatorAddress}>
+                    <div className="flex flex-grid mb-2 rounded-lg overflow-hidden">
+                      {creator.preview.map((nft) => {
+                        return (
+                          <img
+                            className="aspect-square w-1/3"
+                            src={nft.image}
+                            key={nft.address}
+                          />
+                        )
+                      })}
+                    </div>
+                    {truncateAddress(creator.creatorAddress)}
+                  </div>
+                </Link>
+              )
+            })
+          )}
         </div>
         <div className='flex'>
           <div className="relative">
@@ -294,16 +376,6 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                       />
                     </li>
                   )}
-                </ul>
-                <label className="mb-2 label">Creators</label>
-                <ul className="flex flex-col flex-grow mb-6">
-                  {creators.map((creator) => (
-                    <li key={creator}>
-                      <Link to={`/creators/${creator}`} className='flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800'>
-                        <h4>{truncateAddress(creator)}</h4>
-                      </Link>
-                    </li>
-                  ))}
                 </ul>
               </form>
             </div>
