@@ -420,7 +420,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
 
       signature = await connection.sendRawTransaction(signed.serialize());
 
-      await connection.confirmTransaction(signature, 'finalized');
+      await connection.confirmTransaction(signature, 'confirmed');
 
       await refetch();
 
@@ -511,7 +511,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
 
       signature = await connection.sendRawTransaction(signed.serialize());
 
-      await connection.confirmTransaction(signature, 'finalized');
+      await connection.confirmTransaction(signature, 'confirmed');
 
       await refetch();
 

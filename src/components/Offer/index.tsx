@@ -139,7 +139,7 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
 
       signature = await connection.sendRawTransaction(signed.serialize());
 
-      await connection.confirmTransaction(signature, 'finalized');
+      await connection.confirmTransaction(signature, 'confirmed');
 
       await refetch();
 

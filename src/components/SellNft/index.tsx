@@ -154,7 +154,7 @@ const SellNft = ({ nft, marketplace, refetch }: SellNftProps) => {
 
       signature = await connection.sendRawTransaction(signed.serialize());
 
-      await connection.confirmTransaction(signature, 'finalized');
+      await connection.confirmTransaction(signature, 'confirmed');
 
       await refetch();
 
