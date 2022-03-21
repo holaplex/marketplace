@@ -27,10 +27,11 @@ The nginx conf relies on envstub provided by the official [nginx image](https://
 To start nginx using the required configuration, use the following command:
 ```bash
 $ docker run --network=host -v $(pwd)/templates:/etc/nginx/templates -p 8080:4000 \
--e HOSTNAME=holaplex.market.127.0.0.1.nip.io -e PORT=80 -e WEB_PORT=3000 -e PROXY_HOST=127.0.0.1.nip.io nginx:latest
+-e HOSTNAME=holaplex.market.127.0.0.1.nip.io -e PORT=80 -e WEB_PORT=3000 \
+-e PROXY_HOST=127.0.0.1.nip.io nginx:latest
 ```
-If you already have something running in port `80` already, feel free to change that to a different port.  Keep in mind that  you'll need to append `:<port>` on the url to access the NGINX server.
 
+If you already have something running in port `80` already, feel free to change that to a different port.  Keep in mind that  you'll need to append `:<port>` on the url to access the NGINX server.
 
 ## Test your setup!
 Open a test marketplace, like [espi's marketplace](http://espi.dev.holaplex.market.127.0.0.1.nip.io). Page should load without issues.
