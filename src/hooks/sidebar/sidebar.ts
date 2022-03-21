@@ -28,7 +28,7 @@ export const useSidebar = (): SidebarContext => {
     }
 
     const resize = () => {
-      if (window.innerHeight > 640) {
+      if (window.innerWidth > 640) {
         document?.querySelector("body")?.classList.remove('overflow-hidden');
         sidebarOpenVar(false);
       }
