@@ -18,6 +18,7 @@ interface GraphQLObject {
 export interface MarketplaceCreator {
   creatorAddress: string,
   storeConfigAddress: string;
+  preview: Nft[];
 }
 
 export interface AuctionHouse {

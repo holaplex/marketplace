@@ -70,7 +70,7 @@ const GET_NFT = gql`
     nft(address: $address) {
           name
           address
-          image
+          image(width: 1400)
           sellerFeeBasisPoints
           mintAddress
           description
@@ -164,8 +164,8 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
 
   const nftCreatorAddresses = map(prop('address'))(nft?.creators || []);
   const marketplaceCreatorAddresses = map(prop('creatorAddress'))(marketplace?.creators || []);
-  const notAllowed = pipe(intersection(marketplaceCreatorAddresses), isEmpty)( nftCreatorAddresses);
-  
+  const notAllowed = pipe(intersection(marketplaceCreatorAddresses), isEmpty)(nftCreatorAddresses);
+
   if (or(any(isNil)([marketplace, nft]), notAllowed)) {
     return {
       notFound: true,
@@ -425,7 +425,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       await refetch();
 
       toast.success('The transaction was confirmed.');
-    } catch(e: any) {
+    } catch (e: any) {
       toast.error(e.message);
     }
   }
@@ -516,7 +516,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       await refetch();
 
       toast.success('The transaction was confirmed.');
-    } catch(e: any) {
+    } catch (e: any) {
       toast.error(e.message);
     }
   }
@@ -531,15 +531,13 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       </Head>
       <div className='sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow'>
         <Link to='/'>
-          <a>
-            <button className='flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 rounded-full align h-14 hover:bg-gray-600'>
-              <img
-                className='w-8 h-8 rounded-full aspect-square'
-                src={marketplace.logoUrl}
-              />
-              {marketplace.name}
-            </button>
-          </a>
+          <button className='flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 rounded-full align h-14 hover:bg-gray-600'>
+            <img
+              className='w-8 h-8 rounded-full aspect-square'
+              src={marketplace.logoUrl}
+            />
+            {marketplace.name}
+          </button>
         </Link>
         <div className="block">
           <WalletPortal />
@@ -563,7 +561,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
             ) : (
               <img
                 src={data?.nft.image}
-                className='block h-auto max-w-full border-none rounded-lg shadow'
+                className='block h-auto w-full border-none rounded-lg shadow'
               />
             )}
           </div>
