@@ -27,7 +27,7 @@ The nginx conf relies on envstub provided by the official [nginx image](https://
 To start nginx using the required configuration, use the following command:
 ```bash
 $ docker run --network=host -v $(pwd)/templates:/etc/nginx/templates -p 8080:4000 \
--e HOSTNAME=holaplex.market.127.0.0.1.nip.io -e PORT=80 -e WEB_PORT=3000 \
+-e HOSTNAME=dev.holaplex.market.127.0.0.1.nip.io -e PORT=80 -e WEB_PORT=3000 \
 -e PROXY_HOST=127.0.0.1.nip.io nginx:latest
 ```
 
