@@ -36,6 +36,10 @@ const GET_NFTS = gql`
       owner {
         address
       }
+      offers {
+        address
+        price
+      }
       listings {
         address
         auctionHouse
