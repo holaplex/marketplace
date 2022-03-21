@@ -70,7 +70,7 @@ const GET_NFT = gql`
     nft(address: $address) {
           name
           address
-          image
+          image(width: 800)
           sellerFeeBasisPoints
           mintAddress
           description
