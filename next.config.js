@@ -19,6 +19,14 @@ module.exports = {
         source: '/nfts/:address/offers/new',
         destination: '/nfts/:address',
       },
+      {
+        source: '/admin/marketplace/edit',
+        destination: '/admin',
+      },
+      {
+        source: '/admin/creators/edit',
+        destination: '/admin',
+      },
     ]
   },
   reactStrictMode: false,

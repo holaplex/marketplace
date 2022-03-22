@@ -3,7 +3,11 @@ import { NextPage, NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import cx from 'classnames'
 import { isNil, equals } from 'ramda'
-import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import {
+  useConnection,
+  useWallet,
+  WalletContextState,
+} from '@solana/wallet-adapter-react'
 import { AppProps } from 'next/app'
 import { useForm, Controller } from 'react-hook-form'
 import client from '../../client'
@@ -16,13 +20,11 @@ import { programs, Wallet } from '@metaplex/js'
 import { RemoveCreatorForm } from 'src/components/Creator'
 import { useRouter } from 'next/router'
 import { updateAuctionHouse } from '@/modules/auction-house'
-import { getInputData } from '@/modules/edit'
 import UploadFile from 'src/components/UploadFile'
 import WalletPortal from 'src/components/WalletPortal'
-import { Link } from 'react-router-dom'
+import { Link, Routes, Route, useNavigate, Navigate } from 'react-router-dom'
 import { EditMarketplaceForm } from 'src/components/Admin/Marketplace'
 import EditMarketplace from 'src/components/Admin/Marketplace/EditMarketplace'
-import Activities from 'src/components/Admin/Marketplace/Activities'
 import { AttributeFilter, Marketplace, PresetEditFilter } from '../../types.d'
 
 const {
@@ -30,6 +32,8 @@ const {
 } = programs
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
+const PATH_EDIT_MARKETPLACE = '/admin/marketplace/edit'
+const PATH_EDIT_CREATORS = '/admin/creators/edit'
 
 export async function getServerSideProps({ req }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain']
@@ -95,9 +99,24 @@ interface EditPageProps extends AppProps {
   marketplace: Marketplace
 }
 
-interface NftFilterForm {
-  attributes: AttributeFilter[]
+interface EditFilterForm {
   preset: PresetEditFilter
+}
+
+interface NewData {
+  name: string
+  description: string
+  logo: {
+    url: string
+    name?: string
+    type?: string
+  }
+  banner: {
+    url: string
+    name?: string
+    type?: string
+  }
+  creators: { address: string }[]
 }
 
 const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
@@ -105,26 +124,50 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
   const solana = useWallet()
   const { publicKey } = solana
   const router = useRouter()
-  const [showEditMarketplace, setShowEditMarketplace] = useState(false)
   const [logo, setLogo] = useState<string>(marketplace.logoUrl)
   const [banner, setBanner] = useState<string>(marketplace.bannerUrl)
+  // const [showEditMarketplace, setShowEditMarketplace] = useState(
+  //   router.asPath == PATH_EDIT_CREATORS ? false : true
+  // )
 
-  // console.log('Marketplace data', marketplace)
+  const navigate = useNavigate()
+
+  const [preset, setPreset] = useState<PresetEditFilter | undefined>(
+    router.asPath == PATH_EDIT_CREATORS
+      ? PresetEditFilter.Creators
+      : PresetEditFilter.Marketplace
+  )
+
+  const { watch, control } = useForm<EditFilterForm>({
+    defaultValues: {
+      preset: preset,
+    },
+  })
 
   const refreshProps = () => {
     router.replace(router.asPath)
   }
 
-  const { watch, register, control } = useForm<NftFilterForm>({
-    defaultValues: { preset: PresetEditFilter.Marketplace },
-  })
+  const onSaveChangesClicked = async (form: EditMarketplaceForm) => {
+    const { marketName, description, transactionFee } = form
+    let creators: { address: string }[] = []
+    marketplace.creators.forEach((creator) => {
+      creators.push({ address: creator.creatorAddress })
+    })
 
-  const [preset, setPreset] = useState<PresetEditFilter | undefined>(
-    PresetEditFilter.Marketplace
-  )
+    updateMarketplace(
+      {
+        name: marketName,
+        description: description,
+        logo: { url: logo },
+        banner: { url: banner },
+        creators,
+      },
+      transactionFee
+    )
+  }
 
   const onAddCreatorClicked = async (form: AddCreatorForm) => {
-    toast('Saving changes...')
     const { walletAddress } = form
 
     const creators = [{ address: walletAddress }]
@@ -132,23 +175,16 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
       creators.push({ address: creator.creatorAddress })
     })
 
-    const inputData = await getInputData(
-      {
-        name: marketplace.name,
-        description: marketplace.description,
-        logo: { url: marketplace.logoUrl },
-        banner: { url: marketplace.bannerUrl },
-        creators,
-      },
-      marketplace,
-      solana
-    )
-
-    updateMarketplace(inputData)
+    updateMarketplace({
+      name: marketplace.name,
+      description: marketplace.description,
+      logo: { url: marketplace.logoUrl },
+      banner: { url: marketplace.bannerUrl },
+      creators,
+    })
   }
 
   const onRemoveCreatorClicked = async (form: RemoveCreatorForm) => {
-    toast('Saving changes...')
     const { walletAddress } = form
     const creatorsList = marketplace.creators.filter(
       (creator) => creator.creatorAddress !== walletAddress
@@ -159,110 +195,118 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
       creators.push({ address: creator.creatorAddress })
     })
 
-    const input = await getInputData(
-      {
-        name: marketplace.name,
-        description: marketplace.description,
-        logo: { url: marketplace.logoUrl },
-        banner: { url: marketplace.bannerUrl },
-        creators,
-      },
-      marketplace,
-      solana
-    )
-
-    updateMarketplace(input)
-  }
-
-  const onUpdateClicked = async (form: EditMarketplaceForm) => {
-    toast('Saving changes...')
-
-    const { marketName, description, transactionFee } = form
-    let creators: { address: string }[] = []
-    marketplace.creators.forEach((creator) => {
-      creators.push({ address: creator.creatorAddress })
+    updateMarketplace({
+      name: marketplace.name,
+      description: marketplace.description,
+      logo: { url: marketplace.logoUrl },
+      banner: { url: marketplace.bannerUrl },
+      creators,
     })
-
-    const input = await getInputData(
-      {
-        name: marketName,
-        description: description,
-        logo: { url: logo },
-        banner: { url: banner },
-        creators,
-      },
-      marketplace,
-      solana
-    )
-
-    updateMarketplace(input, transactionFee)
   }
 
-  const updateMarketplace = async (inputData: any, transactionFee?: number) => {
-    if (!solana || !publicKey || !inputData) {
+  const updateMarketplace = async (data: NewData, transactionFee?: number) => {
+    if (!solana || !publicKey || !data) {
       return
     }
-    console.log('data', inputData)
-    const settings = new File(
-      [JSON.stringify(inputData)],
-      'storefront_settings'
-    )
-    const { uri } = await ipfsSDK.uploadFile(settings)
-    console.log('URI:', uri)
+    toast('Saving changes...')
 
     const storePubkey = await Store.getPDA(publicKey)
     const storeConfigPubkey = await StoreConfig.getPDA(storePubkey)
 
-    let auctionHouseUpdateInstruction
-    if (
-      transactionFee &&
-      transactionFee != marketplace.auctionHouse.sellerFeeBasisPoints
-    ) {
-      auctionHouseUpdateInstruction = await updateAuctionHouse({
-        wallet: solana as Wallet,
-        sellerFeeBasisPoints: transactionFee,
-      })
-    }
-
-    const setStorefrontV2Instructions = new SetStoreV2(
-      {
-        feePayer: publicKey,
+    const newStoreData = {
+      meta: {
+        name: data.name,
+        description: data.description,
       },
-      {
-        admin: publicKey,
-        store: storePubkey,
-        config: storeConfigPubkey,
-        isPublic: false,
-        settingsUri: uri,
-      }
-    )
-    const transaction = new Transaction()
-    if (auctionHouseUpdateInstruction) {
-      transaction.add(auctionHouseUpdateInstruction)
+      theme: {
+        logo: {
+          url: data.logo,
+        },
+        banner: { url: data.banner },
+      },
+      creators: data.creators,
+      subdomain: marketplace.subdomain,
+      address: {
+        owner: publicKey,
+        auctionHouse: marketplace.auctionHouse.address,
+        store: storePubkey.toBase58(),
+        storeConfig: storeConfigPubkey.toBase58(),
+      },
     }
-    transaction.add(setStorefrontV2Instructions)
-    transaction.feePayer = publicKey
-    transaction.recentBlockhash = (
-      await connection.getRecentBlockhash()
-    ).blockhash
 
-    const signedTransaction = await solana.signTransaction!(transaction)
-    const txtId = await connection.sendRawTransaction(
-      signedTransaction.serialize()
-    )
-    console.log('Transaction ID:', txtId)
-    if (txtId) await connection.confirmTransaction(txtId)
-    console.log('Transaction confirmed')
-    toast(<>Marketplace updated successfully!</>, { autoClose: 5000 })
+    // console.log('new store data', newStoreData)
 
-    // Refetch server side props
-    refreshProps()
+    try {
+      const settings = new File(
+        [JSON.stringify(newStoreData)],
+        'storefront_settings'
+      )
+      const { uri } = await ipfsSDK.uploadFile(settings)
+      console.log('URI:', uri)
+
+      let auctionHouseUpdateInstruction
+      if (
+        transactionFee &&
+        transactionFee != marketplace.auctionHouse.sellerFeeBasisPoints
+      ) {
+        auctionHouseUpdateInstruction = await updateAuctionHouse({
+          wallet: solana as Wallet,
+          sellerFeeBasisPoints: transactionFee,
+        })
+      }
+
+      const setStorefrontV2Instructions = new SetStoreV2(
+        {
+          feePayer: publicKey,
+        },
+        {
+          admin: publicKey,
+          store: storePubkey,
+          config: storeConfigPubkey,
+          isPublic: false,
+          settingsUri: uri,
+        }
+      )
+      const transaction = new Transaction()
+      if (auctionHouseUpdateInstruction) {
+        transaction.add(auctionHouseUpdateInstruction)
+      }
+      transaction.add(setStorefrontV2Instructions)
+      transaction.feePayer = publicKey
+      transaction.recentBlockhash = (
+        await connection.getRecentBlockhash()
+      ).blockhash
+
+      const signedTransaction = await solana.signTransaction!(transaction)
+      const txtId = await connection.sendRawTransaction(
+        signedTransaction.serialize()
+      )
+      console.log('Transaction ID:', txtId)
+      if (txtId) await connection.confirmTransaction(txtId)
+      console.log('Transaction confirmed')
+      toast(<>Marketplace updated successfully!</>, { autoClose: 5000 })
+
+      // Refetch server side props
+      refreshProps()
+    } catch (e: any) {
+      toast.error(e.message)
+    }
   }
 
   useEffect(() => {
     const subscription = watch(({ preset }) => {
       console.log(preset)
       setPreset(preset)
+      switch (preset) {
+        case PresetEditFilter.Marketplace:
+          navigate('/admin/marketplace/edit')
+          break
+        case PresetEditFilter.Creators:
+          navigate('/admin/creators/edit')
+          break
+        default:
+          break
+      }
     })
     return () => subscription.unsubscribe()
   }, [watch])
@@ -297,12 +341,12 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
             className="absolute border-4 border-gray-900 rounded-full w-28 h-28 -top-32"
           />
 
-          {preset === PresetEditFilter.Marketplace && showEditMarketplace && (
+          {preset == PresetEditFilter.Marketplace && (
             <div className="absolute -top-12 left-14 transform -translate-x-1/2">
               <UploadFile setNewFileUrl={setLogo} type="logo" />
             </div>
           )}
-          {preset === PresetEditFilter.Marketplace && showEditMarketplace && (
+          {preset == PresetEditFilter.Marketplace && (
             <div className="absolute -top-24 left-1/2 transform -translate-x-1/2">
               <UploadFile setNewFileUrl={setBanner} type="banner" />
             </div>
@@ -380,26 +424,31 @@ const AdminPage: NextPage<EditPageProps> = ({ marketplace }) => {
               </ul>
             </form>
           </div>
-          {preset === PresetEditFilter.Marketplace && !showEditMarketplace && (
-            <Activities
-              marketplace={marketplace}
-              setShowEditMarketplace={setShowEditMarketplace}
+          <Routes>
+            <Route
+              path="/admin"
+              element={<Navigate replace to="/admin/marketplace/edit" />}
             />
-          )}
-          {preset === PresetEditFilter.Marketplace && showEditMarketplace && (
-            <EditMarketplace
-              marketplace={marketplace}
-              onUpdateClicked={onUpdateClicked}
-              setShowEditMarketplace={setShowEditMarketplace}
+            <Route
+              path="/admin/marketplace/edit"
+              element={
+                <EditMarketplace
+                  marketplace={marketplace}
+                  onUpdateClicked={onSaveChangesClicked}
+                />
+              }
             />
-          )}
-          {preset === PresetEditFilter.Creators && (
-            <EditCreators
-              marketplace={marketplace}
-              onAddCreatorClicked={onAddCreatorClicked}
-              onRemoveCreatorClicked={onRemoveCreatorClicked}
+            <Route
+              path="/admin/creators/edit"
+              element={
+                <EditCreators
+                  marketplace={marketplace}
+                  onAddCreatorClicked={onAddCreatorClicked}
+                  onRemoveCreatorClicked={onRemoveCreatorClicked}
+                />
+              }
             />
-          )}
+          </Routes>
         </div>
       </div>
     </div>

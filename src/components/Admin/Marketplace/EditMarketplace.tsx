@@ -1,10 +1,10 @@
 import { useForm } from 'react-hook-form'
+import { Link } from 'react-router-dom'
 import { Marketplace } from '../../../types'
 
 interface EditMarketplaceProps {
   marketplace: Marketplace
   onUpdateClicked: (form: EditMarketplaceForm) => void
-  setShowEditMarketplace: (show: boolean) => void
 }
 
 export interface EditMarketplaceForm {
@@ -16,18 +16,27 @@ export interface EditMarketplaceForm {
 const EditMarketplace = ({
   marketplace,
   onUpdateClicked,
-  setShowEditMarketplace,
 }: EditMarketplaceProps) => {
   const {
     register,
+    reset,
     handleSubmit,
-    watch,
     formState: { errors },
-  } = useForm()
+  } = useForm({
+    defaultValues: {
+      domain: marketplace.subdomain + '.holaplex.market',
+      marketName: marketplace.name,
+      description: marketplace.description,
+      transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,
+      abc: 'test',
+    },
+  })
 
-  const onCancel = () => setShowEditMarketplace(false)
+  const onCancel = () => {
+    reset()
+  }
   const onSubmit = async (data: any) => {
-    // console.log(data)
+    console.log(data)
     const form = {
       marketName: data.marketName,
       description: data.description,
@@ -72,7 +81,6 @@ const EditMarketplace = ({
         </span>
         <input
           className="w-full px-3 py-2 text-gray-100 text-right text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm"
-          defaultValue={marketplace.subdomain + '.holaplex.market'}
           {...register('domain', { disabled: true })}
         />
         {errors.domain && <span>This field is required</span>}
@@ -80,7 +88,6 @@ const EditMarketplace = ({
         <label className="mb-2 text-lg mt-9">Market Name</label>
         <input
           className="w-full px-3 py-2 text-gray-100 text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm"
-          defaultValue={marketplace.name}
           {...register('marketName', { required: true })}
         />
         {errors.marketName && <span>This field is required</span>}
@@ -88,7 +95,6 @@ const EditMarketplace = ({
         <label className="mb-2 text-lg mt-9">Description</label>
         <input
           className="w-full px-3 py-2 text-gray-100 text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm"
-          defaultValue={marketplace.description}
           {...register('description', { required: true })}
         />
         {errors.description && <span>This field is required</span>}
@@ -99,7 +105,6 @@ const EditMarketplace = ({
         </span>
         <input
           className="w-full px-3 py-2 text-gray-100 text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm"
-          defaultValue={marketplace.auctionHouse.sellerFeeBasisPoints}
           {...register('transactionFee')}
         />
         {errors.transactionFee && <span>This field is required</span>}
