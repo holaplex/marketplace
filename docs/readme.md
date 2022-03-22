@@ -4,10 +4,11 @@
 
 This is how you would create your own NFT marketplace using the Holaplex API
 
-## Data
-Graph QL API Endpoint: https://graph.holaplex.com/v0
+## Marketplace Data
 
-## Schema
+> Graph QL API Endpoint: https://graph.holaplex.com/v0
+
+### Nft Schema
 ```graphql
 type Nft {
   address: String!
@@ -19,9 +20,12 @@ type Nft {
   image: String!
   creators: [NftCreator!]!
   attributes: [NftAttribute!]!
+  listings: [ListingReceipt!]!
+  offers: [BidReceipt!]!
 }
 ```
 
+### NftCreator Schema
 ```graphql
 type NftCreator {
   address: String!
@@ -31,6 +35,7 @@ type NftCreator {
 }
 ```
 
+### NftAttribute Schema
 ```graphql
 type NftAttribute {
   metadataAddress: String!
@@ -39,19 +44,57 @@ type NftAttribute {
 }
 ```
 
+### ListingReceipt Schema
+```
+type ListingReceipt {
+  address: String!
+  tradeState: String!
+  seller: String!
+  metadata: String!
+  auctionHouse: String!
+  price: Lamports!
+  tradeStateBump: Int!
+  createdAt: DateTimeUtc!
+  canceledAt: DateTimeUtc
+  bookkeeper: String!
+  purchaseReceipt: String
+  tokenSize: Int!
+  bump: Int!
+}
+```
+### BidReceipt Schema
+```
+type BidReceipt {
+  address: String!
+  tradeState: String!
+  buyer: String!
+  metadata: String!
+  auctionHouse: String!
+  price: Lamports!
+  tradeStateBump: Int!
+  tokenAccount: String
+  createdAt: DateTimeUtc!
+  canceledAt: DateTimeUtc
+}
+```
 
+
+---
 ## Root Queries
-	* `nft(address: PublicKey)`
-	* `nfts(creators:[PublicKey,...])`
+
+- `nft(address: PublicKey)`
+
+- `nfts(creators:[PublicKey,...])`
 
 ### Example Queries
-Get all NFTs from a specifc PublicKey  
+
+Get all NFTs from a specifc creator (PublicKey)
+> Request
 ```graphql
 {
   nfts(creators: ["232PpcrPc6Kz7geafvbRzt5HnHP4kX88yvzUCN69WXQC"]){
     name
     address
-    description
     image
     creators {
       address
@@ -60,22 +103,57 @@ Get all NFTs from a specifc PublicKey
   }
 }
 ```
+> Response
+```
+{
+  "data": {
+    "nfts": [
+      {
+        "name": "Whirlpools of Honey",
+        "address": "3UF9qYsW9NNkUhAKtv42RZbWDVCiPRPW1FT3LY7RgcAP",
+        "image": "https://bafybeidy6ardd2pvpcg5y6boidc2hfhvasb4fhx6wrn2sc675utpky5wy4.ipfs.dweb.link?ext=png",
+        "creators": [
+          {
+            "address": "232PpcrPc6Kz7geafvbRzt5HnHP4kX88yvzUCN69WXQC",
+            "share": 100
+          }
+        ]
+      },
+      {...},
+      {...},
+    ]
+  }
+}
+```
+
 
 ### Get details about a specific NFT
-
+> Request
 ```graphql
 {
   nft(address: "3UF9qYsW9NNkUhAKtv42RZbWDVCiPRPW1FT3LY7RgcAP"){
+    address
     name
-    description
-    image
   }
 }
-
 ```
-	
-## Actions 
-Using data retrieved from Holaplex API endpoint we are able to construct transactions to perform actions we’re interested in. Metaplex Foundation Programs power Holaplex marketplaces, but ultimately the data can be used in conjunction with any on-chain Program. 
+> Response
+```
+{
+  "data": {
+    "nft": {
+      "address": "3UF9qYsW9NNkUhAKtv42RZbWDVCiPRPW1FT3LY7RgcAP",
+      "name": "Whirlpools of Honey"
+    }
+  }
+}
+```
+
+As you can see with our two root queries you have the ability to quickly and effiecently find the data you're looking for. 
+
+---
+## Marketplace Actions 
+Using data retrieved from Holaplex API endpoint we are able to construct transactions to perform actions we’re interested in. Metaplex Foundation Programs power Holaplex marketplaces, but ultimately the data can be used in conjunction with any on-chain Program; open source or bespoke. 
 
 ### Metaplex Foundation Auction House
 
@@ -85,18 +163,28 @@ AuctionHouse is a protocol for marketplaces to implement a decentralized sales c
 AuctionHouse is a Solana program available on Mainnet Beta and Devnet. Anyone can create an AuctionHouse and accept any SPL token they wish.
 ```
  
-*Docs:* [What is Auction House | Metaplex Docs](https://docs.metaplex.com/auction-house/definition)
+> Source:  [What is Auction House | Metaplex Docs](https://docs.metaplex.com/auction-house/definition)
 
+Metaplex also offers example TypeScript examples on constructing transaction instructions for the Auction House
 
-**Auction House Program** - [metaplex-program-library/AuctionHouseProgram.ts at master · metaplex-foundation/metaplex-program-library · GitHub](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/AuctionHouseProgram.ts)
+**Auction House Program TypeScript Definition** - [metaplex-program-library/AuctionHouseProgram.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/AuctionHouseProgram.ts)
 
-Metaplex offers example TypeScript API examples for their on chain Programs 
+### Marketplace Actions
 
-	* Buy NFT -  [metaplex-program-library/buy.ts at master · metaplex-foundation/metaplex-program-library · GitHub](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/buy.ts)
-	* Sell NFT - [metaplex-program-library/sell.ts at master · metaplex-foundation/metaplex-program-library · GitHub](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/sell.ts)
-	* Make Offer - 
-	* Accept Offer - 
-	* Cancel Offer - [metaplex-program-library/cancel.ts at master · metaplex-foundation/metaplex-program-library · GitHub](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/cancel.ts)
+The Auction House Program enables us to perform the following types of actions 
+
+* Buy NFT -  Purchase a NFT currently listed for sale -  [instructions/buy.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/buy.ts)
+
+* Sell NFT - Sell a NFT you own - [instructions/sell.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/sell.ts)
+
+* Make Offer - Make an offer on a NFT, listed for sale or not -  [instructions/buy.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/buy.ts) & [instructions/printBidReceipt.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/printBidReceipt.ts)
+
+* Accept Offer - Accept a buy offer on a NFT you own - [createSellInstruction](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/sell.ts) & [createPrintListingReceiptInstruction](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/printListingReceipt.ts) &  [executePrintPurchaseReceiptInstruction](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/printPurchaseReceipt.ts)
+
+* Cancel Listing - [instructions/cancel.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/cancel.ts) & cancelListingReceiptInstruction
+
+* Cancel Offer - [instructions/cancel.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/cancel.ts)
 
 ### How do you perform them?
 Actions are sent to the solana blockchain via RPC nodes
+
