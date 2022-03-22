@@ -10,7 +10,6 @@ import {
   map,
   modify,
   filter,
-  gt,
   partial,
   pipe,
   prop,
@@ -29,16 +28,9 @@ import { useRouter } from 'next/router'
 import { AppProps } from 'next/app'
 import Select from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
-import { truncateAddress } from './../../modules/address'
+import { truncateAddress } from '../../modules/address';
 import client from '../../client'
-import {
-  Marketplace,
-  Creator,
-  Nft,
-  PresetNftFilter,
-  AttributeFilter,
-  MarketplaceCreator,
-} from './../../types.d'
+import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter, MarketplaceCreator } from '../../types.d';
 import { List } from '../../components/List'
 import { NftCard } from '../../components/NftCard'
 import Button, { ButtonSize } from '../../components/Button'
@@ -111,10 +103,10 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
 
   const {
     data: { marketplace, creator },
-  } = await client.query<GetCreatorPage>({
+  } = await client.query<GetCollectionPage>({
     fetchPolicy: 'no-cache',
     query: gql`
-      query GetCreatorPage($subdomain: String!, $creator: String!) {
+      query GetCollectionPage($subdomain: String!, $creator: String!) {
         marketplace(subdomain: $subdomain) {
           subdomain
           name
@@ -149,19 +141,16 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
       }
     `,
     variables: {
-      subdomain: subdomain || SUBDOMAIN,
-      creator: query.creator,
-    },
-  })
+      subdomain: (subdomain || SUBDOMAIN),
+      creator: query.collection,
+    }
+    ,
+  });
 
   if (
     or(
       any(isNil)([marketplace, creator]),
-      pipe(
-        map(prop('creatorAddress')),
-        indexOf(query.creator),
-        equals(-1)
-      )(marketplace?.creators || [])
+      pipe(map(prop('creatorAddress')), indexOf(query.collection), equals(-1))(marketplace?.creators || [])
     )
   ) {
     return {
@@ -177,16 +166,16 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   }
 }
 
-interface GetCreatorPage {
-  marketplace: Marketplace | null
-  creator: Creator | null
+interface GetCollectionPage {
+  marketplace: Marketplace | null;
+  creator: Creator | null;
 }
 
 interface GetCollectionSidebarData {
   creator: Creator
 }
 
-interface CreatorPageProps extends AppProps {
+interface CollectionPageProps extends AppProps {
   marketplace: Marketplace
   creator: Creator
 }
@@ -196,30 +185,24 @@ interface NftFilterForm {
   preset: PresetNftFilter
 }
 
-const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
-  const { publicKey, connected } = useWallet()
-  const [hasMore, setHasMore] = useState(true)
-  const router = useRouter()
-  const {
-    data,
-    loading: loadingNfts,
-    refetch,
-    fetchMore,
-    variables,
-  } = useQuery<GetNftsData>(GET_NFTS, {
+const CollectionShow: NextPage<CollectionPageProps> = ({ marketplace, creator }) => {
+  const { publicKey, connected } = useWallet();
+  const [hasMore, setHasMore] = useState(true);
+  const router = useRouter();
+  const { data, loading: loadingNfts, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
+    fetchPolicy: 'network-only',
     variables: {
-      creators: [router.query.creator],
+      creators: [router.query.collection],
       offset: 0,
       limit: 24,
     },
   })
 
-  const { data: sidebar, loading: loadingSidebar } =
-    useQuery<GetCollectionSidebarData>(GET_SIDEBAR, {
-      variables: {
-        creator: router.query.creator,
-      },
-    })
+  const { data: sidebar, loading: loadingSidebar } = useQuery<GetCollectionSidebarData>(GET_SIDEBAR, {
+    variables: {
+      creator: router.query.collection,
+    }
+  });
 
   const { sidebarOpen, toggleSidebar } = useSidebar()
 
@@ -250,7 +233,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
       )(preset as PresetNftFilter)
 
       refetch({
-        creators: [router.query.creator],
+        creators: [router.query.collection],
         attributes: nextAttributes,
         owners,
         listed,
@@ -260,15 +243,8 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
       })
     })
     return () => subscription.unsubscribe()
-  }, [
-    watch,
-    publicKey,
-    marketplace,
-    refetch,
-    variables?.limit,
-    router.query.creator,
-    creator,
-  ])
+  }, [watch, publicKey, marketplace, refetch, variables?.limit, router.query.collection, creator]);
+
 
   return (
     <div
@@ -278,12 +254,20 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     >
       <Head>
         <title>
-          {truncateAddress(router.query?.creator as string)} NFT Collection |{' '}
-          {marketplace.name}
+          {truncateAddress(router.query?.collection as string)} NFT Collection | {marketplace.name}
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
       </Head>
-      <div className="relative w-full">
+      <div className='relative w-full'>
+        <Link to='/' className="absolute top-6 left-6">
+            <button className='flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 rounded-full align h-14 hover:bg-gray-600'>
+              <img
+                className='w-8 h-8 rounded-full aspect-square'
+                src={marketplace.logoUrl}
+              />
+              {marketplace.name}
+            </button>
+        </Link>
         <div className="absolute right-6 top-[25px]">
           <WalletPortal />
         </div>
@@ -298,10 +282,9 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
           <img
             src={marketplace.logoUrl}
             alt={marketplace.name}
-            className="absolute border-4 border-gray-900 rounded-full w-28 h-28 -top-32"
+            className='absolute border-4 bg-gray-900 border-gray-900 rounded-full w-28 h-28 -top-32'
           />
-          <h1>{marketplace.name}</h1>
-          <p className="mt-4 max-w-prose">{marketplace.description}</p>
+          <h1>{truncateAddress(router.query?.collection as string)}</h1>
         </div>
         <div className="flex">
           <div className="relative">
@@ -410,18 +393,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                     </li>
                   )}
                 </ul>
-                <div className="flex flex-row justify-between align-top w-full mb-2">
-                  <label className="label">Creators</label>
-                  {pipe(length, gt(1))(marketplace.creators) && (
-                    <Link to="/">Show All</Link>
-                  )}
-                </div>
-                <ul className="flex flex-col flex-grow mb-6">
-                  <li className="flex justify-between w-full px-4 py-2 mb-1 rounded-md bg-gray-800 hover:bg-gray-800">
-                    <h4>{truncateAddress(router.query.creator as string)}</h4>
-                  </li>
-                </ul>
-                <div className="flex flex-col flex-grow gap-4">
+                <div className='flex flex-col flex-grow gap-4'>
                   {loading ? (
                     <>
                       <div className="flex flex-col flex-grow gap-2">
@@ -534,4 +506,4 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   )
 }
 
-export default CreatorShow
+export default CollectionShow

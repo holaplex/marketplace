@@ -236,7 +236,7 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
 
       
 
-      await connection.confirmTransaction(signature, 'finalized');
+      await connection.confirmTransaction(signature, 'confirmed');
 
       await refetch();
 
