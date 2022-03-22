@@ -4,18 +4,51 @@
 
 This is how you would create your own NFT marketplace using the Holaplex API
 
-## Data 
+## Data
 Graph QL API Endpoint: https://graph.holaplex.com/v0
 
-Root Queries
+## Schema
+```graphql
+type Nft {
+  address: String!
+  name: String!
+  sellerFeeBasisPoints: Int!
+  mintAddress: String!
+  primarySaleHappened: Boolean!
+  description: String!
+  image: String!
+  creators: [NftCreator!]!
+  attributes: [NftAttribute!]!
+}
+```
+
+```graphql
+type NftCreator {
+  address: String!
+  metadataAddress: String!
+  share: Int!
+  verified: Boolean!
+}
+```
+
+```graphql
+type NftAttribute {
+  metadataAddress: String!
+  value: String!
+  traitType: String!
+}
+```
+
+
+## Root Queries
 	* `nft(address: PublicKey)`
 	* `nfts(creators:[PublicKey,...])`
 
 ### Example Queries
-Get all NFTs from a creator
+Get all NFTs from a specifc PublicKey  
 ```graphql
 {
-  nfts(creators: ["232PpcrPc6Kz7geafvbRzt5HnHP4kX88yvzUCN69WXQC"]) {
+  nfts(creators: ["232PpcrPc6Kz7geafvbRzt5HnHP4kX88yvzUCN69WXQC"]){
     name
     address
     description
@@ -32,7 +65,7 @@ Get all NFTs from a creator
 
 ```graphql
 {
-  nft(address: "3UF9qYsW9NNkUhAKtv42RZbWDVCiPRPW1FT3LY7RgcAP") {
+  nft(address: "3UF9qYsW9NNkUhAKtv42RZbWDVCiPRPW1FT3LY7RgcAP"){
     name
     description
     image
@@ -40,11 +73,7 @@ Get all NFTs from a creator
 }
 
 ```
-
-
-Data Structure:
 	
-
 ## Actions 
 Using data retrieved from Holaplex API endpoint we are able to construct transactions to perform actions we’re interested in. Metaplex Foundation Programs power Holaplex marketplaces, but ultimately the data can be used in conjunction with any on-chain Program. 
 
