@@ -7,7 +7,6 @@ This is how you would create your own NFT marketplace using the Holaplex API
 ## Marketplace Data
 
 > Graph QL API Endpoint: https://graph.holaplex.com/v0
-
 ### Nft Schema
 ```graphql
 type Nft {
@@ -82,9 +81,9 @@ type BidReceipt {
 ---
 ## Root Queries
 
-- `nft(address: PublicKey)`
+- `nft(address: PublicKey){}`
 
-- `nfts(creators:[PublicKey,...])`
+- `nfts(creators:[PublicKey,...]){}`
 
 ### Example Queries
 
@@ -173,9 +172,10 @@ Metaplex also offers example TypeScript examples on constructing transaction ins
 
 The Auction House Program enables us to perform the following types of actions 
 
+* Sell NFT - Sell a NFT you own - [instructions/sell.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/sell.ts)
+
 * Buy NFT -  Purchase a NFT currently listed for sale -  [instructions/buy.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/buy.ts)
 
-* Sell NFT - Sell a NFT you own - [instructions/sell.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/sell.ts)
 
 * Make Offer - Make an offer on a NFT, listed for sale or not -  [instructions/buy.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/buy.ts) & [instructions/printBidReceipt.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/printBidReceipt.ts)
 
