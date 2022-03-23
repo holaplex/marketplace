@@ -227,7 +227,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     activities.push({
       event: 'Listed',
       price: l.price,
-      walletAddress: l.seller,
+      fromWallet: l.seller,
       createdAt: l.createdAt,
     })
   })
@@ -897,16 +897,16 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                   ) : (
                     activities.map((a: Activity) => (
                       <article
-                        key={a.walletAddress}
+                        key={a.fromWallet}
                         className="grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded"
                       >
                         <div>{a.event}</div>
                         <div>
                           <a
-                            href={`https://holaplex.com/profiles/${a.walletAddress}`}
+                            href={`https://holaplex.com/profiles/${a.fromWallet}`}
                             rel="nofollower"
                           >
-                            {truncateAddress(a.walletAddress)}
+                            {truncateAddress(a.fromWallet)}
                           </a>
                         </div>
 

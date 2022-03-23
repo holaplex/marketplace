@@ -125,7 +125,8 @@ export interface Viewer extends GraphQLObject {
 
 export interface Activity {
   event: string
-  walletAddress: string
+  fromWallet: string
+  toWallet?: string
   price: BN
   createdAt: string
 }
