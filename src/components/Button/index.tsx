@@ -1,6 +1,6 @@
 import { TailSpin } from 'react-loader-spinner';
 import cx from 'classnames';
-import { cond, equals, always } from 'ramda';
+import { cond, equals, always, not } from 'ramda';
 
 export enum ButtonType {
   Primary = 'primary',
@@ -48,7 +48,7 @@ const Button = ({
     <button
       className={cx(
         className,
-        'flex items-center text-center justify-center duration-150 rounded-full focus:shadow-outline hover:scale-[1.02] transition-transform grow',
+        'flex items-center text-center justify-center duration-150 rounded-full focus:shadow-outline transition-transform grow',
         {
           'w-full': block,
           'text-black bg-white': isPrimary(type),
@@ -56,6 +56,8 @@ const Button = ({
           'text-gray-300 bg-gray-700': isTertiary(type),
           'text-sm py-2 px-4': isSmall(size),
           'p-4': isLarge(size),
+          'opacity-75': disabled,
+          'hover:scale-105': not(disabled),
         }
       )}
       disabled={disabled}
