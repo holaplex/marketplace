@@ -31,6 +31,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
   const {
     data: { marketplace },
   } = await client.query<GetMarketplace>({
+    fetchPolicy: 'no-cache',
     query: gql`
       query GetMarketplace($subdomain: String!) {
         marketplace(subdomain: $subdomain) {
