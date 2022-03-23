@@ -48,13 +48,13 @@ const Button = ({
     <button
       className={cx(
         className,
-        'flex items-center text-center justify-center duration-150 rounded-full focus:shadow-outline transition-transform grow',
+        'flex items-center text-center font-semibold justify-center duration-150 rounded-full focus:shadow-outline transition-transform',
         {
           'w-full': block,
-          'text-black bg-white': isPrimary(type),
+          'text-gray-900 bg-white': isPrimary(type),
           'text-white bg-gray-900': isSecondary(type),
           'text-gray-300 bg-gray-700': isTertiary(type),
-          'text-sm py-2 px-4': isSmall(size),
+          'text-sm p-2': isSmall(size),
           'p-4': isLarge(size),
           'opacity-75': disabled,
           'hover:scale-105': not(disabled),

@@ -249,13 +249,20 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         <link rel="icon" href={marketplace.logoUrl} />
       </Head>
       <div className="relative w-full">
-        <div className="absolute right-6 top-[25px]">
-          <WalletPortal />
+        <div className="absolute flex justify-end right-6 top-[28px]">
+          <div className="flex items-center justify-end">
+            {equals(publicKey?.toBase58(), marketplace.auctionHouse.authority) && (
+              <Link to="/admin/marketplace/edit" className="text-sm cursor-pointer mr-6 hover:underline ">
+                Admin Dashboard
+              </Link>
+            )}
+            <WalletPortal />
+          </div>
         </div>
         <img
           src={marketplace.bannerUrl}
           alt={marketplace.name}
-          className="object-cover w-full h-80"
+          className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
         />
       </div>
       <div className="w-full max-w-[1800px] px-8">
@@ -263,7 +270,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           <img
             src={marketplace.logoUrl}
             alt={marketplace.name}
-            className="absolute border-4 border-gray-900 bg-gray-900 rounded-full w-28 h-28 -top-32"
+            className="absolute border-4 object-cover border-gray-900 bg-gray-900 rounded-full w-28 h-28 -top-32"
           />
           <h1>{marketplace.name}</h1>
           <p className="mt-4 max-w-prose">{marketplace.description}</p>

@@ -1,30 +1,22 @@
-import { NextPageContext } from 'next'
-import { gql } from '@apollo/client'
-import cx from 'classnames'
-import { isNil } from 'ramda'
+import { NextPageContext } from 'next';
+import { gql } from '@apollo/client';
+import { isNil, not, or } from 'ramda';
 import {
   useConnection,
   useWallet,
-} from '@solana/wallet-adapter-react'
-import { toast } from 'react-toastify'
-import { AppProps } from 'next/app'
-import { programs, Wallet } from '@metaplex/js'
-import { Transaction, TransactionInstruction } from '@solana/web3.js'
-import { useForm, Controller } from 'react-hook-form'
-import client from './../../../client'
-import ipfsSDK from './../../../../src/modules/ipfs/client'
-import { updateAuctionHouse } from './../../../../src/modules/auction-house'
-import UploadFile from './../../../../src/components/UploadFile'
-import WalletPortal from './../../../../src/components/WalletPortal'
-import { Link, useNavigate } from 'react-router-dom'
-import Button, { ButtonSize } from '../../../components/Button';
-import { Marketplace, MarketplaceCreator } from './../../../types.d'
-import { useLogin } from '../../../hooks/login'
-
-
-const {
-  metaplex: { Store, SetStoreV2, StoreConfig },
-} = programs
+} from '@solana/wallet-adapter-react';
+import { Image as ImageIcon, User  } from 'react-feather';
+import { toast } from 'react-toastify';
+import { AppProps } from 'next/app';
+import { useForm, Controller } from 'react-hook-form';
+import client from './../../../client';
+import UploadFile from './../../../../src/components/UploadFile';
+import WalletPortal from './../../../../src/components/WalletPortal';
+import { Link } from 'react-router-dom';
+import Button, { ButtonSize, ButtonType } from '../../../components/Button';
+import { Marketplace } from './../../../types.d';
+import { useLogin } from '../../../hooks/login';
+import { initMarketplaceSDK } from './../../../modules/marketplace';
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -107,7 +99,6 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
   const wallet = useWallet();
   const { publicKey, signTransaction } = wallet;
   const { connection } = useConnection();
-  const navigate = useNavigate();
   const login = useLogin();
 
   const {
@@ -137,22 +128,21 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
       return;
     }
 
+    const client = initMarketplaceSDK(connection, wallet);
+
     toast('Saving changes...')
 
-    const storePubkey = await Store.getPDA(publicKey)
-    const storeConfigPubkey = await StoreConfig.getPDA(storePubkey)
-
-    const newStoreData = {
+    const settings = {
       meta: {
         name,
         description,
       },
       theme: {
-        logo: { 
+        logo: {
           name: logo.name,
           type: logo.type,
           url: logo.uri,
-         },
+        },
         banner: {
           name: banner.name,
           type: banner.type,
@@ -162,64 +152,14 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
       creators,
       subdomain: marketplace.subdomain,
       address: {
-        owner: publicKey.toBase58(),
         auctionHouse: marketplace.auctionHouse.address,
-        store: storePubkey.toBase58(),
-        storeConfig: storeConfigPubkey.toBase58(),
       },
     }
 
     try {
-      const settings = new File(
-        [JSON.stringify(newStoreData)],
-        'storefront_settings'
-      )
-      const { uri } = await ipfsSDK.uploadFile(settings);
+      await client.update(settings, transactionFee);
 
-      let auctionHouseUpdateInstruction: TransactionInstruction | undefined = undefined;
-
-      if (
-        transactionFee &&
-        transactionFee != marketplace.auctionHouse.sellerFeeBasisPoints
-      ) {
-        auctionHouseUpdateInstruction = await updateAuctionHouse({
-          wallet: wallet as Wallet,
-          sellerFeeBasisPoints: transactionFee,
-        })
-      }
-
-      const setStorefrontV2Instructions = new SetStoreV2(
-        {
-          feePayer: publicKey,
-        },
-        {
-          admin: publicKey,
-          store: storePubkey,
-          config: storeConfigPubkey,
-          isPublic: false,
-          settingsUri: uri,
-        }
-      )
-      const transaction = new Transaction();
-
-      if (auctionHouseUpdateInstruction) {
-        transaction.add(auctionHouseUpdateInstruction)
-      }
-
-      transaction.add(setStorefrontV2Instructions);
-      transaction.feePayer = publicKey;
-      transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
-
-      const signedTransaction = await signTransaction!(transaction);
-      const txtId = await connection.sendRawTransaction(
-        signedTransaction.serialize()
-      )
-
-      if (txtId) await connection.confirmTransaction(txtId, 'confirmed');
-
-      toast.success(<>Marketplace updated successfully!</>, { autoClose: 5000 })
-      navigate('/');
-
+      toast.success(<>Marketplace updated successfully! It may take a few moments for the change to go live.</>, { autoClose: 5000 })
     } catch (e: any) {
       toast.error(e.message);
     }
@@ -228,20 +168,24 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="flex flex-col items-center text-white bg-gray-900">
-        <div className="relative w-full">
-          <div className="absolute right-6 top-[25px]">
-            <div className="flex items-center gap-6">
-              <Link to={'/'}>
-                <div className="text-sm">Marketplace</div>
-              </Link>
-              <div className="underline text-sm cursor-pointer">
-                Admin Dashboard
-              </div>
-              <div>
-                <WalletPortal />
-              </div>
+        <div className='fixed top-0 z-10 flex items-center w-full justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow'>
+          <Link to='/'>
+            <button className='flex items-center justify-between gap-2 bg-gray-800 rounded-full sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600'>
+              <img
+                className='w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square'
+                src={marketplace.logoUrl}
+              />
+              <div className="hidden sm:block">{marketplace.name}</div>
+            </button>
+          </Link>
+          <div className="flex items-center">
+            <div className="underline text-sm cursor-pointer mr-6">
+              Admin Dashboard
             </div>
+            <WalletPortal />
           </div>
+        </div>
+        <div className="relative w-full">
           <Controller
             control={control}
             name="banner"
@@ -252,7 +196,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
                 <img
                   src={value.uri}
                   alt={marketplace.name}
-                  className="object-cover w-full h-80"
+                  className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
                 />
                 <div className="absolute z-10 -bottom-5 left-1/2 transform -translate-x-1/2">
                   <UploadFile onChange={onChange} name={name} />
@@ -273,9 +217,9 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
                   <>
                     <img
                       src={value.uri}
-                      className="absolute border-4 border-gray-900 rounded-full w-28 h-28 -top-32"
+                      className="absolute border-4 border-gray-900 object-cover rounded-full w-16 h-16 -top-28 md:w-28 md:h-28 md:-top-32"
                     />
-                    <div className="absolute -top-12 left-14 transform -translate-x-1/2">
+                    <div className="absolute -top-16 left-8 md:-top-12 md:left-14 transform -translate-x-1/2">
                       <UploadFile onChange={onChange} name={name} />
                     </div>
                   </>
@@ -283,40 +227,48 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
               }}
             />
           </div>
-          <div className="flex">
-            <div className="flex-row flex-none hidden mr-10 space-y-2 w-60 sm:block">
+          <div className="flex flex-col md:flex-row">
+            <div className="flex-col md:mr-10 space-y-2 md:w-80 sm:block">
               <div
                 className="sticky top-0 max-h-screen py-4 overflow-auto"
               >
                 <ul className="flex flex-col flex-grow gap-2">
-                  <li className="block bg-gray-800 p-2 rounded">
-                    <Link to="/admin/marketplace/edit">Marketplace</Link>
+                  <li className="flex flex-row items-center bg-gray-800 p-2 rounded">
+                    <ImageIcon color="white" className="mr-1" size="1rem" /> Marketplace
                   </li>
-                  <li className="block p-2 rounded">
-                    <Link to="/admin/creators/edit">Creators</Link>
+                  <li className="p-2 rounded">
+                    <Link className="w-full flex flex-row items-center" to="/admin/creators/edit"><User color="white" className="mr-1" size="1rem" /> Creators</Link>
                   </li>
                 </ul>
               </div>
             </div>
             <div className="grow flex flex-col items-center w-full pb-16">
-              <div className="max-w-2xl w-full">
-                <div className="flex items-start justify-between">
-                  <h2>Edit marketplace</h2>
-                  <div className="flex">
-                    <Link to="/" className="button tertiary small grow-0 mr-3">
+              <div className="max-w-3xl w-full">
+                <div className="grid grid-cols-12 md:flex-row items-start md:justify-between">
+                  <h2 className="w-full mb-4 col-span-full md:col-span-6 lg:col-span-7">Edit marketplace</h2>
+                  <div className="grid grid-cols-2 gap-2 col-span-full md:col-span-6 lg:col-span-5 w-full justify-end">
+                    <Link to="/">
+                      <Button
+                        block
+                        size={ButtonSize.Small}
+                        type={ButtonType.Tertiary}
+                        disabled={or(not(isDirty), isSubmitting)}
+                      >
                         Cancel
+                      </Button>
                     </Link>
                     <Button
+                      block
                       htmlType="submit"
                       size={ButtonSize.Small}
                       loading={isSubmitting}
-                      disabled={!isDirty || isSubmitting}
+                      disabled={or(not(isDirty), isSubmitting)}
                     >
                       Save changes
                     </Button>
                   </div>
                 </div>
-                <form className="flex flex-col max-h-screen py-4 overflow-auto">
+                <div className="flex flex-col max-h-screen py-4 overflow-auto">
                   <label className="text-lg mt-9">Domain</label>
                   <span className="mb-2 text-sm text-gray-300">
                     Your domain is managed by Holaplex. If you need to change it, please{' '}
@@ -349,14 +301,15 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
 
                   <label className="text-lg mt-9">Transaction fee</label>
                   <span className="mb-2 text-sm text-gray-300">
-                    This is a fee added to all sales. Funds go to the auction house wallet
+                    This is a fee added to all sales. Funds go to the auction house wallet. 1% is equal to 100 basis points.
                   </span>
                   <input
+                    type="number"
                     className="w-full px-3 py-2 text-gray-100 text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm"
                     {...register('transactionFee')}
                   />
                   {errors.transactionFee && <span>This field is required</span>}
-                </form>
+                </div>
               </div>
             </div>
           </div>

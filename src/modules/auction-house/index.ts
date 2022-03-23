@@ -1,1 +1,1 @@
-export * from './UpdateAuctionHouse'
+export * from './updateAuctionHouse'
