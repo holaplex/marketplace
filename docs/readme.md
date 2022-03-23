@@ -166,7 +166,7 @@ AuctionHouse is a Solana program available on Mainnet Beta and Devnet. Anyone ca
 
 Metaplex also offers example TypeScript examples on constructing transaction instructions for the Auction House
 
-**Auction House Program TypeScript Definition** - [metaplex-program-library/AuctionHouseProgram.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/AuctionHouseProgram.ts)
+> **Auction House Program TypeScript Definition** - [metaplex-program-library/AuctionHouseProgram.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/AuctionHouseProgram.ts)
 
 ### Marketplace Actions
 
@@ -186,5 +186,34 @@ The Auction House Program enables us to perform the following types of actions
 * Cancel Offer - [instructions/cancel.ts](https://github.com/metaplex-foundation/metaplex-program-library/blob/master/auction-house/js/src/generated/instructions/cancel.ts)
 
 ### How do you perform them?
-Actions are sent to the solana blockchain via RPC nodes
+Solana provides a javascript web3 library for data queries and sending transactions. [@solana/web3.js](https://solana-labs.github.io/solana-web3.js/) In conjunction with the solana library we’ll use the Auction House package.
 
+Sell NFT example
+```TypeScript
+# Create Sell Instruction
+const sellInstruction = createSellInstruction(sellInstructionAccounts,sellInstructionArgs)
+
+# Create Receipt Instruction
+const printListingReceiptInstruction = createPrintListingReceiptInstruction(listingReceiptInstructionAccounts, listingReceiptInstructionArgs)
+
+# Create Transaction Object
+const tx = new Transaction()
+
+# Add instructions to Transaction
+tx.add(sellInstruction).add(printListingReceiptInstruction)
+
+# Get recent blockhash
+tx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+
+# Set transaction fee payer
+tx.feePayer = publicKey
+
+# Sign tranaction
+signed = await signTransaction(tx);
+
+# Send tranaction and get its ID
+signature = await connection.sendRawTransaction(signed.serialize());
+
+# Wait for tranaction to be confirmed
+await connection.confirmTransaction(signature, 'confirmed');
+```
