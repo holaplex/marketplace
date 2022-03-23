@@ -1,25 +1,47 @@
 import { useEffect, useState } from 'react'
 import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
-import Head from 'next/head';
+import Head from 'next/head'
 import { Link } from 'react-router-dom'
-import WalletPortal from '../components/WalletPortal';
-import cx from 'classnames';
-import { isNil, map, prop, equals, partial, ifElse, always, length, not, when, isEmpty, apply, pipe, sum } from 'ramda'
-import { truncateAddress } from '../modules/address';
-import { useWallet } from '@solana/wallet-adapter-react';
+
+import WalletPortal from '../components/WalletPortal'
+import cx from 'classnames'
+import {
+  isNil,
+  map,
+  prop,
+  equals,
+  partial,
+  ifElse,
+  always,
+  length,
+  not,
+  when,
+  isEmpty,
+  apply,
+  pipe,
+  sum,
+} from 'ramda'
+import { truncateAddress } from '../modules/address'
+import { useWallet } from '@solana/wallet-adapter-react'
 import { AppProps } from 'next/app'
 import { useForm, Controller } from 'react-hook-form'
-import client from '../client';
-import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter } from '../types.d';
-import { List } from './../components/List';
-import { NftCard } from './../components/NftCard';
-import Button, { ButtonSize } from '../components/Button';
-import { Filter } from 'react-feather';
-import { useSidebar } from '../hooks/sidebar';
-import { useRouter } from 'next/router';
+import client from '../client'
+import {
+  Marketplace,
+  Creator,
+  Nft,
+  PresetNftFilter,
+  AttributeFilter,
+} from '../types.d'
+import { List } from './../components/List'
+import { NftCard } from './../components/NftCard'
+import Button, { ButtonSize } from '../components/Button'
+import { Filter } from 'react-feather'
+import { useSidebar } from '../hooks/sidebar'
+import { useRouter } from 'next/router'
 
-const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN;
+const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
 interface GetNftsData {
   nfts: Nft[]
@@ -27,8 +49,20 @@ interface GetNftsData {
 }
 
 const GET_NFTS = gql`
-  query GetNfts($creators: [PublicKey!]!, $owners: [PublicKey!], $listed: [PublicKey!], $limit: Int!, $offset: Int!) {
-    nfts(creators: $creators, owners: $owners, listed: $listed, limit: $limit, offset: $offset) {
+  query GetNfts(
+    $creators: [PublicKey!]!
+    $owners: [PublicKey!]
+    $listed: [PublicKey!]
+    $limit: Int!
+    $offset: Int!
+  ) {
+    nfts(
+      creators: $creators
+      owners: $owners
+      listed: $listed
+      limit: $limit
+      offset: $offset
+    ) {
       address
       name
       description
@@ -64,10 +98,10 @@ const GET_CREATORS_PREVIEW = gql`
       }
     }
   }
-`;
+`
 
 export async function getServerSideProps({ req }: NextPageContext) {
-  const subdomain = req?.headers['x-holaplex-subdomain'];
+  const subdomain = req?.headers['x-holaplex-subdomain']
 
   const response = await client.query<GetMarketplace>({
     fetchPolicy: 'no-cache',
@@ -104,11 +138,13 @@ export async function getServerSideProps({ req }: NextPageContext) {
       }
     `,
     variables: {
-      subdomain: (subdomain || SUBDOMAIN),
+      subdomain: subdomain || SUBDOMAIN,
     },
-  });
+  })
 
-  const { data: { marketplace } } = response;
+  const {
+    data: { marketplace },
+  } = response
 
   if (isNil(marketplace)) {
     return {
@@ -120,8 +156,8 @@ export async function getServerSideProps({ req }: NextPageContext) {
     return {
       redirect: {
         permanent: false,
-        destination: `/collections/${marketplace.creators[0].creatorAddress}`
-      }
+        destination: `/collections/${marketplace.creators[0].creatorAddress}`,
+      },
     }
   }
 
@@ -137,7 +173,7 @@ interface GetMarketplace {
 }
 
 interface GetCreatorPreviews {
-  marketplace: Marketplace;
+  marketplace: Marketplace
 }
 
 interface HomePageProps extends AppProps {
@@ -145,53 +181,54 @@ interface HomePageProps extends AppProps {
 }
 
 interface NftFilterForm {
-  attributes: AttributeFilter[];
-  preset: PresetNftFilter;
+  attributes: AttributeFilter[]
+  preset: PresetNftFilter
 }
 
 const Home: NextPage<HomePageProps> = ({ marketplace }) => {
-  const { publicKey, connected } = useWallet();
-  const router = useRouter();
-  const creators = map(prop('creatorAddress'))(marketplace.creators);
+  const { publicKey, connected } = useWallet()
+  const router = useRouter()
+  const creators = map(prop('creatorAddress'))(marketplace.creators)
 
-  const { data, loading, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
-    fetchPolicy: 'network-only',
-    variables: {
-      creators,
-      offset: 0,
-      limit: 24,
-    },
-  });
+  const { data, loading, refetch, fetchMore, variables } =
+    useQuery<GetNftsData>(GET_NFTS, {
+      fetchPolicy: 'network-only',
+      variables: {
+        creators,
+        offset: 0,
+        limit: 24,
+      },
+    })
 
   const creatorsQuery = useQuery<GetCreatorPreviews>(GET_CREATORS_PREVIEW, {
     variables: {
       subdomain: marketplace.subdomain,
-    }
+    },
   })
 
-  const { sidebarOpen, toggleSidebar } = useSidebar();
+  const { sidebarOpen, toggleSidebar } = useSidebar()
 
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(true)
 
   const { watch, control } = useForm<NftFilterForm>({
-    defaultValues: { preset: PresetNftFilter.All }
-  });
+    defaultValues: { preset: PresetNftFilter.All },
+  })
 
   useEffect(() => {
     const subscription = watch(({ preset }) => {
-      const pubkey = publicKey?.toBase58();
+      const pubkey = publicKey?.toBase58()
 
       const owners = ifElse(
         equals(PresetNftFilter.Owned),
         always([pubkey]),
-        always(null),
-      )(preset as PresetNftFilter);
+        always(null)
+      )(preset as PresetNftFilter)
 
       const listed = ifElse(
         equals(PresetNftFilter.Listed),
         always([marketplace.auctionHouse.address]),
-        always(null),
-      )(preset as PresetNftFilter);
+        always(null)
+      )(preset as PresetNftFilter)
 
       refetch({
         creators,
@@ -199,36 +236,46 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         listed,
         offset: 0,
       }).then(({ data: { nfts } }) => {
-        pipe(pipe(length, equals(variables?.limit)), setHasMore)(nfts);
-      });
+        pipe(pipe(length, equals(variables?.limit)), setHasMore)(nfts)
+      })
     })
     return () => subscription.unsubscribe()
-  }, [watch, publicKey, marketplace, refetch, creators, variables?.limit]);
+  }, [watch, publicKey, marketplace, refetch, creators, variables?.limit])
 
   return (
-    <div className='flex flex-col items-center text-white bg-gray-900'>
+    <div className="flex flex-col items-center text-white bg-gray-900">
       <Head>
-        <title>
-          {marketplace.name}
-        </title>
+        <title>{marketplace.name}</title>
         <link rel="icon" href={marketplace.logoUrl} />
       </Head>
-      <div className='relative w-full'>
-        <div className="absolute right-6 top-[25px]">
-          <WalletPortal />
+      <div className="relative w-full">
+        <div className="absolute flex justify-end right-6 top-[28px]">
+          <div className="flex items-center justify-end">
+            {equals(publicKey?.toBase58(), marketplace.auctionHouse.authority) && (
+              <Link to="/admin/marketplace/edit" className="text-sm cursor-pointer mr-6 hover:underline ">
+                Admin Dashboard
+              </Link>
+            )}
+            <WalletPortal />
+          </div>
         </div>
-        <img src={marketplace.bannerUrl} alt={marketplace.name} className='object-cover w-full h-80' />
+        <img
+          src={marketplace.bannerUrl}
+          alt={marketplace.name}
+          className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
+        />
       </div>
-      <div className='w-full max-w-[1800px] px-8'>
-        <div className='relative flex flex-col justify-between w-full mt-20 mb-20'>
+      <div className="w-full max-w-[1800px] px-8">
+        <div className="relative flex flex-col justify-between w-full mt-20 mb-20">
           <img
             src={marketplace.logoUrl}
             alt={marketplace.name}
-            className='absolute border-4 border-gray-900 bg-gray-900 rounded-full w-28 h-28 -top-32'
+            className="absolute border-4 object-cover border-gray-900 bg-gray-900 rounded-full w-28 h-28 -top-32"
           />
           <h1>{marketplace.name}</h1>
-          <p className='mt-4 max-w-prose'>{marketplace.description}</p>
+          <p className="mt-4 max-w-prose">{marketplace.description}</p>
         </div>
+
         <h2 className="mb-2">Collections</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-20">
           {creatorsQuery.loading ? (
@@ -242,7 +289,6 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 <div className="bg-gray-800 h-6 w-24 block" />
               </div>
               <div>
-
                 <div className="flex flex-grid mb-2">
                   <div className="bg-gray-800 w-1/3 aspect-square" />
                   <div className="bg-gray-800 w-1/3 aspect-square" />
@@ -252,7 +298,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               </div>
             </>
           ) : (
-            creatorsQuery.data?.marketplace.creators.map(creator => {
+            creatorsQuery.data?.marketplace.creators.map((creator) => {
               return (
                 <Link
                   key={creator.storeConfigAddress}
@@ -277,21 +323,23 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
             })
           )}
         </div>
-        <div className='flex'>
+        <div className="flex">
           <div className="relative">
-            <div className={cx(
-              'fixed top-0 right-0 bottom-0 left-0 z-10 bg-gray-900 flex-row flex-none space-y-2 sm:sticky sm:block sm:w-80 sm:mr-10  overflow-auto h-screen',
-              {
-                'hidden': not(sidebarOpen),
-              }
-            )}>
+            <div
+              className={cx(
+                'fixed top-0 right-0 bottom-0 left-0 z-10 bg-gray-900 flex-row flex-none space-y-2 sm:sticky sm:block sm:w-80 sm:mr-10  overflow-auto h-screen',
+                {
+                  hidden: not(sidebarOpen),
+                }
+              )}
+            >
               <form
-                onSubmit={e => {
+                onSubmit={(e) => {
                   e.preventDefault()
                 }}
-                className='py-4 px-4 sm:px-0'
+                className="py-4 px-4 sm:px-0"
               >
-                <ul className='flex flex-col flex-grow mb-6'>
+                <ul className="flex flex-col flex-grow mb-6">
                   <li>
                     <Controller
                       control={control}
@@ -299,12 +347,12 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                       render={({ field: { value, onChange } }) => (
                         <label
                           htmlFor="preset-all"
-                          className={
-                            cx(
-                              "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
-                              { "bg-gray-800": equals(PresetNftFilter.All, value) }
-                            )
-                          }
+                          className={cx(
+                            'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                            {
+                              'bg-gray-800': equals(PresetNftFilter.All, value),
+                            }
+                          )}
                         >
                           <input
                             onChange={onChange}
@@ -326,12 +374,15 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                       render={({ field: { value, onChange } }) => (
                         <label
                           htmlFor="preset-listed"
-                          className={
-                            cx(
-                              "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
-                              { "bg-gray-800": equals(PresetNftFilter.Listed, value) }
-                            )
-                          }
+                          className={cx(
+                            'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                            {
+                              'bg-gray-800': equals(
+                                PresetNftFilter.Listed,
+                                value
+                              ),
+                            }
+                          )}
                         >
                           <input
                             onChange={onChange}
@@ -354,12 +405,15 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                         render={({ field: { value, onChange } }) => (
                           <label
                             htmlFor="preset-owned"
-                            className={
-                              cx(
-                                "flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800",
-                                { "bg-gray-800": equals(PresetNftFilter.Owned, value) }
-                              )
-                            }
+                            className={cx(
+                              'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                              {
+                                'bg-gray-800': equals(
+                                  PresetNftFilter.Owned,
+                                  value
+                                ),
+                              }
+                            )}
                           >
                             <input
                               onChange={onChange}
@@ -371,7 +425,6 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                             />
                             Owned by me
                           </label>
-
                         )}
                       />
                     </li>
@@ -380,7 +433,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               </form>
             </div>
           </div>
-          <div className='grow'>
+          <div className="grow">
             <List
               data={data?.nfts}
               loading={loading}
@@ -388,27 +441,28 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               hasMore={hasMore}
               onLoadMore={async (inView) => {
                 if (not(inView)) {
-                  return;
+                  return
                 }
 
-                const { data: { nfts } } = await fetchMore({
+                const {
+                  data: { nfts },
+                } = await fetchMore({
                   variables: {
                     ...variables,
                     offset: length(data?.nfts || []),
-                  }
-                });
+                  },
+                })
 
-                when(
-                  isEmpty,
-                  partial(setHasMore, [false])
-                )(nfts);
+                when(isEmpty, partial(setHasMore, [false]))(nfts)
               }}
-              emptyComponent={(
-                <div className='w-full p-10 text-center border border-gray-800 rounded-lg'>
+              emptyComponent={
+                <div className="w-full p-10 text-center border border-gray-800 rounded-lg">
                   <h3>No NFTs found</h3>
-                  <p className='text-gray-500 mt-'>No NFTs found matching these criteria.</p>
+                  <p className="text-gray-500 mt-">
+                    No NFTs found matching these criteria.
+                  </p>
                 </div>
-              )}
+              }
               itemRender={(nft) => {
                 return (
                   <Link to={`/nfts/${nft.address}`} key={nft.address}>
