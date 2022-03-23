@@ -31,13 +31,13 @@ const WalletPortal = () => {
     or(connected, isLoading) ? (
       <Popover.Root>
         <Popover.Trigger>
-          <div className="w-12 h-12 rounded-full bg-gray-800">
+          <div className="block w-12 h-12 rounded-full bg-gray-800">
             {not(isLoading) && (
               <div className="user-avatar h-[48px] w-[48px]" />
             )}
           </div>
+          <Popover.Anchor />
         </Popover.Trigger>
-        <Popover.Anchor />
         <Popover.Content className="bg-gray-800 p-4 text-white">
           <Popover.Arrow className="fill-gray-800" />
           <div className="flex items-center mb-6">
