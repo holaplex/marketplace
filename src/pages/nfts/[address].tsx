@@ -116,14 +116,14 @@ const GET_NFT = gql`
         createdAt
         canceledAt
       }
-      # purchases {
-      #   address
-      #   buyer
-      #   seller
-      #   auctionHouse
-      #   price
-      #   createdAt
-      # }
+      purchases {
+        address
+        buyer
+        seller
+        auctionHouse
+        price
+        createdAt
+      }
     }
   }
 `
