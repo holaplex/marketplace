@@ -537,16 +537,29 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       </Head>
       <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
         <Link to="/">
-          <button className="flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 rounded-full align h-14 hover:bg-gray-600">
+          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600">
             <img
               className="w-8 h-8 rounded-full aspect-square"
               src={marketplace.logoUrl}
             />
-            {marketplace.name}
+            <div className="hidden sm:block">{marketplace.name}</div>
           </button>
         </Link>
         <div className="block">
-          <WalletPortal />
+          <div className="flex items-center justify-end">
+            {equals(
+              publicKey?.toBase58(),
+              marketplace.auctionHouse.authority
+            ) && (
+              <Link
+                to="/admin/marketplace/edit"
+                className="text-sm cursor-pointer mr-6 hover:underline "
+              >
+                Admin Dashboard
+              </Link>
+            )}
+            <WalletPortal />
+          </div>
         </div>
       </div>
       <div className="container px-4 pb-10 mx-auto text-white">

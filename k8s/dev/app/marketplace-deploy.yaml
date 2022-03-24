@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: marketplace
-        image: 011737333588.dkr.ecr.us-east-1.amazonaws.com/marketplace:dev-9bf0d46
+        image: 011737333588.dkr.ecr.us-east-1.amazonaws.com/marketplace:dev-b1f463c
         env:
         - name: NEXT_PUBLIC_GRAPHQL_ENDPOINT
           value: https://graph-test.holaplex.com/v0
@@ -107,7 +107,7 @@ spec:
     targetPort: 80
   - name: https
     port: 443
-    targetPort: 80
+    targetPort: 8080
   type: LoadBalancer
 ---
 apiVersion: v1
@@ -121,13 +121,16 @@ data:
    }
    server {
      listen ${PORT};
-
+     server_name ~^(?<subdomain>\w+)\.${HOSTNAME}$;
+     return 301 https://$subdomain.${HOSTNAME}$request_uri;
+   }
+   server {
+     listen 8080;
      server_name ~^(?<subdomain>\w+)\.${HOSTNAME}$;
 
      location / {
      proxy_set_header X-Holaplex-Subdomain $subdomain;
 
-     #proxy_pass http://${PROXY_HOST}:${WEB_PORT};
      proxy_pass http://marketplace;
      }
    }

@@ -260,21 +260,28 @@ const CollectionShow: NextPage<CollectionPageProps> = ({ marketplace, creator })
       </Head>
       <div className='relative w-full'>
         <Link to='/' className="absolute top-6 left-6">
-            <button className='flex items-center justify-between gap-2 px-4 py-2 bg-gray-800 rounded-full align h-14 hover:bg-gray-600'>
-              <img
-                className='w-8 h-8 rounded-full aspect-square'
-                src={marketplace.logoUrl}
-              />
-              {marketplace.name}
-            </button>
+          <button className='flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600'>
+            <img
+              className='w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square'
+              src={marketplace.logoUrl}
+            />
+            <div className="hidden sm:block">{marketplace.name}</div>
+          </button>
         </Link>
-        <div className="absolute right-6 top-[25px]">
-          <WalletPortal />
+        <div className="absolute flex justify-end right-6 top-[28px]">
+          <div className="flex items-center justify-end">
+            {equals(publicKey?.toBase58(), marketplace.auctionHouse.authority) && (
+              <Link to="/admin/marketplace/edit" className="text-sm cursor-pointer mr-6 hover:underline ">
+                Admin Dashboard
+              </Link>
+            )}
+            <WalletPortal />
+          </div>
         </div>
         <img
           src={marketplace.bannerUrl}
           alt={marketplace.name}
-          className="object-cover w-full h-80"
+          className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
         />
       </div>
       <div className="w-full max-w-[1800px] px-8">
@@ -282,7 +289,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({ marketplace, creator })
           <img
             src={marketplace.logoUrl}
             alt={marketplace.name}
-            className='absolute border-4 bg-gray-900 border-gray-900 rounded-full w-28 h-28 -top-32'
+            className='absolute border-4 bg-gray-900 object-cover border-gray-900 rounded-full w-28 h-28 -top-32'
           />
           <h1>{truncateAddress(router.query?.collection as string)}</h1>
         </div>

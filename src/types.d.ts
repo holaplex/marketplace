@@ -123,6 +123,11 @@ export interface Viewer extends GraphQLObject {
   balance: number
 }
 
+export enum PresetEditFilter {
+  Marketplace = 'Marketplace',
+  Creators = 'Creators',
+}
+
 export interface Activity {
   event: string
   fromWallet: string
