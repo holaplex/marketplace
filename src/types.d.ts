@@ -84,6 +84,15 @@ export interface Listing {
   canceledAt: string
 }
 
+export interface Purchase {
+  address: string
+  buyer: string
+  seller: string
+  auctionHouse: string
+  price: BN
+  createdAt: string
+}
+
 export interface Offer {
   address: string
   buyer: string
@@ -104,6 +113,7 @@ export interface Nft extends KeyType {
   creators: UserWallet[]
   owner: UserWallet
   listings: Listing[]
+  purchases: Purchase[]
   offers: Offer[]
 }
 
@@ -128,8 +138,12 @@ export enum PresetEditFilter {
   Creators = 'Creators',
 }
 
+export enum ActivityType {
+  Listed = 'Listed',
+  Sold = 'Sold',
+}
 export interface Activity {
-  event: string
+  type: ActivityType
   fromWallet: string
   toWallet?: string
   price: BN
