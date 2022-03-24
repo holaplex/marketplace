@@ -325,7 +325,10 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
             alt={marketplace.name}
             className="absolute border-4 bg-gray-900 object-cover border-gray-900 rounded-full w-28 h-28 -top-32"
           />
-          <h1>{truncateAddress(router.query?.collection as string)}</h1>
+          <h2 className="text-sm text-gray-300"
+          >{truncateAddress(router.query?.collection as string)}</h2>
+          <h1 className="mb-4">{marketplace.name}</h1>
+          <p>{marketplace.description}</p>
         </div>
         <div className="flex">
           <div className="relative">
