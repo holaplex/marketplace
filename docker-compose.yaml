@@ -1,13 +1,13 @@
-version: "3.9"
+version: '3.9'
 services:
   proxy:
     volumes:
-    - ./templates:/etc/nginx/templates
+      - ./templates:/etc/nginx/templates
     image: nginx
     ports:
       - 8081:4000
     environment:
-    - HOSTNAME=localhost
-    - PORT=4000
-    - WEB_PORT=8080
-    - PROXY_HOST=host.docker.internal
+      - HOSTNAME=localhost
+      - PORT=4000
+      - WEB_PORT=8080
+      - PROXY_HOST=host.docker.internal

@@ -1,6 +1,6 @@
-import { TailSpin } from 'react-loader-spinner';
-import cx from 'classnames';
-import { cond, equals, always, not } from 'ramda';
+import { TailSpin } from 'react-loader-spinner'
+import cx from 'classnames'
+import { cond, equals, always, not } from 'ramda'
 
 export enum ButtonType {
   Primary = 'primary',
@@ -11,26 +11,26 @@ export enum ButtonType {
 export enum ButtonSize {
   Small = 'sm',
   Large = 'lg',
-};
-
-interface ButtonProps {
-  children?: any;
-  htmlType?: 'button' | 'submit' | 'reset' | undefined;
-  size?: ButtonSize;
-  block?: boolean;
-  type?: ButtonType;
-  disabled?: boolean;
-  loading?: boolean;
-  icon?: React.ReactElement;
-  className?: string;
-  onClick?: () => any;
 }
 
-const isPrimary = equals(ButtonType.Primary);
-const isSecondary = equals(ButtonType.Secondary);
-const isTertiary = equals(ButtonType.Tertiary);
-const isLarge = equals(ButtonSize.Large);
-const isSmall = equals(ButtonSize.Small);
+interface ButtonProps {
+  children?: any
+  htmlType?: 'button' | 'submit' | 'reset' | undefined
+  size?: ButtonSize
+  block?: boolean
+  type?: ButtonType
+  disabled?: boolean
+  loading?: boolean
+  icon?: React.ReactElement
+  className?: string
+  onClick?: () => any
+}
+
+const isPrimary = equals(ButtonType.Primary)
+const isSecondary = equals(ButtonType.Secondary)
+const isTertiary = equals(ButtonType.Tertiary)
+const isLarge = equals(ButtonSize.Large)
+const isSmall = equals(ButtonSize.Small)
 
 const Button = ({
   children,
@@ -64,24 +64,22 @@ const Button = ({
       type={htmlType}
       onClick={onClick}
     >
-        {loading && (
-          <TailSpin
-            height="20px"
-            width="20px"
-            color={cond(
-              [
-                [isPrimary, always("grey")],
-                [isSecondary, always("white")],
-              ]
-              )(type)}
-            ariaLabel="loading"
-            wrapperClass="inline aspect-square mr-1"
-          />
-        )}
-        {icon && icon}
-        {children}
+      {loading && (
+        <TailSpin
+          height="20px"
+          width="20px"
+          color={cond([
+            [isPrimary, always('grey')],
+            [isSecondary, always('white')],
+          ])(type)}
+          ariaLabel="loading"
+          wrapperClass="inline aspect-square mr-1"
+        />
+      )}
+      {icon && icon}
+      {children}
     </button>
-  );
-};
+  )
+}
 
-export default Button;
+export default Button
