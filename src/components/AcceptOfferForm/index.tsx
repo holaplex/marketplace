@@ -6,7 +6,7 @@ import {
   Transaction,
   PublicKey,
   SYSVAR_INSTRUCTIONS_PUBKEY,
-  TransactionInstruction
+  TransactionInstruction,
 } from '@solana/web3.js'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { Marketplace, Nft, Offer } from '../../types'
@@ -18,7 +18,9 @@ interface AcceptOfferFormProps {
   offer: Offer
   nft?: Nft
   marketplace: Marketplace
-  refetch: (variables?: Partial<OperationVariables> | undefined) => Promise<ApolloQueryResult<_>>;
+  refetch: (
+    variables?: Partial<OperationVariables> | undefined
+  ) => Promise<ApolloQueryResult<_>>
 }
 
 const {
@@ -28,10 +30,18 @@ const {
   createPrintPurchaseReceiptInstruction,
 } = AuctionHouseProgram.instructions
 
-const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormProps) => {
+const AcceptOfferForm = ({
+  offer,
+  nft,
+  marketplace,
+  refetch,
+}: AcceptOfferFormProps) => {
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
-  const { formState: { isSubmitting }, handleSubmit } = useForm()
+  const {
+    formState: { isSubmitting },
+    handleSubmit,
+  } = useForm()
 
   const acceptOfferTransaction = async () => {
     if (!publicKey || !signTransaction || !offer || !nft) {
@@ -47,84 +57,72 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
     const auctionHouseTreasury = new PublicKey(
       marketplace.auctionHouse.auctionHouseTreasury
     )
-    const [
-      tokenAccount,
-    ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-      tokenMint,
-      new PublicKey(nft.owner.address)
-    )
+    const [tokenAccount] =
+      await AuctionHouseProgram.findAssociatedTokenAccountAddress(
+        tokenMint,
+        new PublicKey(nft.owner.address)
+      )
 
     const bidReceipt = new PublicKey(offer.address)
     const buyerPubkey = new PublicKey(offer.buyer)
 
-
     const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
 
-    const [
-      sellerTradeState,
-      sellerTradeStateBump
-    ] = await AuctionHouseProgram.findTradeStateAddress(
-      publicKey,
-      auctionHouse,
-      tokenAccount,
-      treasuryMint,
-      tokenMint,
-      offer.price,
-      1
-    )
+    const [sellerTradeState, sellerTradeStateBump] =
+      await AuctionHouseProgram.findTradeStateAddress(
+        publicKey,
+        auctionHouse,
+        tokenAccount,
+        treasuryMint,
+        tokenMint,
+        offer.price,
+        1
+      )
 
-    const [
-      buyerTradeState,
-    ] = await AuctionHouseProgram.findPublicBidTradeStateAddress(
-      buyerPubkey,
-      auctionHouse,
-      treasuryMint,
-      tokenMint,
-      offer.price,
-      1
-    )
+    const [buyerTradeState] =
+      await AuctionHouseProgram.findPublicBidTradeStateAddress(
+        buyerPubkey,
+        auctionHouse,
+        treasuryMint,
+        tokenMint,
+        offer.price,
+        1
+      )
 
-    const [
-      purchaseReceipt,
-      purchaseReceiptBump
-    ] = await AuctionHouseProgram.findPurchaseReceiptAddress(sellerTradeState,buyerTradeState)
-    
+    const [purchaseReceipt, purchaseReceiptBump] =
+      await AuctionHouseProgram.findPurchaseReceiptAddress(
+        sellerTradeState,
+        buyerTradeState
+      )
 
+    const [escrowPaymentAccount, escrowPaymentBump] =
+      await AuctionHouseProgram.findEscrowPaymentAccountAddress(
+        auctionHouse,
+        buyerPubkey
+      )
 
-    const [
-      escrowPaymentAccount,
-      escrowPaymentBump,
-    ] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(
-      auctionHouse,
-      buyerPubkey
-    )
+    const [programAsSigner, programAsSignerBump] =
+      await AuctionHouseProgram.findAuctionHouseProgramAsSignerAddress()
 
-    const [
-      programAsSigner,
-      programAsSignerBump,
-    ] = await AuctionHouseProgram.findAuctionHouseProgramAsSignerAddress()
+    const [freeTradeState, freeTradeStateBump] =
+      await AuctionHouseProgram.findTradeStateAddress(
+        publicKey,
+        auctionHouse,
+        tokenAccount,
+        treasuryMint,
+        tokenMint,
+        0,
+        1
+      )
 
-    const [
-      freeTradeState,
-      freeTradeStateBump,
-    ] = await AuctionHouseProgram.findTradeStateAddress(
-      publicKey,
-      auctionHouse,
-      tokenAccount,
-      treasuryMint,
-      tokenMint,
-      0,
-      1
-    )
+    const [buyerReceiptTokenAccount] =
+      await AuctionHouseProgram.findAssociatedTokenAccountAddress(
+        tokenMint,
+        buyerPubkey
+      )
 
-    const [
-      buyerReceiptTokenAccount,
-    ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-      tokenMint,
-      buyerPubkey,
-    )
-
-    const [listingReceipt, listingReceiptBump] = await AuctionHouseProgram.findListingReceiptAddress(sellerTradeState)
+    const [listingReceipt, listingReceiptBump] =
+      await AuctionHouseProgram.findListingReceiptAddress(sellerTradeState)
 
     const sellInstructionAccounts = {
       wallet: publicKey,
@@ -137,13 +135,13 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
       freeSellerTradeState: freeTradeState,
       programAsSigner: programAsSigner,
     }
-    
+
     const sellInstructionArgs = {
       tradeStateBump: sellerTradeStateBump,
       freeTradeStateBump: freeTradeStateBump,
       programAsSignerBump: programAsSignerBump,
       buyerPrice: offer.price,
-      tokenSize: 1
+      tokenSize: 1,
     }
 
     const printListingReceiptInstructionAccounts = {
@@ -153,7 +151,7 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
     }
 
     const printListingReceiptInstructionArgs = {
-      receiptBump: listingReceiptBump
+      receiptBump: listingReceiptBump,
     }
 
     const executeSaleInstructionAccounts = {
@@ -191,68 +189,82 @@ const AcceptOfferForm = ({ offer, nft, marketplace, refetch }: AcceptOfferFormPr
     }
 
     const executePrintPurchaseReceiptInstructionArgs = {
-      purchaseReceiptBump: purchaseReceiptBump
+      purchaseReceiptBump: purchaseReceiptBump,
     }
 
-
-    const createListingInstruction = createSellInstruction(sellInstructionAccounts, sellInstructionArgs)
-    const createPrintListingInstruction = createPrintListingReceiptInstruction(printListingReceiptInstructionAccounts, printListingReceiptInstructionArgs)
-    const executeSaleInstruction = createExecuteSaleInstruction(executeSaleInstructionAccounts, executeSaleInstructionArgs)
-    const executePrintPurchaseReceiptInstruction = createPrintPurchaseReceiptInstruction(executePrintPurchaseReceiptInstructionAccounts,executePrintPurchaseReceiptInstructionArgs)
+    const createListingInstruction = createSellInstruction(
+      sellInstructionAccounts,
+      sellInstructionArgs
+    )
+    const createPrintListingInstruction = createPrintListingReceiptInstruction(
+      printListingReceiptInstructionAccounts,
+      printListingReceiptInstructionArgs
+    )
+    const executeSaleInstruction = createExecuteSaleInstruction(
+      executeSaleInstructionAccounts,
+      executeSaleInstructionArgs
+    )
+    const executePrintPurchaseReceiptInstruction =
+      createPrintPurchaseReceiptInstruction(
+        executePrintPurchaseReceiptInstructionAccounts,
+        executePrintPurchaseReceiptInstructionArgs
+      )
 
     const txt = new Transaction()
 
     txt
-    .add(createListingInstruction)
-    .add(createPrintListingInstruction)
-    .add(new TransactionInstruction({
-      programId: AuctionHouseProgram.PUBKEY,
-      data: executeSaleInstruction.data,
-      keys: concat(
-        executeSaleInstruction.keys,
-        nft.creators.map(creator => ({ pubkey: new PublicKey(creator.address), isSigner: false, isWritable: true }))
+      .add(createListingInstruction)
+      .add(createPrintListingInstruction)
+      .add(
+        new TransactionInstruction({
+          programId: AuctionHouseProgram.PUBKEY,
+          data: executeSaleInstruction.data,
+          keys: concat(
+            executeSaleInstruction.keys,
+            nft.creators.map((creator) => ({
+              pubkey: new PublicKey(creator.address),
+              isSigner: false,
+              isWritable: true,
+            }))
+          ),
+        })
       )
-    }))
-    .add(executePrintPurchaseReceiptInstruction)
+      .add(executePrintPurchaseReceiptInstruction)
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    let signed: Transaction | undefined = undefined;
+    let signed: Transaction | undefined = undefined
 
     try {
-      signed = await signTransaction(txt);
+      signed = await signTransaction(txt)
     } catch (e: any) {
-      toast.error(e.message);
-      return;
+      toast.error(e.message)
+      return
     }
 
-    let signature: string | undefined = undefined;
+    let signature: string | undefined = undefined
 
     try {
-      toast('Sending the transaction to Solana.');
+      toast('Sending the transaction to Solana.')
 
-      signature = await connection.sendRawTransaction(signed.serialize());
+      signature = await connection.sendRawTransaction(signed.serialize())
 
-      
+      await connection.confirmTransaction(signature, 'confirmed')
 
-      await connection.confirmTransaction(signature, 'confirmed');
+      await refetch()
 
-      await refetch();
-
-      toast.success('The transaction was confirmed.');
-    } catch(e: any) {
-      toast.error(e.message);
+      toast.success('The transaction was confirmed.')
+    } catch (e: any) {
+      toast.error(e.message)
     }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(acceptOfferTransaction)}
-    >
+    <form onSubmit={handleSubmit(acceptOfferTransaction)}>
       <Button
         loading={isSubmitting}
-        htmlType='submit'
+        htmlType="submit"
         size={ButtonSize.Small}
         type={ButtonType.Primary}
       >

@@ -2,22 +2,19 @@ import { useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
-import { Image as ImageIcon, User  } from 'react-feather';
-import {
-  useConnection,
-  useWallet,
-} from '@solana/wallet-adapter-react'
+import { Image as ImageIcon, User } from 'react-feather'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import client from './../../../client'
 import WalletPortal from './../../../../src/components/WalletPortal'
 import { Link } from 'react-router-dom'
-import Button, { ButtonSize, ButtonType } from '../../../components/Button';
+import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 import { truncateAddress } from '../../../modules/address'
-import { initMarketplaceSDK } from './../../../modules/marketplace';
+import { initMarketplaceSDK } from './../../../modules/marketplace'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -83,28 +80,28 @@ export async function getServerSideProps({ req }: NextPageContext) {
 }
 
 interface AdminEditCreatorsProps extends AppProps {
-  marketplace: Marketplace;
+  marketplace: Marketplace
 }
 
 interface MarketplaceForm {
-  domain: string;
-  logo: { uri: string, type?: string, name?: string };
-  banner: { uri: string, type?: string, name?: string };
-  subdomain: string;
-  name: string;
-  description: string;
-  transactionFee: number;
-  creators: { address: string }[];
-  creator: string;
+  domain: string
+  logo: { uri: string; type?: string; name?: string }
+  banner: { uri: string; type?: string; name?: string }
+  subdomain: string
+  name: string
+  description: string
+  transactionFee: number
+  creators: { address: string }[]
+  creator: string
 }
 
 const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
-  const wallet = useWallet();
-  const { publicKey, signTransaction } = wallet;
-  const { connection } = useConnection();
-  const login = useLogin();
+  const wallet = useWallet()
+  const { publicKey, signTransaction } = wallet
+  const { connection } = useConnection()
+  const login = useLogin()
 
-  const [showAdd, setShowAdd] = useState(false);
+  const [showAdd, setShowAdd] = useState(false)
 
   const {
     register,
@@ -119,27 +116,38 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
       subdomain: marketplace.subdomain,
       name: marketplace.name,
       description: marketplace.description,
-      creators: marketplace.creators.map(({ creatorAddress }) => ({ address: creatorAddress })),
+      creators: marketplace.creators.map(({ creatorAddress }) => ({
+        address: creatorAddress,
+      })),
       transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,
       creator: '',
     },
-  });
+  })
 
-  const { fields, append, prepend, remove, swap, move, insert } = useFieldArray({
-    control,
-    name: "creators",
-  });
+  const { fields, append, prepend, remove, swap, move, insert } = useFieldArray(
+    {
+      control,
+      name: 'creators',
+    }
+  )
 
-  const onSubmit = async ({ name, banner, logo, description, transactionFee, creators }: MarketplaceForm) => {
+  const onSubmit = async ({
+    name,
+    banner,
+    logo,
+    description,
+    transactionFee,
+    creators,
+  }: MarketplaceForm) => {
     if (!publicKey || !signTransaction || !wallet) {
-      toast.error('Wallet not connected');
+      toast.error('Wallet not connected')
 
-      login();
+      login()
 
-      return;
+      return
     }
 
-    const client = initMarketplaceSDK(connection, wallet);
+    const client = initMarketplaceSDK(connection, wallet)
 
     toast('Saving changes...')
 
@@ -168,22 +176,27 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
     }
 
     try {
-      await client.update(settings, transactionFee);
+      await client.update(settings, transactionFee)
 
-      toast.success(<>Marketplace updated successfully! It may take a few moments for the change to go live.</>, { autoClose: 5000 })
-
+      toast.success(
+        <>
+          Marketplace updated successfully! It may take a few moments for the
+          change to go live.
+        </>,
+        { autoClose: 5000 }
+      )
     } catch (e: any) {
-      toast.error(e.message);
+      toast.error(e.message)
     }
   }
 
   return (
     <div className="flex flex-col items-center text-white bg-gray-900">
-      <div className='fixed top-0 z-10 flex items-center w-full justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow'>
-        <Link to='/'>
-          <button className='flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600'>
+      <div className="fixed top-0 z-10 flex items-center w-full justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
+        <Link to="/">
+          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600">
             <img
-              className='w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square'
+              className="w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
               src={marketplace.logoUrl}
             />
             <div className="hidden sm:block">{marketplace.name}</div>
@@ -212,15 +225,19 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
         </div>
         <div className="flex flex-col md:flex-row">
           <div className="flex-col md:mr-10 space-y-2 md:w-80 sm:block">
-            <div
-              className="sticky top-0 max-h-screen py-4 overflow-auto"
-            >
+            <div className="sticky top-0 max-h-screen py-4 overflow-auto">
               <ul className="flex flex-col flex-grow gap-2">
                 <li className="block p-2 rounded">
-                  <Link className="w-full flex flex-row items-center" to="/admin/marketplace/edit"><ImageIcon color="white" className="mr-1" size="1rem" /> Marketplace</Link>
+                  <Link
+                    className="w-full flex flex-row items-center"
+                    to="/admin/marketplace/edit"
+                  >
+                    <ImageIcon color="white" className="mr-1" size="1rem" />{' '}
+                    Marketplace
+                  </Link>
                 </li>
                 <li className="flex flex-row items-center bg-gray-800 p-2 rounded">
-                <User color="white" className="mr-1" size="1rem" /> Creators
+                  <User color="white" className="mr-1" size="1rem" /> Creators
                 </li>
               </ul>
             </div>
@@ -230,7 +247,10 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
               <div className="grid grid-cols-12 mb-10 md:mb-0 md:flex-row items-start md:justify-between">
                 <div className="w-full mb-4 col-span-full md:col-span-8 lg:col-span-10">
                   <h2>Creators</h2>
-                  <p className="text-gray-300">Manage the creators whose work will be available on your marketplace.</p>
+                  <p className="text-gray-300">
+                    Manage the creators whose work will be available on your
+                    marketplace.
+                  </p>
                 </div>
                 <div className="flex col-span-full md:col-span-4 lg:col-span-2 justify-end">
                   <Button
@@ -247,21 +267,21 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                 <Controller
                   control={control}
                   name="creator"
-                  render={({
-                    field: { onChange, value },
-                  }) => {
+                  render={({ field: { onChange, value } }) => {
                     return (
                       <>
-                        <label className="block mb-2 text-lg">Add creator by wallet address</label>
+                        <label className="block mb-2 text-lg">
+                          Add creator by wallet address
+                        </label>
                         <input
                           autoFocus
                           onKeyPress={(e) => {
                             if (e.key !== 'Enter') {
-                              return;
+                              return
                             }
 
-                            append({ address: value });
-                            onChange('');
+                            append({ address: value })
+                            onChange('')
                           }}
                           placeholder="SOL wallet address"
                           className="w-full px-3 py-2 text-gray-100 text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm mb-10"
@@ -276,7 +296,10 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
               <ul className="flex flex-col max-h-screen py-4 mb-10 gap-6">
                 {fields.map((field, index) => {
                   return (
-                    <li key={field.address} className="flex w-full justify-between">
+                    <li
+                      key={field.address}
+                      className="flex w-full justify-between"
+                    >
                       {truncateAddress(field.address)}
                       <Button
                         size={ButtonSize.Small}
@@ -290,7 +313,13 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
               </ul>
               <form>
                 {isDirty && (
-                  <Button block htmlType="submit" onClick={handleSubmit(onSubmit)} disabled={isSubmitting} loading={isSubmitting}>
+                  <Button
+                    block
+                    htmlType="submit"
+                    onClick={handleSubmit(onSubmit)}
+                    disabled={isSubmitting}
+                    loading={isSubmitting}
+                  >
                     Update creators
                   </Button>
                 )}
@@ -300,7 +329,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default AdminEditCreators;
+export default AdminEditCreators

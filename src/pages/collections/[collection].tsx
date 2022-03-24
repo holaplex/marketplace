@@ -28,9 +28,16 @@ import { useRouter } from 'next/router'
 import { AppProps } from 'next/app'
 import Select from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
-import { truncateAddress } from '../../modules/address';
+import { truncateAddress } from '../../modules/address'
 import client from '../../client'
-import { Marketplace, Creator, Nft, PresetNftFilter, AttributeFilter, MarketplaceCreator } from '../../types.d';
+import {
+  Marketplace,
+  Creator,
+  Nft,
+  PresetNftFilter,
+  AttributeFilter,
+  MarketplaceCreator,
+} from '../../types.d'
 import { List } from '../../components/List'
 import { NftCard } from '../../components/NftCard'
 import Button, { ButtonSize } from '../../components/Button'
@@ -141,16 +148,19 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
       }
     `,
     variables: {
-      subdomain: (subdomain || SUBDOMAIN),
+      subdomain: subdomain || SUBDOMAIN,
       creator: query.collection,
-    }
-    ,
-  });
+    },
+  })
 
   if (
     or(
       any(isNil)([marketplace, creator]),
-      pipe(map(prop('creatorAddress')), indexOf(query.collection), equals(-1))(marketplace?.creators || [])
+      pipe(
+        map(prop('creatorAddress')),
+        indexOf(query.collection),
+        equals(-1)
+      )(marketplace?.creators || [])
     )
   ) {
     return {
@@ -167,8 +177,8 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
 }
 
 interface GetCollectionPage {
-  marketplace: Marketplace | null;
-  creator: Creator | null;
+  marketplace: Marketplace | null
+  creator: Creator | null
 }
 
 interface GetCollectionSidebarData {
@@ -185,11 +195,20 @@ interface NftFilterForm {
   preset: PresetNftFilter
 }
 
-const CollectionShow: NextPage<CollectionPageProps> = ({ marketplace, creator }) => {
-  const { publicKey, connected } = useWallet();
-  const [hasMore, setHasMore] = useState(true);
-  const router = useRouter();
-  const { data, loading: loadingNfts, refetch, fetchMore, variables } = useQuery<GetNftsData>(GET_NFTS, {
+const CollectionShow: NextPage<CollectionPageProps> = ({
+  marketplace,
+  creator,
+}) => {
+  const { publicKey, connected } = useWallet()
+  const [hasMore, setHasMore] = useState(true)
+  const router = useRouter()
+  const {
+    data,
+    loading: loadingNfts,
+    refetch,
+    fetchMore,
+    variables,
+  } = useQuery<GetNftsData>(GET_NFTS, {
     fetchPolicy: 'network-only',
     variables: {
       creators: [router.query.collection],
@@ -198,11 +217,12 @@ const CollectionShow: NextPage<CollectionPageProps> = ({ marketplace, creator })
     },
   })
 
-  const { data: sidebar, loading: loadingSidebar } = useQuery<GetCollectionSidebarData>(GET_SIDEBAR, {
-    variables: {
-      creator: router.query.collection,
-    }
-  });
+  const { data: sidebar, loading: loadingSidebar } =
+    useQuery<GetCollectionSidebarData>(GET_SIDEBAR, {
+      variables: {
+        creator: router.query.collection,
+      },
+    })
 
   const { sidebarOpen, toggleSidebar } = useSidebar()
 
@@ -243,8 +263,15 @@ const CollectionShow: NextPage<CollectionPageProps> = ({ marketplace, creator })
       })
     })
     return () => subscription.unsubscribe()
-  }, [watch, publicKey, marketplace, refetch, variables?.limit, router.query.collection, creator]);
-
+  }, [
+    watch,
+    publicKey,
+    marketplace,
+    refetch,
+    variables?.limit,
+    router.query.collection,
+    creator,
+  ])
 
   return (
     <div
@@ -254,15 +281,16 @@ const CollectionShow: NextPage<CollectionPageProps> = ({ marketplace, creator })
     >
       <Head>
         <title>
-          {truncateAddress(router.query?.collection as string)} NFT Collection | {marketplace.name}
+          {truncateAddress(router.query?.collection as string)} NFT Collection |{' '}
+          {marketplace.name}
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
       </Head>
-      <div className='relative w-full'>
-        <Link to='/' className="absolute top-6 left-6">
-          <button className='flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600'>
+      <div className="relative w-full">
+        <Link to="/" className="absolute top-6 left-6">
+          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600">
             <img
-              className='w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square'
+              className="w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
               src={marketplace.logoUrl}
             />
             <div className="hidden sm:block">{marketplace.name}</div>
@@ -270,8 +298,14 @@ const CollectionShow: NextPage<CollectionPageProps> = ({ marketplace, creator })
         </Link>
         <div className="absolute flex justify-end right-6 top-[28px]">
           <div className="flex items-center justify-end">
-            {equals(publicKey?.toBase58(), marketplace.auctionHouse.authority) && (
-              <Link to="/admin/marketplace/edit" className="text-sm cursor-pointer mr-6 hover:underline ">
+            {equals(
+              publicKey?.toBase58(),
+              marketplace.auctionHouse.authority
+            ) && (
+              <Link
+                to="/admin/marketplace/edit"
+                className="text-sm cursor-pointer mr-6 hover:underline "
+              >
                 Admin Dashboard
               </Link>
             )}
@@ -289,7 +323,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({ marketplace, creator })
           <img
             src={marketplace.logoUrl}
             alt={marketplace.name}
-            className='absolute border-4 bg-gray-900 object-cover border-gray-900 rounded-full w-28 h-28 -top-32'
+            className="absolute border-4 bg-gray-900 object-cover border-gray-900 rounded-full w-28 h-28 -top-32"
           />
           <h1>{truncateAddress(router.query?.collection as string)}</h1>
         </div>
@@ -400,7 +434,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({ marketplace, creator })
                     </li>
                   )}
                 </ul>
-                <div className='flex flex-col flex-grow gap-4'>
+                <div className="flex flex-col flex-grow gap-4">
                   {loading ? (
                     <>
                       <div className="flex flex-col flex-grow gap-2">

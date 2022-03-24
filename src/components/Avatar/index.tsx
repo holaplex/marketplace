@@ -10,4 +10,4 @@ const Avatar = ({ name, url }: AvatarProps) => (
   </div>
 )
 
-export default Avatar;
+export default Avatar
