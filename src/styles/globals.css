@@ -10,20 +10,20 @@
 
 :root {
   --green-500: #22c55e;
-  --gray-100: #E0E0E0;
-  --gray-300: #A8A8A8;
-  --gray-500: #6F6F6F;
+  --gray-100: #e0e0e0;
+  --gray-300: #a8a8a8;
+  --gray-500: #6f6f6f;
   --gray-700: #393939;
   --gray-800: #262626;
   --gray-900: #171717;
-  --error-300: #FDA29B;
-  --error-500: #F04438;
+  --error-300: #fda29b;
+  --error-500: #f04438;
   --error-800: #912018;
-  --error-900: #7A271A;
-  --success-300: #6CE9A6;
-  --success-500: #12B76A;
-  --success-800: #05603A;
-  --success-900: #054F31;
+  --error-900: #7a271a;
+  --success-300: #6ce9a6;
+  --success-500: #12b76a;
+  --success-800: #05603a;
+  --success-900: #054f31;
 }
 
 @layer components {
@@ -58,19 +58,19 @@
   .sol-input .input {
     @apply pl-10;
   }
-  
+
   .sol-input:before {
-    content: "◎";
+    content: '◎';
     @apply h-full absolute px-4 flex items-center text-gray-500;
   }
 
   .sol-amount:before {
-    content: "◎";
+    content: '◎';
     @apply h-full text-gray-500 mr-1;
   }
 
   .connected-status:before {
-    content: "";
+    content: '';
     @apply inline-block w-2 h-2 rounded-full bg-green-500 mr-1;
   }
 }
@@ -79,11 +79,15 @@
   font-family: 'Inter', sans-serif;
 }
 
-html, body {
+html,
+body {
   @apply bg-gray-900;
 }
 
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   @apply font-semibold;
 }
 
@@ -118,7 +122,7 @@ h4 {
 }
 
 .icon-sol::before {
-  content: "◎";
+  content: '◎';
   @apply inline-block text-gray-500 mr-1;
 }
 
@@ -141,7 +145,9 @@ h4 {
   @apply bg-gray-700 border-0 text-white shadow-none;
 }
 
-.select-base-theme .base__value-container, .select-base-theme .base__input-container, .select-base-theme  .base__placeholder {
+.select-base-theme .base__value-container,
+.select-base-theme .base__input-container,
+.select-base-theme .base__placeholder {
   @apply p-0 m-0;
 }
 
@@ -158,7 +164,7 @@ h4 {
 }
 
 .select-base-theme .base__menu {
-  @apply bg-gray-800 border-0
+  @apply bg-gray-800 border-0;
 }
 
 .select-base-theme .base__menu-list .base__option {

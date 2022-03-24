@@ -12,56 +12,63 @@ import { Marketplace, Nft, Offer } from '../../types'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 
 interface CancelOfferFormProps {
-  offer: Offer;
-  nft?: Nft;
-  marketplace: Marketplace;
-  refetch: (variables?: Partial<OperationVariables> | undefined) => Promise<ApolloQueryResult<_>>;
+  offer: Offer
+  nft?: Nft
+  marketplace: Marketplace
+  refetch: (
+    variables?: Partial<OperationVariables> | undefined
+  ) => Promise<ApolloQueryResult<_>>
 }
 
 const {
-    createCancelInstruction,
-    createCancelBidReceiptInstruction,
-    createWithdrawInstruction,
-  } = AuctionHouseProgram.instructions
+  createCancelInstruction,
+  createCancelBidReceiptInstruction,
+  createWithdrawInstruction,
+} = AuctionHouseProgram.instructions
 
-const CancelOfferForm = ({ offer, nft, marketplace, refetch }: CancelOfferFormProps) => {
+const CancelOfferForm = ({
+  offer,
+  nft,
+  marketplace,
+  refetch,
+}: CancelOfferFormProps) => {
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
-  const { formState: { isSubmitting }, handleSubmit } = useForm()
+  const {
+    formState: { isSubmitting },
+    handleSubmit,
+  } = useForm()
 
   const cancelOfferTransaction = async () => {
     if (!publicKey || !signTransaction || !offer || !nft) {
       return
     }
 
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address);
-    const authority = new PublicKey(marketplace.auctionHouse.authority);
+    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
+    const authority = new PublicKey(marketplace.auctionHouse.authority)
     const auctionHouseFeeAccount = new PublicKey(
       marketplace.auctionHouse.auctionHouseFeeAccount
-    );
-    const tokenMint = new PublicKey(nft.mintAddress);
-    const receipt = new PublicKey(offer.address)
-    const buyerPrice = offer.price.toNumber();
-    const tradeState = new PublicKey(offer.tradeState);
-    const owner = new PublicKey(nft.owner.address);
-    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint);
-
-    const [
-      tokenAccount,
-    ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-      tokenMint,
-      owner,
     )
+    const tokenMint = new PublicKey(nft.mintAddress)
+    const receipt = new PublicKey(offer.address)
+    const buyerPrice = offer.price.toNumber()
+    const tradeState = new PublicKey(offer.tradeState)
+    const owner = new PublicKey(nft.owner.address)
+    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
 
-    const [
-      escrowPaymentAccount,
-      escrowPaymentBump
-    ] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(
-      auctionHouse,
-      publicKey,
-    );
+    const [tokenAccount] =
+      await AuctionHouseProgram.findAssociatedTokenAccountAddress(
+        tokenMint,
+        owner
+      )
 
-    const txt = new Transaction();
+    const [escrowPaymentAccount, escrowPaymentBump] =
+      await AuctionHouseProgram.findEscrowPaymentAccountAddress(
+        auctionHouse,
+        publicKey
+      )
+
+    const txt = new Transaction()
 
     const cancelInstructionAccounts = {
       wallet: publicKey,
@@ -71,22 +78,22 @@ const CancelOfferForm = ({ offer, nft, marketplace, refetch }: CancelOfferFormPr
       auctionHouse,
       auctionHouseFeeAccount,
       tradeState,
-    };
+    }
 
     const cancelInstructionArgs = {
       buyerPrice,
       tokenSize: 1,
-    };
+    }
 
     const cancelBidReceiptInstructionAccounts = {
       receipt: receipt,
       instruction: SYSVAR_INSTRUCTIONS_PUBKEY,
-    };
+    }
 
     const cancelBidInstruction = createCancelInstruction(
       cancelInstructionAccounts,
       cancelInstructionArgs
-    );
+    )
 
     const cancelBidReceiptInstruction = createCancelBidReceiptInstruction(
       cancelBidReceiptInstructionAccounts
@@ -109,49 +116,48 @@ const CancelOfferForm = ({ offer, nft, marketplace, refetch }: CancelOfferFormPr
 
     const withdrawInstruction = createWithdrawInstruction(
       withdrawInstructionAccounts,
-      withdrawInstructionArgs,
+      withdrawInstructionArgs
     )
 
-    txt.add(cancelBidInstruction).add(cancelBidReceiptInstruction).add(withdrawInstruction);
+    txt
+      .add(cancelBidInstruction)
+      .add(cancelBidReceiptInstruction)
+      .add(withdrawInstruction)
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    let signed: Transaction | undefined = undefined;
+    let signed: Transaction | undefined = undefined
 
     try {
-      signed = await signTransaction(txt);
+      signed = await signTransaction(txt)
     } catch (e: any) {
-      toast.error(e.message);
-      return;
+      toast.error(e.message)
+      return
     }
 
-    let signature: string | undefined = undefined;
+    let signature: string | undefined = undefined
 
     try {
-      toast('Sending the transaction to Solana.');
+      toast('Sending the transaction to Solana.')
 
-      signature = await connection.sendRawTransaction(signed.serialize());
+      signature = await connection.sendRawTransaction(signed.serialize())
 
-      await connection.confirmTransaction(signature, 'confirmed');
+      await connection.confirmTransaction(signature, 'confirmed')
 
-      await refetch();
+      await refetch()
 
-      toast.success('The transaction was confirmed.');
-    } catch(e: any) {
-      toast.error(e.message);
+      toast.success('The transaction was confirmed.')
+    } catch (e: any) {
+      toast.error(e.message)
     }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(
-        cancelOfferTransaction
-      )}
-    >
+    <form onSubmit={handleSubmit(cancelOfferTransaction)}>
       <Button
         loading={isSubmitting}
-        htmlType='submit'
+        htmlType="submit"
         size={ButtonSize.Small}
         type={ButtonType.Primary}
       >
@@ -160,4 +166,4 @@ const CancelOfferForm = ({ offer, nft, marketplace, refetch }: CancelOfferFormPr
     </form>
   )
 }
-export default CancelOfferForm;
+export default CancelOfferForm

@@ -1,3 +1,3 @@
-import WalletPortal from './WalletPortal';
+import WalletPortal from './WalletPortal'
 
-export default WalletPortal;
+export default WalletPortal

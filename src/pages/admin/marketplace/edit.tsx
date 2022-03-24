@@ -1,22 +1,19 @@
-import { NextPageContext } from 'next';
-import { gql } from '@apollo/client';
-import { isNil, not, or } from 'ramda';
-import {
-  useConnection,
-  useWallet,
-} from '@solana/wallet-adapter-react';
-import { Image as ImageIcon, User  } from 'react-feather';
-import { toast } from 'react-toastify';
-import { AppProps } from 'next/app';
-import { useForm, Controller } from 'react-hook-form';
-import client from './../../../client';
-import UploadFile from './../../../../src/components/UploadFile';
-import WalletPortal from './../../../../src/components/WalletPortal';
-import { Link } from 'react-router-dom';
-import Button, { ButtonSize, ButtonType } from '../../../components/Button';
-import { Marketplace } from './../../../types.d';
-import { useLogin } from '../../../hooks/login';
-import { initMarketplaceSDK } from './../../../modules/marketplace';
+import { NextPageContext } from 'next'
+import { gql } from '@apollo/client'
+import { isNil, not, or } from 'ramda'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { Image as ImageIcon, User } from 'react-feather'
+import { toast } from 'react-toastify'
+import { AppProps } from 'next/app'
+import { useForm, Controller } from 'react-hook-form'
+import client from './../../../client'
+import UploadFile from './../../../../src/components/UploadFile'
+import WalletPortal from './../../../../src/components/WalletPortal'
+import { Link } from 'react-router-dom'
+import Button, { ButtonSize, ButtonType } from '../../../components/Button'
+import { Marketplace } from './../../../types.d'
+import { useLogin } from '../../../hooks/login'
+import { initMarketplaceSDK } from './../../../modules/marketplace'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -82,25 +79,25 @@ export async function getServerSideProps({ req }: NextPageContext) {
 }
 
 interface AdminEditMarketplaceProps extends AppProps {
-  marketplace: Marketplace;
+  marketplace: Marketplace
 }
 
 interface MarketplaceForm {
-  domain: string;
-  logo: { uri: string, type?: string, name?: string };
-  banner: { uri: string, type?: string, name?: string };
-  subdomain: string;
-  name: string;
-  description: string;
-  transactionFee: number;
-  creators: { address: string }[];
+  domain: string
+  logo: { uri: string; type?: string; name?: string }
+  banner: { uri: string; type?: string; name?: string }
+  subdomain: string
+  name: string
+  description: string
+  transactionFee: number
+  creators: { address: string }[]
 }
 
 const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
-  const wallet = useWallet();
-  const { publicKey, signTransaction } = wallet;
-  const { connection } = useConnection();
-  const login = useLogin();
+  const wallet = useWallet()
+  const { publicKey, signTransaction } = wallet
+  const { connection } = useConnection()
+  const login = useLogin()
 
   const {
     register,
@@ -115,21 +112,30 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
       subdomain: marketplace.subdomain,
       name: marketplace.name,
       description: marketplace.description,
-      creators: marketplace.creators.map(({ creatorAddress }) => ({ address: creatorAddress })),
+      creators: marketplace.creators.map(({ creatorAddress }) => ({
+        address: creatorAddress,
+      })),
       transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,
     },
-  });
+  })
 
-  const onSubmit = async ({ name, banner, logo, description, transactionFee, creators }: MarketplaceForm) => {
+  const onSubmit = async ({
+    name,
+    banner,
+    logo,
+    description,
+    transactionFee,
+    creators,
+  }: MarketplaceForm) => {
     if (!publicKey || !signTransaction || !wallet) {
-      toast.error('Wallet not connected');
+      toast.error('Wallet not connected')
 
-      login();
+      login()
 
-      return;
+      return
     }
 
-    const client = initMarketplaceSDK(connection, wallet);
+    const client = initMarketplaceSDK(connection, wallet)
 
     toast('Saving changes...')
 
@@ -158,22 +164,28 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
     }
 
     try {
-      await client.update(settings, transactionFee);
+      await client.update(settings, transactionFee)
 
-      toast.success(<>Marketplace updated successfully! It may take a few moments for the change to go live.</>, { autoClose: 5000 })
+      toast.success(
+        <>
+          Marketplace updated successfully! It may take a few moments for the
+          change to go live.
+        </>,
+        { autoClose: 5000 }
+      )
     } catch (e: any) {
-      toast.error(e.message);
+      toast.error(e.message)
     }
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="flex flex-col items-center text-white bg-gray-900">
-        <div className='fixed top-0 z-10 flex items-center w-full justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow'>
-          <Link to='/'>
-            <button className='flex items-center justify-between gap-2 bg-gray-800 rounded-full sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600'>
+        <div className="fixed top-0 z-10 flex items-center w-full justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
+          <Link to="/">
+            <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600">
               <img
-                className='w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square'
+                className="w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
                 src={marketplace.logoUrl}
               />
               <div className="hidden sm:block">{marketplace.name}</div>
@@ -190,9 +202,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
           <Controller
             control={control}
             name="banner"
-            render={({
-              field: { onChange, name, value },
-            }) => (
+            render={({ field: { onChange, name, value } }) => (
               <>
                 <img
                   src={value.uri}
@@ -211,9 +221,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
             <Controller
               control={control}
               name="logo"
-              render={({
-                field: { onChange, name, value },
-              }) => {
+              render={({ field: { onChange, name, value } }) => {
                 return (
                   <>
                     <img
@@ -230,15 +238,20 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
           </div>
           <div className="flex flex-col md:flex-row">
             <div className="flex-col md:mr-10 space-y-2 md:w-80 sm:block">
-              <div
-                className="sticky top-0 max-h-screen py-4 overflow-auto"
-              >
+              <div className="sticky top-0 max-h-screen py-4 overflow-auto">
                 <ul className="flex flex-col flex-grow gap-2">
                   <li className="flex flex-row items-center bg-gray-800 p-2 rounded">
-                    <ImageIcon color="white" className="mr-1" size="1rem" /> Marketplace
+                    <ImageIcon color="white" className="mr-1" size="1rem" />{' '}
+                    Marketplace
                   </li>
                   <li className="p-2 rounded">
-                    <Link className="w-full flex flex-row items-center" to="/admin/creators/edit"><User color="white" className="mr-1" size="1rem" /> Creators</Link>
+                    <Link
+                      className="w-full flex flex-row items-center"
+                      to="/admin/creators/edit"
+                    >
+                      <User color="white" className="mr-1" size="1rem" />{' '}
+                      Creators
+                    </Link>
                   </li>
                 </ul>
               </div>
@@ -246,7 +259,9 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
             <div className="grow flex flex-col items-center w-full pb-16">
               <div className="max-w-3xl w-full">
                 <div className="grid grid-cols-12 md:flex-row items-start md:justify-between">
-                  <h2 className="w-full mb-4 col-span-full md:col-span-6 lg:col-span-7">Edit marketplace</h2>
+                  <h2 className="w-full mb-4 col-span-full md:col-span-6 lg:col-span-7">
+                    Edit marketplace
+                  </h2>
                   <div className="grid grid-cols-2 gap-2 col-span-full md:col-span-6 lg:col-span-5 w-full justify-end">
                     <Link to="/">
                       <Button
@@ -272,7 +287,8 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
                 <div className="flex flex-col max-h-screen py-4 overflow-auto">
                   <label className="text-lg mt-9">Domain</label>
                   <span className="mb-2 text-sm text-gray-300">
-                    Your domain is managed by Holaplex. If you need to change it, please{' '}
+                    Your domain is managed by Holaplex. If you need to change
+                    it, please{' '}
                     <a
                       href="mailto:hola@holaplex.com?subject=Change Subdomain"
                       className="underline"
@@ -302,7 +318,8 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
 
                   <label className="text-lg mt-9">Transaction fee</label>
                   <span className="mb-2 text-sm text-gray-300">
-                    This is a fee added to all sales. Funds go to the auction house wallet. 1% is equal to 100 basis points.
+                    This is a fee added to all sales. Funds go to the auction
+                    house wallet. 1% is equal to 100 basis points.
                   </span>
                   <input
                     type="number"
@@ -317,7 +334,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
         </div>
       </div>
     </form>
-  );
+  )
 }
 
-export default AdminEditMarketplace;
+export default AdminEditMarketplace

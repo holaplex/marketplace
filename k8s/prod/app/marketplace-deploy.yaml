@@ -4,7 +4,7 @@ metadata:
   annotations:
   name: app-marketplace
 spec:
-  replicas: 3
+  replicas: 5
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -47,7 +47,7 @@ metadata:
     reloader.stakater.com/auto: "true"
   name: nginx-marketplace
 spec:
-  replicas: 2
+  replicas: 3
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -107,7 +107,7 @@ spec:
     targetPort: 80
   - name: https
     port: 443
-    targetPort: 80
+    targetPort: 8080
   type: LoadBalancer
 ---
 apiVersion: v1
@@ -121,13 +121,16 @@ data:
    }
    server {
      listen ${PORT};
-
+     server_name ~^(?<subdomain>\w+)\.${HOSTNAME}$;
+     return 301 https://$subdomain.${HOSTNAME}$request_uri;
+   }
+   server {
+     listen 8080;
      server_name ~^(?<subdomain>\w+)\.${HOSTNAME}$;
 
      location / {
      proxy_set_header X-Holaplex-Subdomain $subdomain;
 
-     #proxy_pass http://${PROXY_HOST}:${WEB_PORT};
      proxy_pass http://marketplace;
      }
    }

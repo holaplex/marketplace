@@ -1,4 +1,3 @@
-
 const NotFound = () => {
   return (
     <section className="flex w-full justify-center pt-12">
@@ -7,4 +6,4 @@ const NotFound = () => {
   )
 }
 
-export default NotFound;
+export default NotFound
