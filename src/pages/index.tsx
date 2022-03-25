@@ -251,8 +251,14 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
       <div className="relative w-full">
         <div className="absolute flex justify-end right-6 top-[28px]">
           <div className="flex items-center justify-end">
-            {equals(publicKey?.toBase58(), marketplace.auctionHouse.authority) && (
-              <Link to="/admin/marketplace/edit" className="text-sm cursor-pointer mr-6 hover:underline ">
+            {equals(
+              publicKey?.toBase58(),
+              marketplace.auctionHouse.authority
+            ) && (
+              <Link
+                to="/admin/marketplace/edit"
+                className="text-sm cursor-pointer mr-6 hover:underline "
+              >
                 Admin Dashboard
               </Link>
             )}
@@ -398,36 +404,68 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                     />
                   </li>
                   {connected && (
-                    <li>
-                      <Controller
-                        control={control}
-                        name="preset"
-                        render={({ field: { value, onChange } }) => (
-                          <label
-                            htmlFor="preset-owned"
-                            className={cx(
-                              'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
-                              {
-                                'bg-gray-800': equals(
-                                  PresetNftFilter.Owned,
-                                  value
-                                ),
-                              }
-                            )}
-                          >
-                            <input
-                              onChange={onChange}
-                              className="hidden"
-                              type="radio"
-                              name="preset"
-                              value={PresetNftFilter.Owned}
-                              id="preset-owned"
-                            />
-                            Owned by me
-                          </label>
-                        )}
-                      />
-                    </li>
+                    <>
+                      <li>
+                        <Controller
+                          control={control}
+                          name="preset"
+                          render={({ field: { value, onChange } }) => (
+                            <label
+                              htmlFor="preset-owned"
+                              className={cx(
+                                'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                                {
+                                  'bg-gray-800': equals(
+                                    PresetNftFilter.Owned,
+                                    value
+                                  ),
+                                }
+                              )}
+                            >
+                              <input
+                                onChange={onChange}
+                                className="hidden"
+                                type="radio"
+                                name="preset"
+                                value={PresetNftFilter.Owned}
+                                id="preset-owned"
+                              />
+                              Owned by me
+                            </label>
+                          )}
+                        />
+                      </li>
+                      <li>
+                        <Controller
+                          control={control}
+                          name="preset"
+                          render={({ field: { value, onChange } }) => (
+                            <label
+                              htmlFor="preset-open"
+                              className={cx(
+                                'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                                {
+                                  'bg-gray-800': equals(
+                                    PresetNftFilter.Open,
+                                    value
+                                  ),
+                                }
+                              )}
+                            >
+                              <input
+                                onChange={onChange}
+                                className="hidden"
+                                type="radio"
+                                name="preset"
+                                value={PresetNftFilter.Open}
+                                id="preset-open"
+                              />
+                              My open offers
+                            </label>
+                          )}
+                        />
+                      </li>
+                    </>
                   )}
                 </ul>
               </form>

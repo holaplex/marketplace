@@ -116,6 +116,7 @@ export enum PresetNftFilter {
   All = 'All',
   Listed = 'Listed',
   Owned = 'Owned',
+  Open = 'Open',
 }
 
 export interface Viewer extends GraphQLObject {
