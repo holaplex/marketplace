@@ -60,6 +60,7 @@ import {
   Purchase,
   ActivityType,
 } from '../../types.d'
+import { CornerDownRight, DollarSign, Tag } from 'react-feather'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -940,20 +941,25 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                         key={a.fromWallet}
                         className="grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded"
                       >
-                        <div className="flex">
+                        <div className="flex self-center">
                           {a.type === ActivityType.Sold ? (
-                            <div className="mr-2">$</div>
+                            <DollarSign
+                              className="mr-2 text-gray-300"
+                              size="24"
+                            />
                           ) : (
-                            ''
+                            <Tag className="mr-2 text-gray-300" size="24" />
                           )}
                           <div>{a.type}</div>
                         </div>
                         <div
-                          className={cx('flex items-center ', {
-                            '-ml-4': a.toWallet,
+                          className={cx('flex items-center self-center ', {
+                            '-ml-8': a.toWallet,
                           })}
                         >
-                          {a.toWallet && <div className="mr-3">|</div>}
+                          {a.toWallet && (
+                            <CornerDownRight className="mr-2 text-gray-300" />
+                          )}
                           <div className="flex flex-col">
                             <a
                               href={`https://holaplex.com/profiles/${a.fromWallet}`}
@@ -971,12 +977,14 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                             )}
                           </div>
                         </div>
-                        <div>
+                        <div className="self-center">
                           <span className="sol-amount">
                             {toSOL(a.price.toNumber())}
                           </span>
                         </div>
-                        <div>{format(a.createdAt, 'en_US')}</div>
+                        <div className="self-center">
+                          {format(a.createdAt, 'en_US')}
+                        </div>
                       </article>
                     ))
                   )}
