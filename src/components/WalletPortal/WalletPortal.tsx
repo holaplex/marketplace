@@ -30,43 +30,20 @@ const WalletPortal = () => {
   return or(connected, isLoading) ? (
     <Popover.Root>
       <Popover.Trigger>
-        <div className="block w-12 h-12 rounded-full bg-gray-800">
-          {not(isLoading) && <div className="user-avatar h-[48px] w-[48px]" />}
-        </div>
+        <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align px-4 py-2 h-14 hover:bg-gray-600">
+          {not(isLoading) && (
+            <p>{truncateAddress(publicKey?.toBase58() as string)}</p>
+          )}
+        </button>
         <Popover.Anchor />
       </Popover.Trigger>
       <Popover.Content className="bg-gray-800 p-4 text-white">
         <Popover.Arrow className="fill-gray-800" />
-        <div className="flex items-center mb-6">
-          <div className="w-16 h-16 inline-block rounded-full bg-gray-700 mr-4">
-            {not(isLoading) && (
-              <div className="user-avatar w-full h-full block" />
-            )}
-          </div>
-          {not(isLoading) && (
-            <a
-              target="_blank"
-              rel="noreferrer"
-              href={`https://holaplex.com/profiles/${publicKey?.toBase58()}`}
-            >
-              View Profile &gt;
-            </a>
-          )}
-        </div>
-        <div className="flex items-center justify-between mb-6">
-          <div className="sol-amount text-xl flex items-center">
-            {or(isLoading, isNil(data?.viewer)) ? (
-              <div className="inline-block h-6 w-14 bg-gray-700 rounded" />
-            ) : (
-              toSOL(data?.viewer.balance as number)
-            )}
-          </div>
+        <div className="flex items-center justify-between mb-6 pl-10 pr-10">
           {isLoading ? (
             <div className="inline-block h-6 w-20 bg-gray-700 rounded" />
           ) : (
-            <div className="text-sm connected-status">
-              {truncateAddress(publicKey?.toBase58() as string)}
-            </div>
+            <div className="text-sm connected-status">Connected</div>
           )}
         </div>
         {isLoading ? (
@@ -84,8 +61,8 @@ const WalletPortal = () => {
       </Popover.Content>
     </Popover.Root>
   ) : (
-    <Button onClick={login} size={ButtonSize.Small}>
-      Connect
+    <Button type={ButtonType.Secondary} onClick={login} size={ButtonSize.Large}>
+      Connect Wallet
     </Button>
   )
 }
