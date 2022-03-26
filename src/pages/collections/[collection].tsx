@@ -28,7 +28,11 @@ import { useRouter } from 'next/router'
 import { AppProps } from 'next/app'
 import Select from 'react-select'
 import { useForm, Controller } from 'react-hook-form'
-import { truncateAddress } from '../../modules/address'
+import {
+  truncateAddress,
+  collectionNameByAddress,
+  collectionDescriptionByAddress,
+} from '../../modules/address'
 import client from '../../client'
 import {
   Marketplace,
@@ -326,11 +330,11 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
             alt={marketplace.name}
             className="absolute border-4 bg-gray-900 object-cover border-gray-900 rounded-full w-28 h-28 -top-32"
           />
-          <h2 className="text-sm text-gray-300">
-            {truncateAddress(router.query?.collection as string)}
-          </h2>
-          <h1 className="mb-4">{marketplace.name}</h1>
-          <p>{marketplace.description}</p>
+          <h2 className="text-sm text-gray-300">{marketplace.name}</h2>
+          <h1 className="mb-4">
+            {collectionNameByAddress(router.query?.collection)}
+          </h1>
+          <p>{collectionDescriptionByAddress(router.query?.collection)}</p>
         </div>
         <div className="flex">
           <div className="relative">

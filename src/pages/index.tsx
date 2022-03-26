@@ -22,7 +22,7 @@ import {
   pipe,
   sum,
 } from 'ramda'
-import { truncateAddress } from '../modules/address'
+import { truncateAddress, collectionNameByAddress } from '../modules/address'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { AppProps } from 'next/app'
 import { useForm, Controller } from 'react-hook-form'
@@ -328,7 +328,8 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                           )
                         })}
                       </div>
-                      {truncateAddress(creator.creatorAddress)}
+                      {collectionNameByAddress(creator.creatorAddress) ??
+                        truncateAddress(creator.creatorAddress)}
                     </div>
                   </Link>
                 )
