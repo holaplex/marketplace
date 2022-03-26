@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Druk Wide Web';
+  src: url('/fonts/DrukWide-Super-Web.woff2') format('woff2'),
+    url('/fonts/DrukWide-Super-Web.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-stretch: normal;
+  font-display: swap;
+}
+
 .light {
   --base-fg: #292929;
   --base-bg: #efefef;
@@ -85,22 +95,29 @@ body {
 }
 
 h1,
-h2,
+h2 {
+  font-family: 'Druk Wide Web';
+  font-weight: 900;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 1.2em;
+}
+
 h3,
 h4 {
   @apply font-semibold;
 }
 
 h1 {
-  @apply text-5xl;
+  @apply text-4xl lg:text-6xl xl:text-7xl max-w-5xl;
 }
 
 h2 {
-  @apply text-3xl;
+  @apply text-3xl lg:text-4xl xl:text-6xl;
 }
 
 h3 {
-  @apply text-xl;
+  @apply text-xl lg:text-2xl;
 }
 
 h4 {

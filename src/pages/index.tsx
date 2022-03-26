@@ -247,6 +247,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
       <Head>
         <title>{marketplace.name}</title>
         <link rel="icon" href={marketplace.logoUrl} />
+        <link rel="stylesheet" href="https://use.typekit.net/nxe8kpf.css" />
       </Head>
       <div className="relative w-full">
         <div className="absolute flex justify-end right-6 top-[28px]">
@@ -282,7 +283,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           <p className="mt-4 max-w-prose">{marketplace.description}</p>
         </div>
 
-        <h2 className="mb-2">Collections</h2>
+        <h2 className="mb-4">Collections</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-20">
           {creatorsQuery.loading ? (
             <>

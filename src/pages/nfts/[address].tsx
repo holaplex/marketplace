@@ -525,6 +525,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
           {marketplace.name}
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
+        <link rel="stylesheet" href="https://use.typekit.net/nxe8kpf.css" />
       </Head>
       <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
         <Link to="/">
