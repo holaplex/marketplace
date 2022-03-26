@@ -304,29 +304,35 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               </div>
             </>
           ) : (
-            creatorsQuery.data?.marketplace.creators.map((creator) => {
-              return (
-                <Link
-                  key={creator.storeConfigAddress}
-                  to={`/collections/${creator.creatorAddress}`}
-                >
-                  <div key={creator.creatorAddress}>
-                    <div className="flex flex-grid mb-2 rounded-lg overflow-hidden">
-                      {creator.preview.map((nft) => {
-                        return (
-                          <img
-                            className="aspect-square w-1/3"
-                            src={nft.image}
-                            key={nft.address}
-                          />
-                        )
-                      })}
-                    </div>
-                    {truncateAddress(creator.creatorAddress)}
-                  </div>
-                </Link>
+            creatorsQuery.data?.marketplace.creators
+              .filter(
+                (creator) =>
+                  creator.creatorAddress !=
+                  '4cUyDakNPeMEZtJPDJGNujWLGF1XNH7WbQnheUEfD2xX'
               )
-            })
+              .map((creator) => {
+                return (
+                  <Link
+                    key={creator.storeConfigAddress}
+                    to={`/collections/${creator.creatorAddress}`}
+                  >
+                    <div key={creator.creatorAddress}>
+                      <div className="flex flex-grid mb-2 rounded-lg overflow-hidden">
+                        {creator.preview.map((nft) => {
+                          return (
+                            <img
+                              className="aspect-square w-1/3"
+                              src={nft.image}
+                              key={nft.address}
+                            />
+                          )
+                        })}
+                      </div>
+                      {truncateAddress(creator.creatorAddress)}
+                    </div>
+                  </Link>
+                )
+              })
           )}
         </div>
         <div className="flex">

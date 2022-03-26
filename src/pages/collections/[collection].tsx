@@ -156,6 +156,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   if (
     or(
       any(isNil)([marketplace, creator]),
+      creator?.address == '4cUyDakNPeMEZtJPDJGNujWLGF1XNH7WbQnheUEfD2xX',
       pipe(
         map(prop('creatorAddress')),
         indexOf(query.collection),
@@ -325,8 +326,9 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
             alt={marketplace.name}
             className="absolute border-4 bg-gray-900 object-cover border-gray-900 rounded-full w-28 h-28 -top-32"
           />
-          <h2 className="text-sm text-gray-300"
-          >{truncateAddress(router.query?.collection as string)}</h2>
+          <h2 className="text-sm text-gray-300">
+            {truncateAddress(router.query?.collection as string)}
+          </h2>
           <h1 className="mb-4">{marketplace.name}</h1>
           <p>{marketplace.description}</p>
         </div>
