@@ -61,9 +61,12 @@ const WalletPortal = () => {
       </Popover.Content>
     </Popover.Root>
   ) : (
-    <Button type={ButtonType.Secondary} onClick={login} size={ButtonSize.Large}>
+    <button
+      onClick={login}
+      className="hover:scale-105 flex items-center justify-between gap-2 bg-gray-800 rounded-full align px-4 py-2 h-14 hover:bg-gray-600"
+    >
       Connect Wallet
-    </Button>
+    </button>
   )
 }
 
