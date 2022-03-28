@@ -13,6 +13,7 @@ import { Marketplace, Nft, Offer } from '../../types'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
 import { concat } from 'ramda'
+import { createCancelInstruction, createCancelListingReceiptInstruction } from '@metaplex-foundation/mpl-auction-house/dist/src/generated/instructions'
 
 interface AcceptOfferFormProps {
   offer: Offer
@@ -123,7 +124,7 @@ const AcceptOfferForm = ({
 
     const [listingReceipt, listingReceiptBump] =
       await AuctionHouseProgram.findListingReceiptAddress(sellerTradeState)
-
+    
     const sellInstructionAccounts = {
       wallet: publicKey,
       tokenAccount,
@@ -192,6 +193,25 @@ const AcceptOfferForm = ({
       purchaseReceiptBump: purchaseReceiptBump,
     }
 
+    const cancelInstructionAccounts = {
+      wallet: publicKey,
+      tokenAccount,
+      tokenMint,
+      authority,
+      auctionHouse,
+      auctionHouseFeeAccount,
+      tradeState: sellerTradeState,
+    }
+    const cancelInstructionArgs = {
+      buyerPrice: offer.price,
+      tokenSize: 1,
+    }
+
+    const cancelListingReceiptAccounts = {
+      receipt: listingReceipt,
+      instruction: SYSVAR_INSTRUCTIONS_PUBKEY,
+    }
+
     const createListingInstruction = createSellInstruction(
       sellInstructionAccounts,
       sellInstructionArgs
@@ -209,6 +229,13 @@ const AcceptOfferForm = ({
         executePrintPurchaseReceiptInstructionAccounts,
         executePrintPurchaseReceiptInstructionArgs
       )
+    
+      const cancelListingInstruction = createCancelInstruction(
+        cancelInstructionAccounts,
+        cancelInstructionArgs
+      )
+    const cancelListingReceiptInstruction = createCancelListingReceiptInstruction(cancelListingReceiptAccounts)
+    
 
     const txt = new Transaction()
 
@@ -230,6 +257,8 @@ const AcceptOfferForm = ({
         })
       )
       .add(executePrintPurchaseReceiptInstruction)
+      .add(cancelListingInstruction)
+      .add(cancelListingReceiptInstruction)
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
