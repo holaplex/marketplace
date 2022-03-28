@@ -246,6 +246,12 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
         always(null)
       )(preset as PresetNftFilter)
 
+      const offerers = ifElse(
+        equals(PresetNftFilter.OpenOffers),
+        always([pubkey]),
+        always(null)
+      )(preset as PresetNftFilter)
+
       const listed = ifElse(
         equals(PresetNftFilter.Listed),
         always([marketplace.auctionHouse.address]),
@@ -256,6 +262,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
         creators: [router.query.collection],
         attributes: nextAttributes,
         owners,
+        offerers,
         listed,
         offset: 0,
       }).then(({ data: { nfts } }) => {
@@ -405,6 +412,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                     />
                   </li>
                   {connected && (
+                    <>
                     <li>
                       <Controller
                         control={control}
@@ -435,6 +443,37 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                         )}
                       />
                     </li>
+                    <li>
+                        <Controller
+                          control={control}
+                          name="preset"
+                          render={({ field: { value, onChange } }) => (
+                            <label
+                              htmlFor="preset-open"
+                              className={cx(
+                                'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                                {
+                                  'bg-gray-800': equals(
+                                    PresetNftFilter.OpenOffers,
+                                    value
+                                  ),
+                                }
+                              )}
+                            >
+                              <input
+                                onChange={onChange}
+                                className="hidden"
+                                type="radio"
+                                name="preset"
+                                value={PresetNftFilter.OpenOffers}
+                                id="preset-open"
+                              />
+                              My open offers
+                            </label>
+                          )}
+                        />
+                      </li>
+                      </>
                   )}
                 </ul>
                 <div className="flex flex-col flex-grow gap-4">
