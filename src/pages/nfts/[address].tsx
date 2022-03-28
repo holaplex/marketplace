@@ -840,7 +840,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                         </div>
                         <div>{format(o.createdAt, 'en_US')}</div>
                         {(offer || isOwner) && (
-                          <div className="flex w-full justify-end">
+                          <div className="flex w-full gap-2 justify-end">
                             {equals(
                               o.buyer,
                               publicKey?.toBase58() as string
@@ -857,6 +857,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                                 nft={data?.nft}
                                 marketplace={marketplace}
                                 offer={o}
+                                listing={listing}
                                 refetch={refetch}
                               />
                             )}
