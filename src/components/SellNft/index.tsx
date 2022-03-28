@@ -5,7 +5,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { OperationVariables, ApolloQueryResult } from '@apollo/client'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
-import Button, { ButtonType } from './../../components/Button';
+import Button, { ButtonType } from './../../components/Button'
 import {
   Transaction,
   PublicKey,
@@ -15,10 +15,8 @@ import {
 import { Nft, Marketplace } from '../../types'
 import { toast } from 'react-toastify'
 
-const {
-  createSellInstruction,
-  createPrintListingReceiptInstruction,
-} = AuctionHouseProgram.instructions
+const { createSellInstruction, createPrintListingReceiptInstruction } =
+  AuctionHouseProgram.instructions
 
 interface SellNftForm {
   amount: string
@@ -27,11 +25,17 @@ interface SellNftForm {
 interface SellNftProps {
   nft?: Nft
   marketplace: Marketplace
-  refetch: (variables?: Partial<OperationVariables> | undefined) => Promise<ApolloQueryResult<_>>
+  refetch: (
+    variables?: Partial<OperationVariables> | undefined
+  ) => Promise<ApolloQueryResult<_>>
 }
 
 const SellNft = ({ nft, marketplace, refetch }: SellNftProps) => {
-  const { control, handleSubmit, formState: { isSubmitting } } = useForm<SellNftForm>({})
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<SellNftForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
   const navigate = useNavigate()
@@ -50,45 +54,38 @@ const SellNft = ({ nft, marketplace, refetch }: SellNftProps) => {
     const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
     const tokenMint = new PublicKey(nft.mintAddress)
 
-    const [
-      associatedTokenAccount,
-    ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-      tokenMint,
-      new PublicKey(nft.owner.address)
-    )
+    const [associatedTokenAccount] =
+      await AuctionHouseProgram.findAssociatedTokenAccountAddress(
+        tokenMint,
+        new PublicKey(nft.owner.address)
+      )
 
-    const [
-      sellerTradeState,
-      tradeStateBump,
-    ] = await AuctionHouseProgram.findTradeStateAddress(
-      publicKey,
-      auctionHouse,
-      associatedTokenAccount,
-      treasuryMint,
-      tokenMint,
-      buyerPrice,
-      1
-    )
+    const [sellerTradeState, tradeStateBump] =
+      await AuctionHouseProgram.findTradeStateAddress(
+        publicKey,
+        auctionHouse,
+        associatedTokenAccount,
+        treasuryMint,
+        tokenMint,
+        buyerPrice,
+        1
+      )
 
     const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
 
-    const [
-      programAsSigner,
-      programAsSignerBump,
-    ] = await AuctionHouseProgram.findAuctionHouseProgramAsSignerAddress()
+    const [programAsSigner, programAsSignerBump] =
+      await AuctionHouseProgram.findAuctionHouseProgramAsSignerAddress()
 
-    const [
-      freeTradeState,
-      freeTradeBump,
-    ] = await AuctionHouseProgram.findTradeStateAddress(
-      publicKey,
-      auctionHouse,
-      associatedTokenAccount,
-      treasuryMint,
-      tokenMint,
-      0,
-      1
-    )
+    const [freeTradeState, freeTradeBump] =
+      await AuctionHouseProgram.findTradeStateAddress(
+        publicKey,
+        auctionHouse,
+        associatedTokenAccount,
+        treasuryMint,
+        tokenMint,
+        0,
+        1
+      )
 
     const txt = new Transaction()
 
@@ -117,10 +114,8 @@ const SellNft = ({ nft, marketplace, refetch }: SellNftProps) => {
       sellInstructionArgs
     )
 
-    const [
-      receipt,
-      receiptBump,
-    ] = await AuctionHouseProgram.findListingReceiptAddress(sellerTradeState)
+    const [receipt, receiptBump] =
+      await AuctionHouseProgram.findListingReceiptAddress(sellerTradeState)
 
     const printListingReceiptInstruction = createPrintListingReceiptInstruction(
       {
@@ -138,91 +133,93 @@ const SellNft = ({ nft, marketplace, refetch }: SellNftProps) => {
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    let signed: Transaction | undefined = undefined;
+    let signed: Transaction | undefined = undefined
 
     try {
-      signed = await signTransaction(txt);
+      signed = await signTransaction(txt)
     } catch (e: any) {
-      toast.error(e.message);
-      return;
+      toast.error(e.message)
+      return
     }
 
-    let signature: string | undefined = undefined;
+    let signature: string | undefined = undefined
 
     try {
-      toast('Sending the transaction to Solana.');
+      toast('Sending the transaction to Solana.')
 
-      signature = await connection.sendRawTransaction(signed.serialize());
+      signature = await connection.sendRawTransaction(signed.serialize())
 
-      await connection.confirmTransaction(signature, 'confirmed');
+      await connection.confirmTransaction(signature, 'confirmed')
 
-      await refetch();
+      await refetch()
 
-      toast.success('The transaction was confirmed.');
-    } catch(e: any) {
-      toast.error(e.message);
+      toast.success('The transaction was confirmed.')
+    } catch (e: any) {
+      toast.error(e.message)
     } finally {
-      navigate(`/nfts/${nft.address}`);
+      navigate(`/nfts/${nft.address}`)
     }
   }
 
   return (
     <form
-      className='text-left grow mt-6'
+      className="text-left grow mt-6"
       onSubmit={handleSubmit(sellNftTransaction)}
     >
-      <h3 className='mb-6 text-xl font-bold md:text-2xl'>Sell this Nft</h3>
-      <label className='block mb-1'>Price in SOL</label>
-      <div className='prefix-input prefix-icon-sol'>
+      <h3 className="mb-6 text-xl font-bold md:text-2xl">Sell this Nft</h3>
+      <label className="block mb-1">Price in SOL</label>
+      <div className="prefix-input prefix-icon-sol">
         <Controller
           control={control}
-          name='amount'
+          name="amount"
           render={({ field: { onChange, value } }) => {
             if (!nft) {
-              return <></>;
+              return <></>
             }
 
-            const amount = Number(value || 0) * LAMPORTS_PER_SOL;
+            const amount = Number(value || 0) * LAMPORTS_PER_SOL
 
             const royalties = (amount * nft.sellerFeeBasisPoints) / 10000
 
-            const auctionHouseFee = (amount * marketplace.auctionHouse.sellerFeeBasisPoints) / 10000
+            const auctionHouseFee =
+              (amount * marketplace.auctionHouse.sellerFeeBasisPoints) / 10000
 
             return (
               <>
-                <div className='mb-4 sol-input'>
+                <div className="mb-4 sol-input">
                   <input
                     autoFocus
                     value={value}
-                    className='input'
+                    className="input"
                     onChange={(e: any) => {
                       onChange(e.target.value)
                     }}
                   />
                 </div>
-                <div className='flex flex-col gap-2 mb-4'>
-                  <div className='flex justify-between'>
-                    <span className='text-gray-400'>
+                <div className="flex flex-col gap-2 mb-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">
                       {nft.sellerFeeBasisPoints / 100}% creator royalty
                     </span>
-                    <div className='flex justify-center gap-2'>
-                      <span className='icon-sol'></span>
+                    <div className="flex justify-center gap-2">
+                      <span className="icon-sol"></span>
                       <span>{royalties / LAMPORTS_PER_SOL}</span>
                     </div>
                   </div>
-                  <div className='flex justify-between'>
-                    <span className='text-gray-400'>
-                      {marketplace.auctionHouse.sellerFeeBasisPoints / 100}% transaction fee
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">
+                      {marketplace.auctionHouse.sellerFeeBasisPoints / 100}%
+                      transaction fee
                     </span>
-                    <div className='flex justify-center gap-2'>
-                      <span className='icon-sol'></span>
+                    <div className="flex justify-center gap-2">
+                      <span className="icon-sol"></span>
                       <span>{auctionHouseFee / LAMPORTS_PER_SOL}</span>
                     </div>
                   </div>
-                  <div className='flex justify-between'>
-                    <span className='text-gray-400'>You receive</span>
-                    <div className='flex justify-center gap-2'>
-                      <span className='icon-sol'></span>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">You receive</span>
+                    <div className="flex justify-center gap-2">
+                      <span className="icon-sol"></span>
                       <span>
                         {(amount - royalties - auctionHouseFee) /
                           LAMPORTS_PER_SOL}
@@ -235,7 +232,7 @@ const SellNft = ({ nft, marketplace, refetch }: SellNftProps) => {
           }}
         />
       </div>
-      <div className='grid flex-grow grid-cols-2 gap-4'>
+      <div className="grid flex-grow grid-cols-2 gap-4">
         <Link to={`/nfts/${nft?.address}`}>
           <Button block type={ButtonType.Secondary}>
             Cancel

@@ -251,8 +251,14 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
       <div className="relative w-full">
         <div className="absolute flex justify-end right-6 top-[28px]">
           <div className="flex items-center justify-end">
-            {equals(publicKey?.toBase58(), marketplace.auctionHouse.authority) && (
-              <Link to="/admin/marketplace/edit" className="text-sm cursor-pointer mr-6 hover:underline ">
+            {equals(
+              publicKey?.toBase58(),
+              marketplace.auctionHouse.authority
+            ) && (
+              <Link
+                to="/admin/marketplace/edit"
+                className="text-sm cursor-pointer mr-6 hover:underline "
+              >
                 Admin Dashboard
               </Link>
             )}

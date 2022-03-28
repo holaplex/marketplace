@@ -23,7 +23,7 @@ spec:
         image: 011737333588.dkr.ecr.us-east-1.amazonaws.com/marketplace:main-e484659
         env:
         - name: NEXT_PUBLIC_GRAPHQL_ENDPOINT
-          value: https://graph-test.holaplex.com/v0
+          value: https://graph.holaplex.com/v1
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000

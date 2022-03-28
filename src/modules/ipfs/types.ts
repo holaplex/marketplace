@@ -1,6 +1,6 @@
 export type PinFileResponse = {
-  uri?: string;
-  name?: string;
-  type?: string;
-  error?: string;
-};
+  uri?: string
+  name?: string
+  type?: string
+  error?: string
+}

@@ -63,6 +63,7 @@ import {
 import { CornerDownRight, DollarSign, Tag } from 'react-feather'
 import Image from 'next/image'
 
+
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
 const {
@@ -126,6 +127,7 @@ const GET_NFT = gql`
         price
         createdAt
       }
+
     }
   }
 `
@@ -260,6 +262,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     })
   })
   activities.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+
 
   const buyNftTransaction = async () => {
     if (!publicKey || !signTransaction || !listing || isOwner || !data) {
@@ -945,11 +948,11 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                         <div className="flex self-center">
                           {a.type === ActivityType.Sold ? (
                             <DollarSign
-                              className="mr-2 text-gray-300"
-                              size="24"
+                              className="mr-2 self-center text-gray-300"
+                              size="18"
                             />
                           ) : (
-                            <Tag className="mr-2 text-gray-300" size="24" />
+                            <Tag className="mr-2 self-center text-gray-300" size="18" />
                           )}
                           <div>{a.type}</div>
                         </div>
@@ -960,10 +963,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                         >
                           {a.toWallet && (
                             <Image
-                              src="/public/images/uturn.svg"
+                              src="/images/uturn.svg"
                               className="mr-2 text-gray-300"
-                              width="24"
-                              height="24"
+                              width="28"
+                              height="28"
                               alt="wallets"
                             />
                           )}
@@ -971,6 +974,8 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                             <a
                               href={`https://holaplex.com/profiles/${a.fromWallet}`}
                               rel="nofollower"
+                              className='text-sm'
+
                             >
                               {truncateAddress(a.fromWallet)}
                             </a>
@@ -978,6 +983,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                               <a
                                 href={`https://holaplex.com/profiles/${a.toWallet}`}
                                 rel="nofollower"
+                                className='text-sm'
                               >
                                 {truncateAddress(a.toWallet)}
                               </a>
@@ -989,7 +995,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                             {toSOL(a.price.toNumber())}
                           </span>
                         </div>
-                        <div className="self-center">
+                        <div className="self-center text-sm">
                           {format(a.createdAt, 'en_US')}
                         </div>
                       </article>
@@ -998,6 +1004,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                 </section>
               )
             )(activities)}
+
           </div>
         </div>
       </div>
