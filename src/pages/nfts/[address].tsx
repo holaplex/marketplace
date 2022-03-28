@@ -63,7 +63,6 @@ import {
 import { CornerDownRight, DollarSign, Tag } from 'react-feather'
 import Image from 'next/image'
 
-
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
 const {
@@ -127,7 +126,6 @@ const GET_NFT = gql`
         price
         createdAt
       }
-
     }
   }
 `
@@ -244,14 +242,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     data?.nft.offers || []
   )
   let activities: Activity[] = []
-  data?.nft.listings?.forEach((l: Listing) => {
-    activities.push({
-      type: ActivityType.Listed,
-      price: l.price,
-      fromWallet: l.seller,
-      createdAt: l.createdAt,
-    })
-  })
   data?.nft.purchases?.forEach((p: Purchase) => {
     activities.push({
       type: ActivityType.Sold,
@@ -262,7 +252,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
     })
   })
   activities.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
-
 
   const buyNftTransaction = async () => {
     if (!publicKey || !signTransaction || !listing || isOwner || !data) {
@@ -952,7 +941,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                               size="18"
                             />
                           ) : (
-                            <Tag className="mr-2 self-center text-gray-300" size="18" />
+                            <Tag
+                              className="mr-2 self-center text-gray-300"
+                              size="18"
+                            />
                           )}
                           <div>{a.type}</div>
                         </div>
@@ -974,8 +966,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                             <a
                               href={`https://holaplex.com/profiles/${a.fromWallet}`}
                               rel="nofollower"
-                              className='text-sm'
-
+                              className="text-sm"
                             >
                               {truncateAddress(a.fromWallet)}
                             </a>
@@ -983,7 +974,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                               <a
                                 href={`https://holaplex.com/profiles/${a.toWallet}`}
                                 rel="nofollower"
-                                className='text-sm'
+                                className="text-sm"
                               >
                                 {truncateAddress(a.toWallet)}
                               </a>
@@ -1004,7 +995,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                 </section>
               )
             )(activities)}
-
           </div>
         </div>
       </div>
