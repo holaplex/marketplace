@@ -61,6 +61,7 @@ import {
   ActivityType,
 } from '../../types.d'
 import { CornerDownRight, DollarSign, Tag } from 'react-feather'
+import Image from 'next/image'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -958,7 +959,13 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                           })}
                         >
                           {a.toWallet && (
-                            <CornerDownRight className="mr-2 text-gray-300" />
+                            <Image
+                              src="/public/images/uturn.svg"
+                              className="mr-2 text-gray-300"
+                              width="24"
+                              height="24"
+                              alt="wallets"
+                            />
                           )}
                           <div className="flex flex-col">
                             <a
