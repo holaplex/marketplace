@@ -15,25 +15,29 @@ import { toast } from 'react-toastify'
 import { Nft, Marketplace } from './../../types'
 import Button, { ButtonType } from './../Button'
 
-const {
-  createPublicBuyInstruction,
-  createPrintBidReceiptInstruction,
-} = AuctionHouseProgram.instructions
+const { createPublicBuyInstruction, createPrintBidReceiptInstruction } =
+  AuctionHouseProgram.instructions
 interface OfferForm {
   amount: string
 }
 
 interface OfferProps {
-  nft?: Nft;
+  nft?: Nft
   marketplace: Marketplace
-  refetch: (variables?: Partial<OperationVariables> | undefined) => Promise<ApolloQueryResult<_>>
+  refetch: (
+    variables?: Partial<OperationVariables> | undefined
+  ) => Promise<ApolloQueryResult<_>>
 }
 
 const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
-  const { handleSubmit, register, formState: { isSubmitting } } = useForm<OfferForm>({})
+  const {
+    handleSubmit,
+    register,
+    formState: { isSubmitting },
+  } = useForm<OfferForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const placeOfferTransaction = async ({ amount }: OfferForm) => {
     if (!publicKey || !signTransaction || !nft) {
@@ -49,32 +53,27 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
     const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
     const tokenMint = new PublicKey(nft.mintAddress)
 
-    const [
-      tokenAccount,
-    ] = await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-      tokenMint,
-      new PublicKey(nft.owner.address)
-    )
+    const [tokenAccount] =
+      await AuctionHouseProgram.findAssociatedTokenAccountAddress(
+        tokenMint,
+        new PublicKey(nft.owner.address)
+      )
 
-    const [
-      escrowPaymentAccount,
-      escrowPaymentBump,
-    ] = await AuctionHouseProgram.findEscrowPaymentAccountAddress(
-      auctionHouse,
-      publicKey
-    )
+    const [escrowPaymentAccount, escrowPaymentBump] =
+      await AuctionHouseProgram.findEscrowPaymentAccountAddress(
+        auctionHouse,
+        publicKey
+      )
 
-    const [
-      buyerTradeState,
-      tradeStateBump,
-    ] = await AuctionHouseProgram.findPublicBidTradeStateAddress(
-      publicKey,
-      auctionHouse,
-      treasuryMint,
-      tokenMint,
-      buyerPrice,
-      1
-    )
+    const [buyerTradeState, tradeStateBump] =
+      await AuctionHouseProgram.findPublicBidTradeStateAddress(
+        publicKey,
+        auctionHouse,
+        treasuryMint,
+        tokenMint,
+        buyerPrice,
+        1
+      )
 
     const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
 
@@ -102,10 +101,8 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
       }
     )
 
-    const [
-      receipt,
-      receiptBump,
-    ] = await AuctionHouseProgram.findBidReceiptAddress(buyerTradeState)
+    const [receipt, receiptBump] =
+      await AuctionHouseProgram.findBidReceiptAddress(buyerTradeState)
 
     const printBidReceiptInstruction = createPrintBidReceiptInstruction(
       {
@@ -123,29 +120,29 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
 
-    let signed: Transaction | undefined = undefined;
+    let signed: Transaction | undefined = undefined
 
     try {
-      signed = await signTransaction(txt);
+      signed = await signTransaction(txt)
     } catch (e: any) {
-      toast.error(e.message);
-      return;
+      toast.error(e.message)
+      return
     }
 
-    let signature: string | undefined = undefined;
+    let signature: string | undefined = undefined
 
     try {
-      toast('Sending the transaction to Solana.');
+      toast('Sending the transaction to Solana.')
 
-      signature = await connection.sendRawTransaction(signed.serialize());
+      signature = await connection.sendRawTransaction(signed.serialize())
 
-      await connection.confirmTransaction(signature, 'confirmed');
+      await connection.confirmTransaction(signature, 'confirmed')
 
-      await refetch();
+      await refetch()
 
-      toast.success('The transaction was confirmed.');
-    } catch(e: any) {
-      toast.error(e.message);
+      toast.success('The transaction was confirmed.')
+    } catch (e: any) {
+      toast.error(e.message)
     } finally {
       navigate(`/nfts/${nft.address}`)
     }
@@ -153,25 +150,27 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
 
   return (
     <form
-      className='text-left grow mt-6'
+      className="text-left grow mt-6"
       onSubmit={handleSubmit(placeOfferTransaction)}
     >
-      <h3 className='mb-6 text-xl font-bold md:text-2xl'>Make an offer</h3>
-      <div className='mb-4 sol-input'>
+      <h3 className="mb-6 text-xl font-bold md:text-2xl">Make an offer</h3>
+      <div className="mb-4 sol-input">
         <input
           {...register('amount', { required: true })}
           autoFocus
-          className='input'
-          placeholder='Price in SOL'
+          className="input"
+          placeholder="Price in SOL"
         />
       </div>
-      <div className='grid grid-cols-2 gap-4'>
+      <div className="grid grid-cols-2 gap-4">
         <Link to={`/nfts/${nft?.address}`}>
           <Button type={ButtonType.Secondary} block>
-          Cancel
+            Cancel
           </Button>
         </Link>
-        <Button htmlType="submit" loading={isSubmitting} block>Place offer</Button>
+        <Button htmlType="submit" loading={isSubmitting} block>
+          Place offer
+        </Button>
       </div>
     </form>
   )
