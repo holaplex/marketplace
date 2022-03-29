@@ -424,7 +424,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                 }}
                 className="px-4 sm:px-0 py-4"
               >
-                <ul className="flex flex-col flex-grow mb-6">
+                <ul className="flex flex-col gap-2 flex-grow mb-6">
                   <li>
                     <Controller
                       control={control}
@@ -433,21 +433,25 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                         <label
                           htmlFor="preset-all"
                           className={cx(
-                            'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                            'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                             {
-                              'bg-gray-800': equals(PresetNftFilter.All, value),
+                              'bg-gray-800': or(
+                                equals(PresetNftFilter.All, value),
+                                loading
+                              ),
                             }
                           )}
                         >
                           <input
                             onChange={onChange}
                             className="hidden"
+                            disabled={loading}
                             type="radio"
                             name="preset"
                             value={PresetNftFilter.All}
                             id="preset-all"
                           />
-                          All
+                          {loading ? <div className="h-6 w-full" /> : 'All'}
                         </label>
                       )}
                     />
@@ -460,11 +464,11 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                         <label
                           htmlFor="preset-listed"
                           className={cx(
-                            'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                            'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                             {
-                              'bg-gray-800': equals(
-                                PresetNftFilter.Listed,
-                                value
+                              'bg-gray-800': or(
+                                equals(PresetNftFilter.Listed, value),
+                                loading
                               ),
                             }
                           )}
@@ -472,61 +476,36 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                           <input
                             onChange={onChange}
                             className="hidden"
+                            disabled={loading}
                             type="radio"
                             name="preset"
                             value={PresetNftFilter.Listed}
                             id="preset-listed"
                           />
-                          Listed for sale
+                          {loading ? (
+                            <div className="h-6 w-full" />
+                          ) : (
+                            'Listed for sale'
+                          )}
                         </label>
                       )}
                     />
                   </li>
                   {connected && (
                     <>
-                    <li>
-                      <Controller
-                        control={control}
-                        name="preset"
-                        render={({ field: { value, onChange } }) => (
-                          <label
-                            htmlFor="preset-owned"
-                            className={cx(
-                              'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
-                              {
-                                'bg-gray-800': equals(
-                                  PresetNftFilter.Owned,
-                                  value
-                                ),
-                              }
-                            )}
-                          >
-                            <input
-                              onChange={onChange}
-                              className="hidden"
-                              type="radio"
-                              name="preset"
-                              value={PresetNftFilter.Owned}
-                              id="preset-owned"
-                            />
-                            Owned by me
-                          </label>
-                        )}
-                      />
-                    </li>
-                    <li>
+                      <li>
                         <Controller
                           control={control}
                           name="preset"
                           render={({ field: { value, onChange } }) => (
                             <label
-                              htmlFor="preset-open"
+                              htmlFor="preset-owned"
                               className={cx(
-                                'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                                'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                                 {
-                                  'bg-gray-800': equals(
-                                    PresetNftFilter.OpenOffers,
-                                    value
+                                  'bg-gray-800': or(
+                                    equals(PresetNftFilter.Owned, value),
+                                    loading
                                   ),
                                 }
                               )}
@@ -535,16 +514,56 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                                 onChange={onChange}
                                 className="hidden"
                                 type="radio"
+                                disabled={loading}
                                 name="preset"
-                                value={PresetNftFilter.OpenOffers}
-                                id="preset-open"
+                                value={PresetNftFilter.Owned}
+                                id="preset-owned"
                               />
-                              My open offers
+                              {loading ? (
+                                <div className="h-6 w-full" />
+                              ) : (
+                                'Owned by me'
+                              )}
                             </label>
                           )}
                         />
                       </li>
-                      </>
+                      <li>
+                        <Controller
+                          control={control}
+                          name="preset"
+                          render={({ field: { value, onChange } }) => (
+                            <label
+                              htmlFor="preset-open"
+                              className={cx(
+                                'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
+                                {
+                                  'bg-gray-800': or(
+                                    equals(PresetNftFilter.OpenOffers, value),
+                                    loading
+                                  ),
+                                }
+                              )}
+                            >
+                              <input
+                                onChange={onChange}
+                                className="hidden"
+                                type="radio"
+                                disabled={loading}
+                                name="preset"
+                                value={PresetNftFilter.OpenOffers}
+                                id="preset-open"
+                              />
+                              {loading ? (
+                                <div className="h-6 w-full" />
+                              ) : (
+                                'My open offers'
+                              )}
+                            </label>
+                          )}
+                        />
+                      </li>
+                    </>
                   )}
                 </ul>
                 <div className="flex flex-col flex-grow gap-4">
