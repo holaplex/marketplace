@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: marketplace
-        image: 011737333588.dkr.ecr.us-east-1.amazonaws.com/marketplace:dev-d498d42
+        image: 011737333588.dkr.ecr.us-east-1.amazonaws.com/marketplace:dev-eab5d67
         env:
         - name: NEXT_PUBLIC_GRAPHQL_ENDPOINT
           value: https://graph-test.holaplex.com/v1
