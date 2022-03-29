@@ -223,7 +223,13 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         always([pubkey]),
         always(null)
       )(preset as PresetNftFilter)
-
+      
+      const offerers = ifElse(
+        equals(PresetNftFilter.OpenOffers),
+        always([pubkey]),
+        always(null)
+      )(preset as PresetNftFilter)
+      
       const listed = ifElse(
         equals(PresetNftFilter.Listed),
         always([marketplace.auctionHouse.address]),
@@ -233,6 +239,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
       refetch({
         creators,
         owners,
+        offerers,
         listed,
         offset: 0,
       }).then(({ data: { nfts } }) => {
@@ -404,36 +411,68 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                     />
                   </li>
                   {connected && (
-                    <li>
-                      <Controller
-                        control={control}
-                        name="preset"
-                        render={({ field: { value, onChange } }) => (
-                          <label
-                            htmlFor="preset-owned"
-                            className={cx(
-                              'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
-                              {
-                                'bg-gray-800': equals(
-                                  PresetNftFilter.Owned,
-                                  value
-                                ),
-                              }
-                            )}
-                          >
-                            <input
-                              onChange={onChange}
-                              className="hidden"
-                              type="radio"
-                              name="preset"
-                              value={PresetNftFilter.Owned}
-                              id="preset-owned"
-                            />
-                            Owned by me
-                          </label>
-                        )}
-                      />
-                    </li>
+                    <>
+                      <li>
+                        <Controller
+                          control={control}
+                          name="preset"
+                          render={({ field: { value, onChange } }) => (
+                            <label
+                              htmlFor="preset-owned"
+                              className={cx(
+                                'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                                {
+                                  'bg-gray-800': equals(
+                                    PresetNftFilter.Owned,
+                                    value
+                                  ),
+                                }
+                              )}
+                            >
+                              <input
+                                onChange={onChange}
+                                className="hidden"
+                                type="radio"
+                                name="preset"
+                                value={PresetNftFilter.Owned}
+                                id="preset-owned"
+                              />
+                              Owned by me
+                            </label>
+                          )}
+                        />
+                      </li>
+                      <li>
+                        <Controller
+                          control={control}
+                          name="preset"
+                          render={({ field: { value, onChange } }) => (
+                            <label
+                              htmlFor="preset-open"
+                              className={cx(
+                                'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                                {
+                                  'bg-gray-800': equals(
+                                    PresetNftFilter.OpenOffers,
+                                    value
+                                  ),
+                                }
+                              )}
+                            >
+                              <input
+                                onChange={onChange}
+                                className="hidden"
+                                type="radio"
+                                name="preset"
+                                value={PresetNftFilter.OpenOffers}
+                                id="preset-open"
+                              />
+                              My open offers
+                            </label>
+                          )}
+                        />
+                      </li>
+                    </>
                   )}
                 </ul>
               </form>
