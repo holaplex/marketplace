@@ -955,11 +955,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                           })}
                         >
                           {a.toWallet && (
-                            <Image
+                            <img
                               src="/images/uturn.svg"
-                              className="mr-2 text-gray-300"
-                              width="28"
-                              height="28"
+                              className="mr-2 text-gray-300 w-4"
                               alt="wallets"
                             />
                           )}
