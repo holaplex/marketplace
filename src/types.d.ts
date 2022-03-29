@@ -47,7 +47,7 @@ export interface AuctionHouse {
   sellerFeeBasisPoints: number
   requiresSignOff: boolean
   canChangeSalePrice: boolean
-  stats: MintStats
+  stats?: MintStats
 }
 
 export interface AttributeVariant {
