@@ -190,6 +190,17 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
     }
   }
 
+  const payoutFunds = async () => {
+    if (!publicKey || !signTransaction || !wallet) {
+      toast.error('Wallet not connected')
+
+      login()
+
+      return
+    }
+    alert('made it')
+  }
+
   return (
     <div className="flex flex-col items-center text-white bg-gray-900">
       <div className="fixed top-0 z-10 flex items-center justify-between w-full p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
@@ -236,10 +247,15 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                     Marketplace
                   </Link>
                 </li>
-                <li className="flex flex-row items-center p-2 bg-gray-800 rounded">
-                  <User color="white" className="mr-1" size="1rem" /> Creators
+                <li className="flex flex-row items-center p-2 rounded">
+                  <Link
+                    className="flex flex-row items-center w-full"
+                    to="/admin/creators/edit"
+                  >
+                    <User color="white" className="mr-1" size="1rem" /> Creators
+                  </Link>
                 </li>
-                <li className="block p-2 rounded">
+                <li className="block p-2 bg-gray-800 rounded">
                   <Link
                     className="flex flex-row items-center w-full"
                     to="/admin/financials/edit"
@@ -254,21 +270,29 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
           <div className="flex flex-col items-center w-full pb-16 grow">
             <div className="w-full max-w-3xl">
               <div className="grid items-start grid-cols-12 mb-10 md:mb-0 md:flex-row md:justify-between">
-                <div className="w-full mb-4 col-span-full md:col-span-8 lg:col-span-10">
-                  <h2>Creators</h2>
+                <div className="w-full mb-4 col-span-full md:col-span-6 lg:col-span-8">
+                  <h2>Financials</h2>
                   <p className="text-gray-300">
-                    Manage the creators whose work will be available on your
-                    marketplace.
+                    Manage the dispersement wallets of this marketplace.
                   </p>
                 </div>
-                <div className="flex justify-end col-span-full md:col-span-4 lg:col-span-2">
+                <div className="flex justify-end col-span-full md:col-span-6 lg:col-span-4">
+                  <Button
+                    block
+                    onClick={payoutFunds}
+                    type={ButtonType.Primary}
+                    size={ButtonSize.Small}
+                  >
+                    Disperse Funds
+                  </Button>
+                  &nbsp;&nbsp;
                   <Button
                     block
                     onClick={() => setShowAdd(!!!showAdd)}
                     type={showAdd ? ButtonType.Tertiary : ButtonType.Primary}
                     size={ButtonSize.Small}
                   >
-                    {showAdd ? 'Cancel' : 'Add Creators'}
+                    {showAdd ? 'Cancel' : 'Add Wallet'}
                   </Button>
                 </div>
               </div>
@@ -280,7 +304,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                     return (
                       <>
                         <label className="block mb-2 text-lg">
-                          Add creator by wallet address
+                          Add wallet address
                         </label>
                         <input
                           autoFocus
@@ -329,7 +353,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                     disabled={isSubmitting}
                     loading={isSubmitting}
                   >
-                    Update creators
+                    Update dispersement wallets
                   </Button>
                 )}
               </form>
