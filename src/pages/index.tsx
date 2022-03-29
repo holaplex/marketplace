@@ -141,17 +141,8 @@ export async function getServerSideProps({ req }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          stats {
-            nfts
-          }
           auctionHouse {
             address
-            stats {
-              mint
-              floor
-              average
-              volume24hr
-            }
             treasuryMint
             auctionHouseTreasury
             treasuryWithdrawalDestination
@@ -354,7 +345,8 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               ) : (
                 <span className="sol-amount text-xl">
                   {toSOL(
-                    marketplaceQuery.data?.marketplace.auctionHouse.stats.floor.toNumber() as number
+                    (marketplaceQuery.data?.marketplace.auctionHouse.stats?.floor.toNumber() ||
+                      0) as number
                   )}
                 </span>
               )}
@@ -368,7 +360,8 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               ) : (
                 <span className="sol-amount text-xl">
                   {toSOL(
-                    marketplaceQuery.data?.marketplace.auctionHouse.stats.volume24hr.toNumber() as number
+                    (marketplaceQuery.data?.marketplace.auctionHouse.stats?.volume24hr.toNumber() ||
+                      0) as number
                   )}
                 </span>
               )}
@@ -382,7 +375,8 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               ) : (
                 <span className="sol-amount text-xl">
                   {toSOL(
-                    marketplaceQuery.data?.marketplace.auctionHouse.stats.average.toNumber() as number
+                    (marketplaceQuery.data?.marketplace.auctionHouse.stats?.average.toNumber() ||
+                      0) as number
                   )}
                 </span>
               )}
