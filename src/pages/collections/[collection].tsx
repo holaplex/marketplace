@@ -361,8 +361,11 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               ) : (
                 <span className="text-xl sol-amount">
                   {toSOL(
-                    collectionQuery.data?.creator.stats[0]?.floor.toNumber() as number
-                  ) || 0}
+                    ifElse(isEmpty, always(0), (stats) =>
+                      stats[0].floor.toNumber()
+                    )(collectionQuery.data?.creator.stats) as number
+                  )}
+
                 </span>
               )}
             </div>
@@ -375,8 +378,10 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               ) : (
                 <span className="text-xl sol-amount">
                   {toSOL(
-                    collectionQuery.data?.creator.stats[0]?.volume24hr.toNumber() as number
-                  ) || 0}
+                    ifElse(isEmpty, always(0), (stats) =>
+                      stats[0].volume24hr.toNumber()
+                    )(collectionQuery.data?.creator.stats) as number
+                  )}
                 </span>
               )}
             </div>
@@ -389,8 +394,10 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               ) : (
                 <span className="text-xl sol-amount">
                   {toSOL(
-                    collectionQuery.data?.creator.stats[0]?.average.toNumber() as number
-                  ) || 0}
+                    ifElse(isEmpty, always(0), (stats) =>
+                      stats[0].average.toNumber()
+                    )(collectionQuery.data?.creator.stats) as number
+                  )}
                 </span>
               )}
             </div>

@@ -60,8 +60,7 @@ import {
   Purchase,
   ActivityType,
 } from '../../types.d'
-import { CornerDownRight, DollarSign, Tag } from 'react-feather'
-import Image from 'next/image'
+import { DollarSign, Tag } from 'react-feather'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
