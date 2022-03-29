@@ -84,6 +84,15 @@ export interface Listing {
   canceledAt: string
 }
 
+export interface Purchase {
+  address: string
+  buyer: string
+  seller: string
+  auctionHouse: string
+  price: BN
+  createdAt: string
+}
+
 export interface Offer {
   address: string
   buyer: string
@@ -104,6 +113,7 @@ export interface Nft extends KeyType {
   creators: UserWallet[]
   owner: UserWallet
   listings: Listing[]
+  purchases: Purchase[]
   offers: Offer[]
 }
 
@@ -126,4 +136,16 @@ export interface Viewer extends GraphQLObject {
 export enum PresetEditFilter {
   Marketplace = 'Marketplace',
   Creators = 'Creators',
+}
+
+export enum ActivityType {
+  Listed = 'Listed',
+  Sold = 'Sold',
+}
+export interface Activity {
+  type: ActivityType
+  fromWallet: string
+  toWallet?: string
+  price: BN
+  createdAt: string
 }
