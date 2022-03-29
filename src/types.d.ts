@@ -1,5 +1,15 @@
 import BN from 'bn.js'
 
+export type Volume = number
+
+interface MarketplaceStats {
+  nfts: Volume
+}
+
+interface CreatorCounts {
+  creations: number
+}
+
 export interface Marketplace {
   subdomain: string
   name: string
@@ -9,6 +19,7 @@ export interface Marketplace {
   auctionHouse: AuctionHouse
   ownerAddress: string
   creators: MarketplaceCreator[]
+  stats: MarketplaceStats
 }
 
 interface GraphQLObject {
@@ -36,6 +47,7 @@ export interface AuctionHouse {
   sellerFeeBasisPoints: number
   requiresSignOff: boolean
   canChangeSalePrice: boolean
+  stats: MintStats
 }
 
 export interface AttributeVariant {
@@ -48,9 +60,18 @@ export interface AttributeGroup {
   variants: AttributeVariant[]
 }
 
+export interface MintStats {
+  volume24hr: BN
+  average: BN
+  floor: BN
+  mint: string
+  auctionHouse: string
+}
 export interface Creator {
   address: string
   attributeGroups: AttributeGroup[]
+  stats: MintStats[]
+  counts: CreatorCounts
 }
 
 export interface NftAttribute {
