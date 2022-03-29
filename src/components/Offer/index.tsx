@@ -15,8 +15,11 @@ import { toast } from 'react-toastify'
 import { Nft, Marketplace } from './../../types'
 import Button, { ButtonType } from './../Button'
 
-const { createPublicBuyInstruction, createPrintBidReceiptInstruction } =
-  AuctionHouseProgram.instructions
+const {
+  createPublicBuyInstruction,
+  createPrintBidReceiptInstruction,
+  createDepositInstruction,
+} = AuctionHouseProgram.instructions
 interface OfferForm {
   amount: string
 }
@@ -79,6 +82,26 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
 
     const txt = new Transaction()
 
+    const depositInstructionAccounts = {
+      wallet: publicKey,
+      paymentAccount: publicKey,
+      transferAuthority: publicKey,
+      treasuryMint,
+      escrowPaymentAccount,
+      authority,
+      auctionHouse,
+      auctionHouseFeeAccount,
+    }
+    const depositInstructionArgs = {
+      escrowPaymentBump,
+      amount: buyerPrice,
+    }
+
+    const depositInstruction = createDepositInstruction(
+      depositInstructionAccounts,
+      depositInstructionArgs
+    )
+
     const publicBuyInstruction = createPublicBuyInstruction(
       {
         wallet: publicKey,
@@ -115,7 +138,10 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
       }
     )
 
-    txt.add(publicBuyInstruction).add(printBidReceiptInstruction)
+    txt
+      .add(depositInstruction)
+      .add(publicBuyInstruction)
+      .add(printBidReceiptInstruction)
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
