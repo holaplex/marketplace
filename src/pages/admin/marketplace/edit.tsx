@@ -185,7 +185,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
           <Link to="/">
             <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600">
               <img
-                className="w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
+                className="w-12 h-12 md:w-8 md:h-8 rounded-full object-cover"
                 src={marketplace.logoUrl}
               />
               <div className="hidden sm:block">{marketplace.name}</div>

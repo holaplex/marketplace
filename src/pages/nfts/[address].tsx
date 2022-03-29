@@ -560,7 +560,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
         <Link to="/">
           <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600">
             <img
-              className="w-8 h-8 rounded-full aspect-square"
+              className="w-8 h-8 rounded-full object-cover"
               src={marketplace.logoUrl}
             />
             <div className="hidden sm:block">{marketplace.name}</div>
