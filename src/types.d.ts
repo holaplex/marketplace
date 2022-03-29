@@ -1,5 +1,15 @@
 import BN from 'bn.js'
 
+export type Volume = number
+
+interface MarketplaceStats {
+  nfts: Volume
+}
+
+interface CreatorCounts {
+  creations: number
+}
+
 export interface Marketplace {
   subdomain: string
   name: string
@@ -9,6 +19,7 @@ export interface Marketplace {
   auctionHouse: AuctionHouse
   ownerAddress: string
   creators: MarketplaceCreator[]
+  stats: MarketplaceStats
 }
 
 interface GraphQLObject {
@@ -36,6 +47,7 @@ export interface AuctionHouse {
   sellerFeeBasisPoints: number
   requiresSignOff: boolean
   canChangeSalePrice: boolean
+  stats: MintStats
 }
 
 export interface AttributeVariant {
@@ -48,9 +60,18 @@ export interface AttributeGroup {
   variants: AttributeVariant[]
 }
 
+export interface MintStats {
+  volume24hr: BN
+  average: BN
+  floor: BN
+  mint: string
+  auctionHouse: string
+}
 export interface Creator {
   address: string
   attributeGroups: AttributeGroup[]
+  stats: MintStats[]
+  counts: CreatorCounts
 }
 
 export interface NftAttribute {
@@ -84,6 +105,15 @@ export interface Listing {
   canceledAt: string
 }
 
+export interface Purchase {
+  address: string
+  buyer: string
+  seller: string
+  auctionHouse: string
+  price: BN
+  createdAt: string
+}
+
 export interface Offer {
   address: string
   buyer: string
@@ -104,6 +134,7 @@ export interface Nft extends KeyType {
   creators: UserWallet[]
   owner: UserWallet
   listings: Listing[]
+  purchases: Purchase[]
   offers: Offer[]
 }
 
@@ -116,6 +147,7 @@ export enum PresetNftFilter {
   All = 'All',
   Listed = 'Listed',
   Owned = 'Owned',
+  OpenOffers = 'OpenOffers',
 }
 
 export interface Viewer extends GraphQLObject {
@@ -126,4 +158,16 @@ export interface Viewer extends GraphQLObject {
 export enum PresetEditFilter {
   Marketplace = 'Marketplace',
   Creators = 'Creators',
+}
+
+export enum ActivityType {
+  Listed = 'Listed',
+  Sold = 'Sold',
+}
+export interface Activity {
+  type: ActivityType
+  fromWallet: string
+  toWallet?: string
+  price: BN
+  createdAt: string
 }

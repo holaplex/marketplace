@@ -20,10 +20,10 @@ spec:
     spec:
       containers:
       - name: marketplace
-        image: 011737333588.dkr.ecr.us-east-1.amazonaws.com/marketplace:dev-ef1f827
+        image: 011737333588.dkr.ecr.us-east-1.amazonaws.com/marketplace:dev-24fc8f4
         env:
         - name: NEXT_PUBLIC_GRAPHQL_ENDPOINT
-          value: https://graph.holaplex.com/v1
+          value: https://graph-test.holaplex.com/v1
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000

@@ -34,7 +34,7 @@ import OfferPage from '../../components/Offer'
 import SellNftPage from '../../components/SellNft'
 import Avatar from '../../components/Avatar'
 import { truncateAddress } from '../../modules/address'
-import { Marketplace, Nft, Listing, Offer } from '../../types'
+
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
@@ -51,6 +51,17 @@ import { useForm } from 'react-hook-form'
 import CancelOfferForm from '../../components/CancelOfferForm'
 import AcceptOfferForm from '../../components/AcceptOfferForm'
 import { useLogin } from '../../hooks/login'
+import {
+  Marketplace,
+  Nft,
+  Listing,
+  Offer,
+  Activity,
+  Purchase,
+  ActivityType,
+} from '../../types.d'
+import { CornerDownRight, DollarSign, Tag } from 'react-feather'
+import Image from 'next/image'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -106,6 +117,14 @@ const GET_NFT = gql`
         tradeStateBump
         createdAt
         canceledAt
+      }
+      purchases {
+        address
+        buyer
+        seller
+        auctionHouse
+        price
+        createdAt
       }
     }
   }
@@ -222,6 +241,17 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
   const offer = find<Offer>(pipe(prop('buyer'), equals(publicKey?.toBase58())))(
     data?.nft.offers || []
   )
+  let activities: Activity[] = []
+  data?.nft.purchases?.forEach((p: Purchase) => {
+    activities.push({
+      type: ActivityType.Sold,
+      price: p.price,
+      fromWallet: p.seller,
+      toWallet: p.buyer,
+      createdAt: p.createdAt,
+    })
+  })
+  activities.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
 
   const buyNftTransaction = async () => {
     if (!publicKey || !signTransaction || !listing || isOwner || !data) {
@@ -528,9 +558,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
       </Head>
       <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
         <Link to="/">
-          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600">
+          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
             <img
-              className="w-8 h-8 rounded-full aspect-square"
+              className="object-cover w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
               src={marketplace.logoUrl}
             />
             <div className="hidden sm:block">{marketplace.name}</div>
@@ -840,7 +870,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                         </div>
                         <div>{format(o.createdAt, 'en_US')}</div>
                         {(offer || isOwner) && (
-                          <div className="flex w-full justify-end">
+                          <div className="flex w-full gap-2 justify-end">
                             {equals(
                               o.buyer,
                               publicKey?.toBase58() as string
@@ -857,6 +887,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                                 nft={data?.nft}
                                 marketplace={marketplace}
                                 offer={o}
+                                listing={listing}
                                 refetch={refetch}
                               />
                             )}
@@ -868,6 +899,101 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                 </section>
               )
             )(offers)}
+
+            <h2 className="mb-4 mt-14 text-xl md:text-2xl text-bold">
+              Activity
+            </h2>
+            {ifElse(
+              (activities: Activity[]) =>
+                and(pipe(length, equals(0))(activities), not(loading)),
+              always(
+                <div className="w-full p-10 text-center border border-gray-800 rounded-lg">
+                  <h3>No activities found</h3>
+                  <p className="text-gray-500 mt-">
+                    There are currently no activities for this NFT.
+                  </p>
+                </div>
+              ),
+              (activities: Activity[]) => (
+                <section className="w-full">
+                  <header className="grid px-4 mb-2 grid-cols-4">
+                    <span className="label">EVENT</span>
+                    <span className="label">WALLETS</span>
+                    <span className="label">PRICE</span>
+                    <span className="label">WHEN</span>
+                  </header>
+                  {loading ? (
+                    <>
+                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                    </>
+                  ) : (
+                    activities.map((a: Activity) => (
+                      <article
+                        key={a.fromWallet}
+                        className="grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded"
+                      >
+                        <div className="flex self-center">
+                          {a.type === ActivityType.Sold ? (
+                            <DollarSign
+                              className="mr-2 self-center text-gray-300"
+                              size="18"
+                            />
+                          ) : (
+                            <Tag
+                              className="mr-2 self-center text-gray-300"
+                              size="18"
+                            />
+                          )}
+                          <div>{a.type}</div>
+                        </div>
+                        <div
+                          className={cx('flex items-center self-center ', {
+                            '-ml-8': a.toWallet,
+                          })}
+                        >
+                          {a.toWallet && (
+                            <img
+                              src="/images/uturn.svg"
+                              className="mr-2 text-gray-300 w-4"
+                              alt="wallets"
+                            />
+                          )}
+                          <div className="flex flex-col">
+                            <a
+                              href={`https://holaplex.com/profiles/${a.fromWallet}`}
+                              rel="nofollower"
+                              className="text-sm"
+                            >
+                              {truncateAddress(a.fromWallet)}
+                            </a>
+                            {a.toWallet && (
+                              <a
+                                href={`https://holaplex.com/profiles/${a.toWallet}`}
+                                rel="nofollower"
+                                className="text-sm"
+                              >
+                                {truncateAddress(a.toWallet)}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <div className="self-center">
+                          <span className="sol-amount">
+                            {toSOL(a.price.toNumber())}
+                          </span>
+                        </div>
+                        <div className="self-center text-sm">
+                          {format(a.createdAt, 'en_US')}
+                        </div>
+                      </article>
+                    ))
+                  )}
+                </section>
+              )
+            )(activities)}
           </div>
         </div>
       </div>

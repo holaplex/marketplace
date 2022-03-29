@@ -36,7 +36,6 @@ import {
   Nft,
   PresetNftFilter,
   AttributeFilter,
-  MarketplaceCreator,
 } from '../../types.d'
 import { List } from '../../components/List'
 import { NftCard } from '../../components/NftCard'
@@ -44,6 +43,7 @@ import Button, { ButtonSize } from '../../components/Button'
 import cx from 'classnames'
 import { useSidebar } from '../../hooks/sidebar'
 import { Filter } from 'react-feather'
+import { toSOL } from '../../modules/lamports'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -59,6 +59,7 @@ const GET_NFTS = gql`
     $creators: [PublicKey!]!
     $owners: [PublicKey!]
     $listed: [PublicKey!]
+    $offerers: [PublicKey!]
     $limit: Int!
     $offset: Int!
     $attributes: [AttributeFilter!]
@@ -67,6 +68,7 @@ const GET_NFTS = gql`
       creators: $creators
       owners: $owners
       listed: $listed
+      offerers: $offerers
       limit: $limit
       offset: $offset
       attributes: $attributes
@@ -90,10 +92,20 @@ const GET_NFTS = gql`
   }
 `
 
-const GET_SIDEBAR = gql`
-  query GetCollectionSidebar($creator: String!) {
+const GET_COLLECTION_INFO = gql`
+  query GetCollectionInfo($creator: String!, $auctionHouses: [PublicKey!]!) {
     creator(address: $creator) {
       address
+      stats(auctionHouses: $auctionHouses) {
+        mint
+        auctionHouse
+        volume24hr
+        average
+        floor
+      }
+      counts {
+        creations
+      }
       attributeGroups {
         name
         variants {
@@ -181,7 +193,7 @@ interface GetCollectionPage {
   creator: Creator | null
 }
 
-interface GetCollectionSidebarData {
+interface GetCollectionInfo {
   creator: Creator
 }
 
@@ -217,12 +229,12 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
     },
   })
 
-  const { data: sidebar, loading: loadingSidebar } =
-    useQuery<GetCollectionSidebarData>(GET_SIDEBAR, {
-      variables: {
-        creator: router.query.collection,
-      },
-    })
+  const collectionQuery = useQuery<GetCollectionInfo>(GET_COLLECTION_INFO, {
+    variables: {
+      creator: router.query.collection,
+      auctionHouses: [marketplace.auctionHouse.address],
+    },
+  })
 
   const { sidebarOpen, toggleSidebar } = useSidebar()
 
@@ -230,7 +242,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
     defaultValues: { preset: PresetNftFilter.All },
   })
 
-  const loading = loadingNfts || loadingSidebar
+  const loading = loadingNfts || collectionQuery.loading
 
   useEffect(() => {
     const subscription = watch(({ attributes, preset }) => {
@@ -246,6 +258,12 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
         always(null)
       )(preset as PresetNftFilter)
 
+      const offerers = ifElse(
+        equals(PresetNftFilter.OpenOffers),
+        always([pubkey]),
+        always(null)
+      )(preset as PresetNftFilter)
+
       const listed = ifElse(
         equals(PresetNftFilter.Listed),
         always([marketplace.auctionHouse.address]),
@@ -256,6 +274,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
         creators: [router.query.collection],
         attributes: nextAttributes,
         owners,
+        offerers,
         listed,
         offset: 0,
       }).then(({ data: { nfts } }) => {
@@ -288,9 +307,9 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
       </Head>
       <div className="relative w-full">
         <Link to="/" className="absolute top-6 left-6">
-          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600">
+          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
             <img
-              className="w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
+              className="object-cover w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
               src={marketplace.logoUrl}
             />
             <div className="hidden sm:block">{marketplace.name}</div>
@@ -304,7 +323,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
             ) && (
               <Link
                 to="/admin/marketplace/edit"
-                className="text-sm cursor-pointer mr-6 hover:underline "
+                className="text-sm cursor-pointer mr-6 hover:underline"
               >
                 Admin Dashboard
               </Link>
@@ -319,16 +338,75 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
         />
       </div>
       <div className="w-full max-w-[1800px] px-8">
-        <div className="relative flex flex-col justify-between w-full mt-20 mb-20">
-          <img
-            src={marketplace.logoUrl}
-            alt={marketplace.name}
-            className="absolute border-4 bg-gray-900 object-cover border-gray-900 rounded-full w-28 h-28 -top-32"
-          />
-          <h2 className="text-sm text-gray-300"
-          >{truncateAddress(router.query?.collection as string)}</h2>
-          <h1 className="mb-4">{marketplace.name}</h1>
-          <p>{marketplace.description}</p>
+        <div className="relative grid grid-cols-12 gap-4 justify-between w-full mt-20 mb-20">
+          <div className="col-span-12 md:col-span-8 mb-6">
+            <img
+              src={marketplace.logoUrl}
+              alt={marketplace.name}
+              className="absolute border-4 bg-gray-900 object-cover border-gray-900 rounded-full w-28 h-28 -top-32"
+            />
+            <h2 className="text-sm text-gray-300">
+              {truncateAddress(router.query?.collection as string)}
+            </h2>
+            <h1 className="mb-4">{marketplace.name}</h1>
+            <p>{marketplace.description}</p>
+          </div>
+          <div className="col-span-12 md:col-span-4 grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+                Floor
+              </span>
+              {loading ? (
+                <div className="block bg-gray-800 w-20 h-6 rounded" />
+              ) : (
+                <span className="sol-amount text-xl">
+                  {toSOL(
+                    collectionQuery.data?.creator.stats[0].floor.toNumber() as number
+                  )}
+                </span>
+              )}
+            </div>
+            <div>
+              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+                Vol Last 24 hrs
+              </span>
+              {loading ? (
+                <div className="block bg-gray-800 w-20 h-6 rounded" />
+              ) : (
+                <span className="sol-amount text-xl">
+                  {toSOL(
+                    collectionQuery.data?.creator.stats[0].volume24hr.toNumber() as number
+                  )}
+                </span>
+              )}
+            </div>
+            <div>
+              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+                Avg Sale Price
+              </span>
+              {loading ? (
+                <div className="block bg-gray-800 w-16 h-6 rounded" />
+              ) : (
+                <span className="sol-amount text-xl">
+                  {toSOL(
+                    collectionQuery.data?.creator.stats[0].average.toNumber() as number
+                  )}
+                </span>
+              )}
+            </div>
+            <div>
+              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+                NFTs
+              </span>
+              {loading ? (
+                <div className="block bg-gray-800 w-24 h-6 rounded" />
+              ) : (
+                <span className="sol-amount text-xl">
+                  {collectionQuery.data?.creator.counts.creations}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
         <div className="flex">
           <div className="relative">
@@ -346,7 +424,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                 }}
                 className="px-4 sm:px-0 py-4"
               >
-                <ul className="flex flex-col flex-grow mb-6">
+                <ul className="flex flex-col gap-2 flex-grow mb-6">
                   <li>
                     <Controller
                       control={control}
@@ -355,21 +433,25 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                         <label
                           htmlFor="preset-all"
                           className={cx(
-                            'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                            'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                             {
-                              'bg-gray-800': equals(PresetNftFilter.All, value),
+                              'bg-gray-800': or(
+                                equals(PresetNftFilter.All, value),
+                                loading
+                              ),
                             }
                           )}
                         >
                           <input
                             onChange={onChange}
                             className="hidden"
+                            disabled={loading}
                             type="radio"
                             name="preset"
                             value={PresetNftFilter.All}
                             id="preset-all"
                           />
-                          All
+                          {loading ? <div className="h-6 w-full" /> : 'All'}
                         </label>
                       )}
                     />
@@ -382,11 +464,11 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                         <label
                           htmlFor="preset-listed"
                           className={cx(
-                            'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
+                            'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                             {
-                              'bg-gray-800': equals(
-                                PresetNftFilter.Listed,
-                                value
+                              'bg-gray-800': or(
+                                equals(PresetNftFilter.Listed, value),
+                                loading
                               ),
                             }
                           )}
@@ -394,47 +476,94 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                           <input
                             onChange={onChange}
                             className="hidden"
+                            disabled={loading}
                             type="radio"
                             name="preset"
                             value={PresetNftFilter.Listed}
                             id="preset-listed"
                           />
-                          Listed for sale
+                          {loading ? (
+                            <div className="h-6 w-full" />
+                          ) : (
+                            'Listed for sale'
+                          )}
                         </label>
                       )}
                     />
                   </li>
                   {connected && (
-                    <li>
-                      <Controller
-                        control={control}
-                        name="preset"
-                        render={({ field: { value, onChange } }) => (
-                          <label
-                            htmlFor="preset-owned"
-                            className={cx(
-                              'flex justify-between w-full px-4 py-2 mb-1 rounded-md cursor-pointer hover:bg-gray-800',
-                              {
-                                'bg-gray-800': equals(
-                                  PresetNftFilter.Owned,
-                                  value
-                                ),
-                              }
-                            )}
-                          >
-                            <input
-                              onChange={onChange}
-                              className="hidden"
-                              type="radio"
-                              name="preset"
-                              value={PresetNftFilter.Owned}
-                              id="preset-owned"
-                            />
-                            Owned by me
-                          </label>
-                        )}
-                      />
-                    </li>
+                    <>
+                      <li>
+                        <Controller
+                          control={control}
+                          name="preset"
+                          render={({ field: { value, onChange } }) => (
+                            <label
+                              htmlFor="preset-owned"
+                              className={cx(
+                                'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
+                                {
+                                  'bg-gray-800': or(
+                                    equals(PresetNftFilter.Owned, value),
+                                    loading
+                                  ),
+                                }
+                              )}
+                            >
+                              <input
+                                onChange={onChange}
+                                className="hidden"
+                                type="radio"
+                                disabled={loading}
+                                name="preset"
+                                value={PresetNftFilter.Owned}
+                                id="preset-owned"
+                              />
+                              {loading ? (
+                                <div className="h-6 w-full" />
+                              ) : (
+                                'Owned by me'
+                              )}
+                            </label>
+                          )}
+                        />
+                      </li>
+                      <li>
+                        <Controller
+                          control={control}
+                          name="preset"
+                          render={({ field: { value, onChange } }) => (
+                            <label
+                              htmlFor="preset-open"
+                              className={cx(
+                                'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
+                                {
+                                  'bg-gray-800': or(
+                                    equals(PresetNftFilter.OpenOffers, value),
+                                    loading
+                                  ),
+                                }
+                              )}
+                            >
+                              <input
+                                onChange={onChange}
+                                className="hidden"
+                                type="radio"
+                                disabled={loading}
+                                name="preset"
+                                value={PresetNftFilter.OpenOffers}
+                                id="preset-open"
+                              />
+                              {loading ? (
+                                <div className="h-6 w-full" />
+                              ) : (
+                                'My open offers'
+                              )}
+                            </label>
+                          )}
+                        />
+                      </li>
+                    </>
                   )}
                 </ul>
                 <div className="flex flex-col flex-grow gap-4">
@@ -458,7 +587,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                       </div>
                     </>
                   ) : (
-                    sidebar?.creator.attributeGroups.map(
+                    collectionQuery.data?.creator.attributeGroups.map(
                       ({ name: group, variants }, index) => (
                         <div
                           className="flex flex-col flex-grow gap-2"
