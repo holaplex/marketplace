@@ -14,6 +14,7 @@ import {
 import { toast } from 'react-toastify'
 import { Nft, Marketplace } from './../../types'
 import Button, { ButtonType } from './../Button'
+import { useLogin } from 'src/hooks/login'
 
 const {
   createPublicBuyInstruction,
@@ -41,9 +42,16 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
   const navigate = useNavigate()
+  const login = useLogin()
+
 
   const placeOfferTransaction = async ({ amount }: OfferForm) => {
-    if (!publicKey || !signTransaction || !nft) {
+    if(!publicKey || !signTransaction){
+      login();
+      return
+    }
+    
+    if (!nft) {
       return
     }
 
