@@ -14,7 +14,7 @@ import {
 import { toast } from 'react-toastify'
 import { Nft, Marketplace } from './../../types'
 import Button, { ButtonType } from './../Button'
-import { useLogin } from 'src/hooks/login'
+import { useLogin } from '../../hooks/login'
 
 const {
   createPublicBuyInstruction,
