@@ -388,7 +388,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               {loading ? (
                 <div className="block bg-gray-800 w-24 h-6 rounded" />
               ) : (
-                <span className="sol-amount text-xl">
+                <span className="text-xl">
                   {marketplaceQuery.data?.marketplace.stats.nfts}
                 </span>
               )}
