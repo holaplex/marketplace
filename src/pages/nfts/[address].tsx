@@ -253,7 +253,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
   activities.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
 
   const buyNftTransaction = async () => {
-    if (!publicKey || !signTransaction || !listing || isOwner || !data) {
+    if(!publicKey || !signTransaction){
+      login();
+      return
+    }
+
+    if (!listing || isOwner || !data) {
       return
     }
 
@@ -458,7 +463,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
   }
 
   const cancelListingTransaction = async () => {
-    if (!publicKey || !signTransaction || !listing || !isOwner || !data) {
+    if(!publicKey || !signTransaction){
+      login();
+      return
+    }
+
+    if (!listing || !isOwner || !data) {
       return
     }
 
@@ -683,7 +693,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                 </div>
               </div>
               <div className={cx('flex gap-4', { hidden: loading })}>
-                {connected ? (
                   <Routes>
                     <Route
                       path={`/nfts/${data?.nft.address}`}
@@ -766,16 +775,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                       }
                     />
                   </Routes>
-                ) : (
-                  <Button
-                    block
-                    onClick={login}
-                    loading={connecting}
-                    className="mt-6"
-                  >
-                    Connect
-                  </Button>
-                )}
+                
               </div>
             </div>
             <div className="grid grid-cols-2 gap-6 mt-8">
