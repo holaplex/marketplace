@@ -420,32 +420,34 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           ) : (
             creatorsQuery.data?.marketplace.creators
               .filter(
-                (creator) => creator.creatorAddress !=
+                (creator) =>
+                  creator.creatorAddress !=
                   '4cUyDakNPeMEZtJPDJGNujWLGF1XNH7WbQnheUEfD2xX'
-              ).map((creator) => {
-                  return (
-                <Link
-                  className="transition-transform hover:scale-[1.02]"
-                  key={creator.storeConfigAddress}
-                  to={`/collections/${creator.creatorAddress}`}
-                >
-                  <div>
-                    <div className="flex flex-grid mb-2 rounded-lg overflow-hidden">
-                      {creator.preview.map((nft) => {
-                        return (
-                          <img
-                            className="aspect-square w-1/3"
-                            src={nft.image}
-                            key={nft.address}
-                          />
-                        )
-                      })}
-                    </div>
-                    {collectionNameByAddress(creator.creatorAddress) ??
-                        truncateAddress(creator.creatorAddress)}
-                  </div>
-                </Link>
               )
+              .map((creator) => {
+                return (
+                  <Link
+                    className="transition-transform hover:scale-[1.02]"
+                    key={creator.storeConfigAddress}
+                    to={`/collections/${creator.creatorAddress}`}
+                  >
+                    <div>
+                      <div className="flex flex-grid mb-2 rounded-lg overflow-hidden">
+                        {creator.preview.map((nft) => {
+                          return (
+                            <img
+                              className="aspect-square w-1/3"
+                              src={nft.image}
+                              key={nft.address}
+                            />
+                          )
+                        })}
+                      </div>
+                      {collectionNameByAddress(creator.creatorAddress) ??
+                        truncateAddress(creator.creatorAddress)}
+                    </div>
+                  </Link>
+                )
               })
           )}
         </div>
