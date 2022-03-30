@@ -9,13 +9,18 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
-import { Marketplace, Nft, Offer } from '../../types'
+import { Listing, Marketplace, Nft, Offer } from '../../types'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
 import { concat } from 'ramda'
+import {
+  createCancelInstruction,
+  createCancelListingReceiptInstruction,
+} from '@metaplex-foundation/mpl-auction-house/dist/src/generated/instructions'
 
 interface AcceptOfferFormProps {
   offer: Offer
+  listing?: Listing
   nft?: Nft
   marketplace: Marketplace
   refetch: (
@@ -34,6 +39,7 @@ const AcceptOfferForm = ({
   offer,
   nft,
   marketplace,
+  listing,
   refetch,
 }: AcceptOfferFormProps) => {
   const { publicKey, signTransaction } = useWallet()
@@ -75,7 +81,7 @@ const AcceptOfferForm = ({
         tokenAccount,
         treasuryMint,
         tokenMint,
-        offer.price,
+        offer.price.toNumber(),
         1
       )
 
@@ -85,7 +91,7 @@ const AcceptOfferForm = ({
         auctionHouse,
         treasuryMint,
         tokenMint,
-        offer.price,
+        offer.price.toNumber(),
         1
       )
 
@@ -230,6 +236,37 @@ const AcceptOfferForm = ({
         })
       )
       .add(executePrintPurchaseReceiptInstruction)
+
+    if (listing) {
+      const cancelInstructionAccounts = {
+        wallet: publicKey,
+        tokenAccount,
+        tokenMint,
+        authority,
+        auctionHouse,
+        auctionHouseFeeAccount,
+        tradeState: new PublicKey(listing.tradeState),
+      }
+      const cancelListingInstructionArgs = {
+        buyerPrice: listing.price,
+        tokenSize: 1,
+      }
+
+      const cancelListingReceiptAccounts = {
+        receipt: new PublicKey(listing.address),
+        instruction: SYSVAR_INSTRUCTIONS_PUBKEY,
+      }
+
+      const cancelListingInstruction = createCancelInstruction(
+        cancelInstructionAccounts,
+        cancelListingInstructionArgs
+      )
+
+      const cancelListingReceiptInstruction =
+        createCancelListingReceiptInstruction(cancelListingReceiptAccounts)
+
+      txt.add(cancelListingInstruction).add(cancelListingReceiptInstruction)
+    }
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
