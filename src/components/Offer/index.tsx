@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
@@ -44,13 +44,12 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
   const navigate = useNavigate()
   const login = useLogin()
 
-
   const placeOfferTransaction = async ({ amount }: OfferForm) => {
-    if(!publicKey || !signTransaction){
-      login();
+    if (!publicKey || !signTransaction) {
+      login()
       return
     }
-    
+
     if (!nft) {
       return
     }
@@ -181,6 +180,17 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
       navigate(`/nfts/${nft.address}`)
     }
   }
+
+  useEffect(() => {
+    if (!nft || !publicKey) {
+      return
+    }
+
+    if (nft.owner.address === publicKey.toBase58()) {
+      navigate(`/nfts/${nft.address}`)
+      return
+    }
+  }, [publicKey, nft, navigate])
 
   return (
     <form
