@@ -408,7 +408,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                 <div className="block bg-gray-800 w-24 h-6 rounded" />
               ) : (
                 <span className="text-xl">
-                  {collectionQuery.data?.creator.counts.creations}
+                  {collectionQuery.data?.creator.counts?.creations || 0}
                 </span>
               )}
             </div>
