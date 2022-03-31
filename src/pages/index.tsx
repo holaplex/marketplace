@@ -389,7 +389,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 <div className="block bg-gray-800 w-24 h-6 rounded" />
               ) : (
                 <span className="text-xl">
-                  {marketplaceQuery.data?.marketplace.stats.nfts}
+                  {marketplaceQuery.data?.marketplace.stats?.nfts || 0}
                 </span>
               )}
             </div>
