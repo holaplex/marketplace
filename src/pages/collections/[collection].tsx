@@ -184,7 +184,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
     props: {
       marketplace,
       creator,
-      host
+      host,
     },
   }
 }
@@ -212,7 +212,7 @@ interface NftFilterForm {
 const CollectionShow: NextPage<CollectionPageProps> = ({
   marketplace,
   creator,
-  host
+  host,
 }) => {
   const { publicKey, connected } = useWallet()
   const [hasMore, setHasMore] = useState(true)
@@ -308,11 +308,18 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
         <meta property="og:type" content="website" />
-        {host && (<meta property="og:site_name" content={host} />)}
-        <meta property="og:title" content={truncateAddress(router.query?.collection as string) + ' NFT Collection ' + ' | '+ marketplace.name} />
+        <meta property="og:site_name" content={host} />
+        <meta
+          property="og:title"
+          content={
+            truncateAddress(router.query?.collection as string) +
+            ' NFT Collection ' +
+            ' | ' +
+            marketplace.name
+          }
+        />
         <meta property="og:image" content={marketplace.bannerUrl} />
         <meta property="og:description" content={marketplace.description} />
-     
       </Head>
       <div className="relative w-full">
         <Link to="/" className="absolute top-6 left-6">

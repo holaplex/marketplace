@@ -187,7 +187,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
   return {
     props: {
       marketplace,
-      host
+      host,
     },
   }
 }
@@ -302,7 +302,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace, host }) => {
         <title>{marketplace.name}</title>
         <link rel="icon" href={marketplace.logoUrl} />
         <meta property="og:type" content="website" />
-        {host && (<meta property="og:site_name" content={host} />)}
+        <meta property="og:site_name" content={host} />)
         <meta property="og:title" content={marketplace.name} />
         <meta property="og:image" content={marketplace.bannerUrl} />
         <meta property="og:description" content={marketplace.description} />
