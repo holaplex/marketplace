@@ -119,7 +119,7 @@ const GET_COLLECTION_INFO = gql`
 
 export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain']
-  const host = req?.headers.host
+
   const {
     data: { marketplace, creator },
   } = await client.query<GetCollectionPage>({
@@ -184,7 +184,6 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
     props: {
       marketplace,
       creator,
-      host,
     },
   }
 }
@@ -201,7 +200,6 @@ interface GetCollectionInfo {
 interface CollectionPageProps extends AppProps {
   marketplace: Marketplace
   creator: Creator
-  host: string
 }
 
 interface NftFilterForm {
@@ -212,7 +210,6 @@ interface NftFilterForm {
 const CollectionShow: NextPage<CollectionPageProps> = ({
   marketplace,
   creator,
-  host,
 }) => {
   const { publicKey, connected } = useWallet()
   const [hasMore, setHasMore] = useState(true)
@@ -308,7 +305,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content={host} />
+        <meta property="og:site_name" content={marketplace.name} />
         <meta
           property="og:title"
           content={

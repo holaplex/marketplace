@@ -131,7 +131,7 @@ const GET_NFT = gql`
 
 export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain']
-  const host = req?.headers.host
+
   const {
     data: { marketplace, nft },
   } = await client.query<GetNftPage>({
@@ -198,7 +198,6 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   return {
     props: {
       marketplace,
-      host,
     },
   }
 }
@@ -210,14 +209,13 @@ interface GetNftPage {
 
 interface NftPageProps extends AppProps {
   marketplace: Marketplace
-  host: string
 }
 
 interface GetNftData {
   nft: Nft
 }
 
-const NftShow: NextPage<NftPageProps> = ({ marketplace, host }) => {
+const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
   const { publicKey, signTransaction, connected, connecting } = useWallet()
   const { connection } = useConnection()
   const router = useRouter()
@@ -567,7 +565,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, host }) => {
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content={host} />
+        <meta property="og:site_name" content={marketplace.name} />
         <meta
           property="og:title"
           content={`${data?.nft.name} | ${marketplace.name}`}
