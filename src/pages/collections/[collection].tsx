@@ -214,6 +214,10 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
   const { publicKey, connected } = useWallet()
   const [hasMore, setHasMore] = useState(true)
   const router = useRouter()
+  let hostname
+  if (typeof window !== 'undefined') {
+    hostname = window.location.hostname;
+ }
   const {
     data,
     loading: loadingNfts,
@@ -304,6 +308,12 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
           {marketplace.name}
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
+        <meta property="og:type" content="website" />
+        {hostname && (<meta property="og:site_name" content={hostname} />)}
+        <meta property="og:title" content={truncateAddress(router.query?.collection as string) + ' NFT Collection ' + ' | '+ marketplace.name} />
+        <meta property="og:image" content={marketplace.bannerUrl} />
+        <meta property="og:description" content={marketplace.description} />
+     
       </Head>
       <div className="relative w-full">
         <Link to="/" className="absolute top-6 left-6">

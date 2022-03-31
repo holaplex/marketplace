@@ -215,7 +215,10 @@ interface NftFilterForm {
 const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const { publicKey, connected } = useWallet()
   const creators = map(prop('creatorAddress'))(marketplace.creators)
-
+  let hostname
+  if (typeof window !== 'undefined') {
+    hostname = window.location.hostname;
+ }
   const marketplaceQuery = useQuery<GetMarketplaceInfo>(GET_MARKETPLACE_INFO, {
     variables: {
       subdomain: marketplace.subdomain,
@@ -300,6 +303,11 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
       <Head>
         <title>{marketplace.name}</title>
         <link rel="icon" href={marketplace.logoUrl} />
+        <meta property="og:type" content="website" />
+        {hostname && (<meta property="og:site_name" content={hostname} />)}
+        <meta property="og:title" content={marketplace.name} />
+        <meta property="og:image" content={marketplace.bannerUrl} />
+        <meta property="og:description" content={marketplace.description} />
       </Head>
       <div className="relative w-full">
         <div className="absolute flex justify-end right-6 top-[28px]">
