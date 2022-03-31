@@ -125,7 +125,7 @@ const GET_MARKETPLACE_INFO = gql`
 
 export async function getServerSideProps({ req }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'] || SUBDOMAIN
-
+  const host = req?.headers.host
   const response = await client.query<GetMarketplace>({
     fetchPolicy: 'no-cache',
     query: gql`
@@ -187,6 +187,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
   return {
     props: {
       marketplace,
+      host,
     },
   }
 }
@@ -205,6 +206,7 @@ interface GetCreatorPreviews {
 
 interface HomePageProps extends AppProps {
   marketplace: Marketplace
+  host: string
 }
 
 interface NftFilterForm {
@@ -212,10 +214,9 @@ interface NftFilterForm {
   preset: PresetNftFilter
 }
 
-const Home: NextPage<HomePageProps> = ({ marketplace }) => {
+const Home: NextPage<HomePageProps> = ({ marketplace, host }) => {
   const { publicKey, connected } = useWallet()
   const creators = map(prop('creatorAddress'))(marketplace.creators)
-
   const marketplaceQuery = useQuery<GetMarketplaceInfo>(GET_MARKETPLACE_INFO, {
     variables: {
       subdomain: marketplace.subdomain,
@@ -300,6 +301,11 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
       <Head>
         <title>{marketplace.name}</title>
         <link rel="icon" href={marketplace.logoUrl} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content={host} />)
+        <meta property="og:title" content={marketplace.name} />
+        <meta property="og:image" content={marketplace.bannerUrl} />
+        <meta property="og:description" content={marketplace.description} />
       </Head>
       <div className="relative w-full">
         <div className="absolute flex justify-end right-6 top-[28px]">

@@ -131,7 +131,7 @@ const GET_NFT = gql`
 
 export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain']
-
+  const host = req?.headers.host
   const {
     data: { marketplace, nft },
   } = await client.query<GetNftPage>({
@@ -198,6 +198,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   return {
     props: {
       marketplace,
+      host,
     },
   }
 }
@@ -209,13 +210,14 @@ interface GetNftPage {
 
 interface NftPageProps extends AppProps {
   marketplace: Marketplace
+  host: string
 }
 
 interface GetNftData {
   nft: Nft
 }
 
-const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
+const NftShow: NextPage<NftPageProps> = ({ marketplace, host }) => {
   const { publicKey, signTransaction, connected, connecting } = useWallet()
   const { connection } = useConnection()
   const router = useRouter()
@@ -253,8 +255,8 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
   activities.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
 
   const buyNftTransaction = async () => {
-    if(!publicKey || !signTransaction){
-      login();
+    if (!publicKey || !signTransaction) {
+      login()
       return
     }
 
@@ -463,8 +465,8 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
   }
 
   const cancelListingTransaction = async () => {
-    if(!publicKey || !signTransaction){
-      login();
+    if (!publicKey || !signTransaction) {
+      login()
       return
     }
 
@@ -564,6 +566,14 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
           {marketplace.name}
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content={host} />
+        <meta
+          property="og:title"
+          content={`${data?.nft.name} | ${marketplace.name}`}
+        />
+        <meta property="og:image" content={data?.nft.image} />
+        <meta property="og:description" content={data?.nft.description} />
       </Head>
       <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
         <Link to="/">
@@ -693,89 +703,86 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                 </div>
               </div>
               <div className={cx('flex gap-4', { hidden: loading })}>
-                  <Routes>
-                    <Route
-                      path={`/nfts/${data?.nft.address}`}
-                      element={
-                        <>
-                          {!isOwner && !offer && (
-                            <Link
-                              to={`/nfts/${data?.nft.address}/offers/new`}
-                              className="flex-1 mt-6"
+                <Routes>
+                  <Route
+                    path={`/nfts/${data?.nft.address}`}
+                    element={
+                      <>
+                        {!isOwner && !offer && (
+                          <Link
+                            to={`/nfts/${data?.nft.address}/offers/new`}
+                            className="flex-1 mt-6"
+                          >
+                            <Button type={ButtonType.Secondary} block>
+                              Make Offer
+                            </Button>
+                          </Link>
+                        )}
+                        {isOwner && !listing && (
+                          <Link
+                            to={`/nfts/${data?.nft.address}/listings/new`}
+                            className="flex-1 mt-6"
+                          >
+                            <Button block>Sell NFT</Button>
+                          </Link>
+                        )}
+                        {listing && !isOwner && (
+                          <form
+                            className="flex-1 mt-6"
+                            onSubmit={buyNowForm.handleSubmit(
+                              buyNftTransaction
+                            )}
+                          >
+                            <Button
+                              loading={buyNowForm.formState.isSubmitting}
+                              htmlType="submit"
+                              block
                             >
-                              <Button type={ButtonType.Secondary} block>
-                                Make Offer
-                              </Button>
-                            </Link>
-                          )}
-                          {isOwner && !listing && (
-                            <Link
-                              to={`/nfts/${data?.nft.address}/listings/new`}
-                              className="flex-1 mt-6"
+                              Buy Now
+                            </Button>
+                          </form>
+                        )}
+                        {listing && isOwner && (
+                          <form
+                            className="flex-1 mt-6"
+                            onSubmit={cancelListingForm.handleSubmit(
+                              cancelListingTransaction
+                            )}
+                          >
+                            <Button
+                              block
+                              loading={cancelListingForm.formState.isSubmitting}
+                              htmlType="submit"
+                              type={ButtonType.Secondary}
                             >
-                              <Button block>Sell NFT</Button>
-                            </Link>
-                          )}
-                          {listing && !isOwner && (
-                            <form
-                              className="flex-1 mt-6"
-                              onSubmit={buyNowForm.handleSubmit(
-                                buyNftTransaction
-                              )}
-                            >
-                              <Button
-                                loading={buyNowForm.formState.isSubmitting}
-                                htmlType="submit"
-                                block
-                              >
-                                Buy Now
-                              </Button>
-                            </form>
-                          )}
-                          {listing && isOwner && (
-                            <form
-                              className="flex-1 mt-6"
-                              onSubmit={cancelListingForm.handleSubmit(
-                                cancelListingTransaction
-                              )}
-                            >
-                              <Button
-                                block
-                                loading={
-                                  cancelListingForm.formState.isSubmitting
-                                }
-                                htmlType="submit"
-                                type={ButtonType.Secondary}
-                              >
-                                Cancel Listing
-                              </Button>
-                            </form>
-                          )}
-                        </>
-                      }
-                    />
-                    <Route
-                      path={`/nfts/${data?.nft.address}/offers/new`}
-                      element={
-                        <OfferPage
-                          nft={data?.nft}
-                          marketplace={marketplace}
-                          refetch={refetch}
-                        />
-                      }
-                    />
-                    <Route
-                      path={`/nfts/${data?.nft.address}/listings/new`}
-                      element={
-                        <SellNftPage
-                          nft={data?.nft}
-                          marketplace={marketplace}
-                          refetch={refetch}
-                        />
-                      }
-                    />
-                  </Routes>
-                
+                              Cancel Listing
+                            </Button>
+                          </form>
+                        )}
+                      </>
+                    }
+                  />
+                  <Route
+                    path={`/nfts/${data?.nft.address}/offers/new`}
+                    element={
+                      <OfferPage
+                        nft={data?.nft}
+                        marketplace={marketplace}
+                        refetch={refetch}
+                      />
+                    }
+                  />
+                  <Route
+                    path={`/nfts/${data?.nft.address}/listings/new`}
+                    element={
+                      <SellNftPage
+                        nft={data?.nft}
+                        marketplace={marketplace}
+                        refetch={refetch}
+                      />
+                    }
+                  />
+                </Routes>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-6 mt-8">
