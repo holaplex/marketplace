@@ -220,7 +220,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
         <div className="relative w-full mt-20 mb-1">
           <img
             src={marketplace.logoUrl}
-            className="object-cover w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
+            className="absolute border-4 border-gray-900 object-cover rounded-full w-16 h-16 -top-28 md:w-28 md:h-28 md:-top-32"
           />
         </div>
         <div className="flex flex-col md:flex-row">

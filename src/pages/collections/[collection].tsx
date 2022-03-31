@@ -304,6 +304,19 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
           {marketplace.name}
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content={marketplace.name} />
+        <meta
+          property="og:title"
+          content={
+            truncateAddress(router.query?.collection as string) +
+            ' NFT Collection ' +
+            ' | ' +
+            marketplace.name
+          }
+        />
+        <meta property="og:image" content={marketplace.bannerUrl} />
+        <meta property="og:description" content={marketplace.description} />
       </Head>
       <div className="relative w-full">
         <Link to="/" className="absolute top-6 left-6">
