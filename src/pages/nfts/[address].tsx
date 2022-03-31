@@ -131,7 +131,7 @@ const GET_NFT = gql`
 
 export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain']
-
+  const host = req?.headers.host
   const {
     data: { marketplace, nft },
   } = await client.query<GetNftPage>({
@@ -198,6 +198,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   return {
     props: {
       marketplace,
+      host
     },
   }
 }
@@ -209,22 +210,20 @@ interface GetNftPage {
 
 interface NftPageProps extends AppProps {
   marketplace: Marketplace
+  host: string
 }
 
 interface GetNftData {
   nft: Nft
 }
 
-const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
+const NftShow: NextPage<NftPageProps> = ({ marketplace, host }) => {
   const { publicKey, signTransaction, connected, connecting } = useWallet()
   const { connection } = useConnection()
   const router = useRouter()
   const cancelListingForm = useForm()
   const buyNowForm = useForm()
-  let hostname
-  if (typeof window !== 'undefined') {
-    hostname = window.location.hostname;
- }
+
 
   const { data, loading, refetch } = useQuery<GetNftData>(GET_NFT, {
     variables: {
@@ -569,22 +568,11 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
         <meta property="og:type" content="website" />
-        {hostname && (<meta property="og:site_name" content={hostname} />)}
-        {data?.nft ? (
-          <>
-            <meta property="og:title" content={data?.nft.name + ' | '+ marketplace.name} />
-            <meta property="og:image" content={data?.nft.image} />
-            <meta property="og:description" content={data?.nft.description} />
-          </>
-        ):
-        (
-          <>
-            <meta property="og:title" content={truncateAddress(router.query?.address as string) + ' NFT' + ' | '+ marketplace.name} />
-            <meta property="og:image" content={marketplace.bannerUrl} />
-            <meta property="og:description" content={marketplace.description} />
-          </>
-        )
-        }
+        {host && (<meta property="og:site_name" content={host} />)}
+        <meta property="og:title" content={data?.nft.name + ' | '+ marketplace.name} />
+        <meta property="og:image" content={data?.nft.image} />
+        <meta property="og:description" content={data?.nft.description} />
+       
       </Head>
       <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
         <Link to="/">
