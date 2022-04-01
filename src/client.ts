@@ -95,6 +95,14 @@ const client = new ApolloClient({
       NftAttribute: {
         keyFields: ['traitType', 'value'],
       },
+      NftActivity: {
+        keyFields: ['address'],
+        fields: {
+          price: {
+            read: asBN,
+          },
+        },
+      }
     },
   }),
 })

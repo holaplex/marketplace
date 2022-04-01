@@ -161,15 +161,11 @@ export enum PresetEditFilter {
   Creators = 'Creators',
 }
 
-export enum ActivityType {
-  Listed = 'listing',
-  Sold = 'purchase',
-}
-export interface Activity {
+export interface NftActivity {
   address: string
   metadata: string
   auctionHouse: string
-  price: string
+  price: BN
   createdAt: string
   wallets: string[]
   activityType: string

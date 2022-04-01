@@ -56,9 +56,7 @@ import {
   Nft,
   Listing,
   Offer,
-  Activity,
-  Purchase,
-  ActivityType,
+  NftActivity,
 } from '../../types.d'
 import { DollarSign, Tag } from 'react-feather'
 
@@ -241,7 +239,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
   const offer = find<Offer>(pipe(prop('buyer'), equals(publicKey?.toBase58())))(
     data?.nft.offers || []
   )
-  let activities = filter<Activity>(
+  let activities = filter<NftActivity>(
     pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
   )(data?.nft.activities || [])
 
@@ -901,7 +899,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
               Activity
             </h2>
             {ifElse(
-              (activities: Activity[]) =>
+              (activities: NftActivity[]) =>
                 and(pipe(length, equals(0))(activities), not(loading)),
               always(
                 <div className="w-full p-10 text-center border border-gray-800 rounded-lg">
@@ -911,7 +909,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                   </p>
                 </div>
               ),
-              (activities: Activity[]) => (
+              (activities: NftActivity[]) => (
                 <section className="w-full">
                   <header className="grid px-4 mb-2 grid-cols-4">
                     <span className="label">EVENT</span>
@@ -927,7 +925,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                       <article className="bg-gray-800 mb-4 h-16 rounded" />
                     </>
                   ) : (
-                    activities.map((a: Activity) => (
+                    activities.map((a: NftActivity) => (
                       <article
                         key={a.address}
                         className="grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded"
@@ -979,7 +977,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                         </div>
                         <div className="self-center">
                           <span className="sol-amount">
-                            {toSOL(parseInt(a.price))}
+                            {toSOL(a.price.toNumber())}
                             
                           </span>
                         </div>
