@@ -82,6 +82,7 @@ const GET_NFT = gql`
       description
       owner {
         address
+        associatedTokenAccountAddress
       }
       attributes {
         traitType
@@ -271,12 +272,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     const sellerPaymentReceiptAccount = new PublicKey(listing.seller)
     const sellerTradeState = new PublicKey(listing.tradeState)
     const buyerPrice = listing.price.toNumber()
+    const tokenAccount = new PublicKey(
+      data?.nft.owner.associatedTokenAccountAddress
+    )
 
-    const [tokenAccount] =
-      await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-        tokenMint,
-        new PublicKey(data?.nft.owner.address)
-      )
     const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
 
     const [escrowPaymentAccount, escrowPaymentBump] =
@@ -474,11 +473,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     const tokenMint = new PublicKey(data?.nft.mintAddress)
     const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
     const receipt = new PublicKey(listing.address)
-    const [tokenAccount] =
-      await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-        tokenMint,
-        new PublicKey(data?.nft.owner.address)
-      )
+    const tokenAccount = new PublicKey(
+      data?.nft.owner.associatedTokenAccountAddress
+    )
+
     const buyerPrice = listing.price.toNumber()
 
     const [tradeState] = await AuctionHouseProgram.findTradeStateAddress(
@@ -930,7 +928,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   ) : (
                     activities.map((a: Activity) => {
                       const hasWallets = moreThanOne(a.wallets)
-                      debugger
+
                       return (
                         <article
                           key={a.address}

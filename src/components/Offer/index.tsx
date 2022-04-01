@@ -62,12 +62,7 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
     )
     const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
     const tokenMint = new PublicKey(nft.mintAddress)
-
-    const [tokenAccount] =
-      await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-        tokenMint,
-        new PublicKey(nft.owner.address)
-      )
+    const tokenAccount = new PublicKey(nft.owner.associatedTokenAccountAddress)
 
     const [escrowPaymentAccount, escrowPaymentBump] =
       await AuctionHouseProgram.findEscrowPaymentAccountAddress(

@@ -54,11 +54,9 @@ const SellNft = ({ nft, marketplace, refetch }: SellNftProps) => {
     const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
     const tokenMint = new PublicKey(nft.mintAddress)
 
-    const [associatedTokenAccount] =
-      await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-        tokenMint,
-        new PublicKey(nft.owner.address)
-      )
+    const associatedTokenAccount = new PublicKey(
+      nft.owner.associatedTokenAccountAddress
+    )
 
     const [sellerTradeState, tradeStateBump] =
       await AuctionHouseProgram.findTradeStateAddress(
