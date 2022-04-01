@@ -168,6 +168,9 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
         }
         nft(address: $address) {
           address
+          image
+          name
+          description
           creators {
             address
           }
@@ -198,6 +201,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   return {
     props: {
       marketplace,
+      nft,
     },
   }
 }
@@ -209,13 +213,14 @@ interface GetNftPage {
 
 interface NftPageProps extends AppProps {
   marketplace: Marketplace
+  nft: Nft
 }
 
 interface GetNftData {
   nft: Nft
 }
 
-const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
+const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   const { publicKey, signTransaction, connected, connecting } = useWallet()
   const { connection } = useConnection()
   const router = useRouter()
@@ -568,10 +573,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
         <meta property="og:site_name" content={marketplace.name} />
         <meta
           property="og:title"
-          content={`${data?.nft.name} | ${marketplace.name}`}
+          content={`${nft.name} | ${marketplace.name}`}
         />
-        <meta property="og:image" content={data?.nft.image} />
-        <meta property="og:description" content={data?.nft.description} />
+        <meta property="og:image" content={nft.image} />
+        <meta property="og:description" content={nft.description} />
       </Head>
       <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
         <Link to="/">
