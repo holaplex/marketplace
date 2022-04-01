@@ -83,6 +83,10 @@ export interface UserWallet {
   address: string
 }
 
+export interface NftOwnerWallet extends UserWallet {
+  associatedTokenAccountAddress: string
+}
+
 interface AddressKeyType {
   [address: string]: string
 }
@@ -132,7 +136,7 @@ export interface Nft extends KeyType {
   mintAddress: string
   attributes: NftAttribute[]
   creators: UserWallet[]
-  owner: UserWallet
+  owner: NftOwnerWallet
   listings: Listing[]
   purchases: Purchase[]
   offers: Offer[]

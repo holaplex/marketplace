@@ -71,6 +71,7 @@ const GET_NFTS = gql`
       image
       owner {
         address
+        associatedTokenAccountAddress
       }
       offers {
         address
