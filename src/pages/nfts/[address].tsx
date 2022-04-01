@@ -566,12 +566,21 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
         <link rel="icon" href={marketplace.logoUrl} />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content={marketplace.name} />
-        <meta
-          property="og:title"
-          content={`${data?.nft.name} | ${marketplace.name}`}
-        />
-        <meta property="og:image" content={data?.nft.image} />
-        <meta property="og:description" content={data?.nft.description} />
+        {data?.nft ? (
+          <>
+            <meta property="og:title" content={data?.nft.name + ' | '+ marketplace.name} />
+            <meta property="og:image" content={data?.nft.image} />
+            <meta property="og:description" content={data?.nft.description} />
+          </>
+        ):
+        (
+          <>
+            <meta property="og:title" content={truncateAddress(router.query?.address as string) + ' NFT' + ' | '+ marketplace.name} />
+            <meta property="og:image" content={marketplace.bannerUrl} />
+            <meta property="og:description" content={marketplace.description} />
+          </>
+        )
+        }
       </Head>
       <div className="sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
         <Link to="/">
