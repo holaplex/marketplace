@@ -136,6 +136,7 @@ export interface Nft extends KeyType {
   listings: Listing[]
   purchases: Purchase[]
   offers: Offer[]
+  activities: Activity[]
 }
 
 export interface AttributeFilter {
@@ -161,13 +162,15 @@ export enum PresetEditFilter {
 }
 
 export enum ActivityType {
-  Listed = 'Listed',
-  Sold = 'Sold',
+  Listed = 'listing',
+  Sold = 'purchase',
 }
 export interface Activity {
-  type: ActivityType
-  fromWallet: string
-  toWallet?: string
-  price: BN
+  address: string
+  metadata: string
+  auctionHouse: string
+  price: string
   createdAt: string
+  wallets: string[]
+  activityType: string
 }

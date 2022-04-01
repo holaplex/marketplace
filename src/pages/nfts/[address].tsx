@@ -102,6 +102,15 @@ const GET_NFT = gql`
         createdAt
         auctionHouse
       }
+      activities {
+        address
+        metadata
+        auctionHouse
+        price
+        createdAt
+        wallets
+        activityType
+      }
       listings {
         address
         auctionHouse
@@ -116,14 +125,6 @@ const GET_NFT = gql`
         tradeStateBump
         createdAt
         canceledAt
-      }
-      purchases {
-        address
-        buyer
-        seller
-        auctionHouse
-        price
-        createdAt
       }
     }
   }
@@ -240,17 +241,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
   const offer = find<Offer>(pipe(prop('buyer'), equals(publicKey?.toBase58())))(
     data?.nft.offers || []
   )
-  let activities: Activity[] = []
-  data?.nft.purchases?.forEach((p: Purchase) => {
-    activities.push({
-      type: ActivityType.Sold,
-      price: p.price,
-      fromWallet: p.seller,
-      toWallet: p.buyer,
-      createdAt: p.createdAt,
-    })
-  })
-  activities.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+  let activities = filter<Activity>(
+    pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
+  )(data?.nft.activities || [])
 
   const buyNftTransaction = async () => {
     if (!publicKey || !signTransaction) {
@@ -936,11 +929,11 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                   ) : (
                     activities.map((a: Activity) => (
                       <article
-                        key={a.fromWallet}
+                        key={a.address}
                         className="grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded"
                       >
                         <div className="flex self-center">
-                          {a.type === ActivityType.Sold ? (
+                          {a.activityType === "purchase" ? (
                             <DollarSign
                               className="mr-2 self-center text-gray-300"
                               size="18"
@@ -951,14 +944,14 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                               size="18"
                             />
                           )}
-                          <div>{a.type}</div>
+                          <div>{a.activityType === 'purchase' ? 'Sold':'Listed'}</div>
                         </div>
                         <div
                           className={cx('flex items-center self-center ', {
-                            '-ml-8': a.toWallet,
+                            '-ml-6': a.wallets.length > 1,
                           })}
                         >
-                          {a.toWallet && (
+                          {a.wallets.length > 1 && (
                             <img
                               src="/images/uturn.svg"
                               className="mr-2 text-gray-300 w-4"
@@ -967,26 +960,27 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                           )}
                           <div className="flex flex-col">
                             <a
-                              href={`https://holaplex.com/profiles/${a.fromWallet}`}
+                              href={`https://holaplex.com/profiles/${a.wallets[0]}`}
                               rel="nofollower"
                               className="text-sm"
                             >
-                              {truncateAddress(a.fromWallet)}
+                              {truncateAddress(a.wallets[0])}
                             </a>
-                            {a.toWallet && (
+                            {a.wallets.length > 1 && (
                               <a
-                                href={`https://holaplex.com/profiles/${a.toWallet}`}
+                                href={`https://holaplex.com/profiles/${a.wallets[1]}`}
                                 rel="nofollower"
                                 className="text-sm"
                               >
-                                {truncateAddress(a.toWallet)}
+                                {truncateAddress(a.wallets[1])}
                               </a>
                             )}
                           </div>
                         </div>
                         <div className="self-center">
                           <span className="sol-amount">
-                            {toSOL(a.price.toNumber())}
+                            {toSOL(parseInt(a.price))}
+                            
                           </span>
                         </div>
                         <div className="self-center text-sm">
