@@ -19,7 +19,9 @@ import {
   all,
   map,
   any,
+  gt,
   intersection,
+  partialRight,
 } from 'ramda'
 import Head from 'next/head'
 import cx from 'classnames'
@@ -51,15 +53,7 @@ import { useForm } from 'react-hook-form'
 import CancelOfferForm from '../../components/CancelOfferForm'
 import AcceptOfferForm from '../../components/AcceptOfferForm'
 import { useLogin } from '../../hooks/login'
-import {
-  Marketplace,
-  Nft,
-  Listing,
-  Offer,
-  Activity,
-  Purchase,
-  ActivityType,
-} from '../../types.d'
+import { Marketplace, Nft, Listing, Offer, Activity } from '../../types.d'
 import { DollarSign, Tag } from 'react-feather'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -74,6 +68,8 @@ const {
 } = AuctionHouseProgram.instructions
 
 const pickAuctionHouse = prop('auctionHouse')
+
+const moreThanOne = pipe(length, partialRight(gt, [1]))
 
 const GET_NFT = gql`
   query GetNft($address: String!) {
@@ -927,67 +923,74 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace }) => {
                       <article className="bg-gray-800 mb-4 h-16 rounded" />
                     </>
                   ) : (
-                    activities.map((a: Activity) => (
-                      <article
-                        key={a.address}
-                        className="grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded"
-                      >
-                        <div className="flex self-center">
-                          {a.activityType === "purchase" ? (
-                            <DollarSign
-                              className="mr-2 self-center text-gray-300"
-                              size="18"
-                            />
-                          ) : (
-                            <Tag
-                              className="mr-2 self-center text-gray-300"
-                              size="18"
-                            />
-                          )}
-                          <div>{a.activityType === 'purchase' ? 'Sold':'Listed'}</div>
-                        </div>
-                        <div
-                          className={cx('flex items-center self-center ', {
-                            '-ml-6': a.wallets.length > 1,
-                          })}
+                    activities.map((a: Activity) => {
+                      const hasWallets = moreThanOne(a.wallets)
+                      debugger
+                      return (
+                        <article
+                          key={a.address}
+                          className="grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded"
                         >
-                          {a.wallets.length > 1 && (
-                            <img
-                              src="/images/uturn.svg"
-                              className="mr-2 text-gray-300 w-4"
-                              alt="wallets"
-                            />
-                          )}
-                          <div className="flex flex-col">
-                            <a
-                              href={`https://holaplex.com/profiles/${a.wallets[0]}`}
-                              rel="nofollower"
-                              className="text-sm"
-                            >
-                              {truncateAddress(a.wallets[0])}
-                            </a>
-                            {a.wallets.length > 1 && (
+                          <div className="flex self-center">
+                            {a.activityType === 'purchase' ? (
+                              <DollarSign
+                                className="mr-2 self-center text-gray-300"
+                                size="18"
+                              />
+                            ) : (
+                              <Tag
+                                className="mr-2 self-center text-gray-300"
+                                size="18"
+                              />
+                            )}
+                            <div>
+                              {a.activityType === 'purchase'
+                                ? 'Sold'
+                                : 'Listed'}
+                            </div>
+                          </div>
+                          <div
+                            className={cx('flex items-center self-center ', {
+                              '-ml-6': hasWallets,
+                            })}
+                          >
+                            {hasWallets && (
+                              <img
+                                src="/images/uturn.svg"
+                                className="mr-2 text-gray-300 w-4"
+                                alt="wallets"
+                              />
+                            )}
+                            <div className="flex flex-col">
                               <a
-                                href={`https://holaplex.com/profiles/${a.wallets[1]}`}
+                                href={`https://holaplex.com/profiles/${a.wallets[0]}`}
                                 rel="nofollower"
                                 className="text-sm"
                               >
-                                {truncateAddress(a.wallets[1])}
+                                {truncateAddress(a.wallets[0])}
                               </a>
-                            )}
+                              {hasWallets && (
+                                <a
+                                  href={`https://holaplex.com/profiles/${a.wallets[1]}`}
+                                  rel="nofollower"
+                                  className="text-sm"
+                                >
+                                  {truncateAddress(a.wallets[1])}
+                                </a>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        <div className="self-center">
-                          <span className="sol-amount">
-                            {toSOL(parseInt(a.price))}
-                            
-                          </span>
-                        </div>
-                        <div className="self-center text-sm">
-                          {format(a.createdAt, 'en_US')}
-                        </div>
-                      </article>
-                    ))
+                          <div className="self-center">
+                            <span className="sol-amount">
+                              {toSOL(a.price.toNumber())}
+                            </span>
+                          </div>
+                          <div className="self-center text-sm">
+                            {format(a.createdAt, 'en_US')}
+                          </div>
+                        </article>
+                      )
+                    })
                   )}
                 </section>
               )

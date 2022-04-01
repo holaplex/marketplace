@@ -169,7 +169,7 @@ export interface Activity {
   address: string
   metadata: string
   auctionHouse: string
-  price: string
+  price: BN
   createdAt: string
   wallets: string[]
   activityType: string
