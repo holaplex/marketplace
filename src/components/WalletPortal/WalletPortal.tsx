@@ -50,10 +50,10 @@ const WalletPortal = () => {
           {not(isLoading) && <div className="user-avatar h-[48px] w-[48px]" />}
         </div>
       </Popover.Trigger>
-      <Popover.Content className="bg-gray-800 p-4 text-white">
-        <Popover.Arrow className="fill-gray-800" offset={18} />
+      <Popover.Content className="bg-gray-800 rounded-lg p-5 text-white">
+        {/* <Popover.Arrow className="fill-gray-800" offset={18} /> */}
         <div className="flex items-center mb-6">
-          <div className="w-16 h-16 inline-block rounded-full bg-gray-700 mr-14">
+          <div className="w-16 h-16 inline-block rounded-full bg-gray-700 mr-20">
             {not(isLoading) && (
               <div className="user-avatar w-full h-full block" />
             )}
@@ -63,13 +63,13 @@ const WalletPortal = () => {
               target="_blank"
               rel="noreferrer"
               href={`https://holaplex.com/profiles/${publicKey?.toBase58()}`}
-              className="flex items-center text-[#f4f4f4]  transition-colors hover:text-gray-300"
+              className="flex text-xl items-center transition-colors hover:text-gray-300"
             >
-              View Profile <ChevronRight size="18" className="ml-2"/>
+              View profile <ChevronRight size="22" className="ml-1.5"/>
             </a>
           )}
         </div>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-3">
           <div className="text-lg font-semibold flex items-center">
             {or(isLoading, isNil(data?.viewer)) ? (
               <div className="inline-block h-6 w-14 bg-gray-700 rounded" />
@@ -80,7 +80,7 @@ const WalletPortal = () => {
           {isLoading ? (
             <div className="inline-block h-6 w-20 bg-gray-700 rounded" />
           ) : (
-            <div className="text-xs connected-status text-gray-300 cursor-pointer" onClick={handleLabelClick}>
+            <div className="text-sm pubkey connected-status text-gray-300 cursor-pointer" onClick={handleLabelClick}>
               {truncateAddress(publicKey?.toBase58() as string)}
             </div>
           )}
@@ -89,6 +89,7 @@ const WalletPortal = () => {
           <div className="h-8 w-44 rounded-full bg-gray-700" />
         ) : (
           <Button
+            className='focus:outline-none'
             size={ButtonSize.Small}
             type={ButtonType.Tertiary}
             block
