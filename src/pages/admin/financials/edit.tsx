@@ -15,9 +15,17 @@ import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 import { truncateAddress } from '../../../modules/address'
 import { initMarketplaceSDK } from './../../../modules/marketplace'
+import {
+  Transaction,
+  PublicKey,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
+} from '@solana/web3.js'
+import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
+const { createWithdrawFromTreasuryInstruction } =
+  AuctionHouseProgram.instructions
 interface GetMarketplace {
   marketplace: Marketplace | null
 }
@@ -98,8 +106,9 @@ interface MarketplaceForm {
 
 const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
   const wallet = useWallet()
-  const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
+  const { publicKey, signTransaction } = wallet
+
   const login = useLogin()
 
   const [showAdd, setShowAdd] = useState(false)
@@ -127,74 +136,6 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
     },
   })
 
-  const { fields, append, prepend, remove, swap, move, insert } = useFieldArray(
-    {
-      control,
-      name: 'feeWithdrawlDestination',
-    }
-  )
-
-  const onSubmit = async ({
-    name,
-    banner,
-    logo,
-    description,
-    transactionFee,
-    creators,
-  }: MarketplaceForm) => {
-    if (!publicKey || !signTransaction || !wallet) {
-      toast.error('Wallet not connected')
-
-      login()
-
-      return
-    }
-
-    const client = initMarketplaceSDK(connection, wallet)
-
-    toast('Saving changes...')
-
-    const settings = {
-      meta: {
-        name,
-        description,
-      },
-      theme: {
-        logo: {
-          name: logo.name,
-          type: logo.type,
-          url: logo.uri,
-        },
-        banner: {
-          name: banner.name,
-          type: banner.type,
-          url: banner.uri,
-        },
-      },
-      feeWithdrawalDestination:
-        marketplace.auctionHouse.feeWithdrawalDestination,
-      creators,
-      subdomain: marketplace.subdomain,
-      address: {
-        auctionHouse: marketplace.auctionHouse.address,
-      },
-    }
-
-    try {
-      await client.update(settings, transactionFee)
-
-      toast.success(
-        <>
-          Marketplace updated successfully! It may take a few moments for the
-          change to go live.
-        </>,
-        { autoClose: 5000 }
-      )
-    } catch (e: any) {
-      toast.error(e.message)
-    }
-  }
-
   const payoutFunds = async () => {
     if (!publicKey || !signTransaction || !wallet) {
       toast.error('Wallet not connected')
@@ -203,7 +144,88 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
 
       return
     }
-    alert('made it')
+
+    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
+    const authority = new PublicKey(marketplace.auctionHouse.authority)
+    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
+    const auctionHouseTreasury = new PublicKey(
+      marketplace.auctionHouse.auctionHouseTreasury
+    )
+
+    const treasuryWithdrawalDestination = new PublicKey(
+      marketplace.auctionHouse.treasuryWithdrawalDestination
+    )
+
+    const auctionHouseTreasuryBalance = await connection.getBalance(
+      auctionHouseTreasury
+    )
+    debugger
+
+    const withdrawFromTreasuryInstructionAccounts = {
+      treasuryMint,
+      authority,
+      treasuryWithdrawalDestination,
+      auctionHouseTreasury,
+      auctionHouse,
+    }
+    const withdrawFromTreasuryInstructionArgs = {
+      amount: auctionHouseTreasuryBalance / 2,
+    }
+
+    const withdrawFromTreasuryInstruction =
+      createWithdrawFromTreasuryInstruction(
+        withdrawFromTreasuryInstructionAccounts,
+        withdrawFromTreasuryInstructionArgs
+      )
+
+    const holaplexCommunityWallet = new PublicKey(
+      'tsU33UT3K2JTfLgHUo7hdzRhRe4wth885cqVbM8WLiq'
+    )
+
+    const withdrawFromTreasuryToHolaInstruction =
+      createWithdrawFromTreasuryInstruction(
+        {
+          treasuryMint,
+          authority,
+          treasuryWithdrawalDestination: holaplexCommunityWallet,
+          auctionHouseTreasury,
+          auctionHouse,
+        },
+        {
+          amount: auctionHouseTreasuryBalance / 2,
+        }
+      )
+
+    const txt = new Transaction()
+    txt
+      .add(withdrawFromTreasuryInstruction)
+      .add(withdrawFromTreasuryToHolaInstruction)
+
+    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+    txt.feePayer = publicKey
+
+    let signed: Transaction | undefined = undefined
+
+    try {
+      signed = await signTransaction(txt)
+    } catch (e: any) {
+      toast.error(e.message)
+      return
+    }
+
+    let signature: string | undefined = undefined
+
+    try {
+      toast('Sending the transaction to Solana.')
+
+      signature = await connection.sendRawTransaction(signed.serialize())
+
+      await connection.confirmTransaction(signature, 'confirmed')
+
+      toast.success('The transaction was confirmed.')
+    } catch (e: any) {
+      toast.error(e.message)
+    }
   }
 
   return (
@@ -291,77 +313,8 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                     Disperse Funds
                   </Button>
                   &nbsp;&nbsp;
-                  <Button
-                    block
-                    onClick={() => setShowAdd(!!!showAdd)}
-                    type={showAdd ? ButtonType.Tertiary : ButtonType.Primary}
-                    size={ButtonSize.Small}
-                  >
-                    {showAdd ? 'Cancel' : 'Add Wallet'}
-                  </Button>
                 </div>
               </div>
-              {showAdd && (
-                <Controller
-                  control={control}
-                  name="creator"
-                  render={({ field: { onChange, value } }) => {
-                    return (
-                      <>
-                        <label className="block mb-2 text-lg">
-                          Add wallet address
-                        </label>
-                        <input
-                          autoFocus
-                          onKeyPress={(e) => {
-                            if (e.key !== 'Enter') {
-                              return
-                            }
-
-                            append({ address: value })
-                            onChange('')
-                          }}
-                          placeholder="SOL wallet address"
-                          className="w-full px-3 py-2 mb-10 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
-                          value={value}
-                          onChange={onChange}
-                        />
-                      </>
-                    )
-                  }}
-                />
-              )}
-              <ul className="flex flex-col max-h-screen gap-6 py-4 mb-10">
-                {fields.map((field, index) => {
-                  return (
-                    <li
-                      key={field.address}
-                      className="flex justify-between w-full"
-                    >
-                      {truncateAddress(field.address)}
-                      <Button
-                        size={ButtonSize.Small}
-                        onClick={() => remove(index)}
-                      >
-                        Remove
-                      </Button>
-                    </li>
-                  )
-                })}
-              </ul>
-              <form>
-                {isDirty && (
-                  <Button
-                    block
-                    htmlType="submit"
-                    onClick={handleSubmit(onSubmit)}
-                    disabled={isSubmitting}
-                    loading={isSubmitting}
-                  >
-                    Update dispersement wallets
-                  </Button>
-                )}
-              </form>
             </div>
           </div>
         </div>
