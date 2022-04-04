@@ -6,15 +6,13 @@ import { Image as ImageIcon, DollarSign, User } from 'react-feather'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
-import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import client from './../../../client'
 import WalletPortal from './../../../../src/components/WalletPortal'
 import { Link } from 'react-router-dom'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
-import { truncateAddress } from '../../../modules/address'
-import { initMarketplaceSDK } from './../../../modules/marketplace'
+
 import {
   Transaction,
   PublicKey,
@@ -87,24 +85,11 @@ export async function getServerSideProps({ req }: NextPageContext) {
   }
 }
 
-interface AdminEditCreatorsProps extends AppProps {
+interface AdminEditFinancialsProps extends AppProps {
   marketplace: Marketplace
 }
 
-interface MarketplaceForm {
-  domain: string
-  logo: { uri: string; type?: string; name?: string }
-  banner: { uri: string; type?: string; name?: string }
-  subdomain: string
-  name: string
-  description: string
-  transactionFee: number
-  creators: { address: string }[]
-  feeWithdrawalDestination: string
-  creator: string
-}
-
-const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
+const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
   const wallet = useWallet()
   const { connection } = useConnection()
   const { publicKey, signTransaction } = wallet
@@ -112,29 +97,6 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
   const login = useLogin()
 
   const [withdrawlLoading, setWithdrawlLoading] = useState(false)
-
-  const {
-    register,
-    control,
-    handleSubmit,
-    formState: { errors, isDirty, isSubmitting },
-  } = useForm<MarketplaceForm>({
-    defaultValues: {
-      domain: `${marketplace.subdomain}.holaplex.market`,
-      logo: { uri: marketplace.logoUrl },
-      banner: { uri: marketplace.bannerUrl },
-      subdomain: marketplace.subdomain,
-      name: marketplace.name,
-      description: marketplace.description,
-      creators: marketplace.creators.map(({ creatorAddress }) => ({
-        address: creatorAddress,
-      })),
-      feeWithdrawalDestination:
-        marketplace.auctionHouse.feeWithdrawalDestination,
-      transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,
-      creator: '',
-    },
-  })
 
   const payoutFunds = async () => {
     if (!publicKey || !signTransaction || !wallet) {
@@ -325,4 +287,4 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
   )
 }
 
-export default AdminEditCreators
+export default AdminEditFinancials
