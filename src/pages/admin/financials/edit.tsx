@@ -92,6 +92,7 @@ interface MarketplaceForm {
   description: string
   transactionFee: number
   creators: { address: string }[]
+  feeWithdrawalDestination: string
   creator: string
 }
 
@@ -119,6 +120,8 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
       creators: marketplace.creators.map(({ creatorAddress }) => ({
         address: creatorAddress,
       })),
+      feeWithdrawalDestination:
+        marketplace.auctionHouse.feeWithdrawalDestination,
       transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,
       creator: '',
     },
@@ -127,7 +130,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
   const { fields, append, prepend, remove, swap, move, insert } = useFieldArray(
     {
       control,
-      name: 'creators',
+      name: 'feeWithdrawlDestination',
     }
   )
 
@@ -168,6 +171,8 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
           url: banner.uri,
         },
       },
+      feeWithdrawalDestination:
+        marketplace.auctionHouse.feeWithdrawalDestination,
       creators,
       subdomain: marketplace.subdomain,
       address: {
