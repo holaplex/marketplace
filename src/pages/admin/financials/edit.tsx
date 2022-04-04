@@ -111,7 +111,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
 
   const login = useLogin()
 
-  const [showAdd, setShowAdd] = useState(false)
+  const [withdrawlLoading, setWithdrawlLoading] = useState(false)
 
   const {
     register,
@@ -217,7 +217,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
 
     try {
       toast('Sending the transaction to Solana.')
-
+      setWithdrawlLoading(true)
       signature = await connection.sendRawTransaction(signed.serialize())
 
       await connection.confirmTransaction(signature, 'confirmed')
@@ -226,6 +226,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
     } catch (e) {
       toast.error(e.message)
     }
+    setWithdrawlLoading(false)
   }
 
   return (
@@ -309,6 +310,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                     onClick={payoutFunds}
                     type={ButtonType.Primary}
                     size={ButtonSize.Small}
+                    loading={withdrawlLoading}
                   >
                     Disperse Funds
                   </Button>
