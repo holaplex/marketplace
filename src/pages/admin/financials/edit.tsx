@@ -208,7 +208,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
 
     try {
       signed = await signTransaction(txt)
-    } catch (e: any) {
+    } catch (e) {
       toast.error(e.message)
       return
     }
@@ -223,7 +223,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
       await connection.confirmTransaction(signature, 'confirmed')
 
       toast.success('The transaction was confirmed.')
-    } catch (e: any) {
+    } catch (e) {
       toast.error(e.message)
     }
   }
@@ -300,7 +300,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                 <div className="w-full mb-4 col-span-full md:col-span-6 lg:col-span-8">
                   <h2>Financials</h2>
                   <p className="text-gray-300">
-                    Manage the dispersement wallets of this marketplace.
+                    Manage the finances of this marketplace.
                   </p>
                 </div>
                 <div className="flex justify-end col-span-full md:col-span-6 lg:col-span-4">
