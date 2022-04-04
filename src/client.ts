@@ -84,6 +84,14 @@ const client = new ApolloClient({
           },
         },
       },
+      NftActivity: {
+        keyFields: ['address'],
+        fields: {
+          price: {
+            read: asBN,
+          },
+        },
+      },
       BidReceipt: {
         keyFields: ['address'],
         fields: {

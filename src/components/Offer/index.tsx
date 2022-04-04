@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
@@ -14,6 +14,7 @@ import {
 import { toast } from 'react-toastify'
 import { Nft, Marketplace } from './../../types'
 import Button, { ButtonType } from './../Button'
+import { useLogin } from '../../hooks/login'
 
 const {
   createPublicBuyInstruction,
@@ -41,9 +42,15 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
   const navigate = useNavigate()
+  const login = useLogin()
 
   const placeOfferTransaction = async ({ amount }: OfferForm) => {
-    if (!publicKey || !signTransaction || !nft) {
+    if (!publicKey || !signTransaction) {
+      login()
+      return
+    }
+
+    if (!nft) {
       return
     }
 
@@ -55,12 +62,7 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
     )
     const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
     const tokenMint = new PublicKey(nft.mintAddress)
-
-    const [tokenAccount] =
-      await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-        tokenMint,
-        new PublicKey(nft.owner.address)
-      )
+    const tokenAccount = new PublicKey(nft.owner.associatedTokenAccountAddress)
 
     const [escrowPaymentAccount, escrowPaymentBump] =
       await AuctionHouseProgram.findEscrowPaymentAccountAddress(
@@ -173,6 +175,17 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
       navigate(`/nfts/${nft.address}`)
     }
   }
+
+  useEffect(() => {
+    if (!nft || !publicKey) {
+      return
+    }
+
+    if (nft.owner.address === publicKey.toBase58()) {
+      navigate(`/nfts/${nft.address}`)
+      return
+    }
+  }, [publicKey, nft, navigate])
 
   return (
     <form

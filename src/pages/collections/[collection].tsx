@@ -79,6 +79,7 @@ const GET_NFTS = gql`
       image
       owner {
         address
+        associatedTokenAccountAddress
       }
       offers {
         address
@@ -304,6 +305,19 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
           {marketplace.name}
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content={marketplace.name} />
+        <meta
+          property="og:title"
+          content={
+            truncateAddress(router.query?.collection as string) +
+            ' NFT Collection ' +
+            ' | ' +
+            marketplace.name
+          }
+        />
+        <meta property="og:image" content={marketplace.bannerUrl} />
+        <meta property="og:description" content={marketplace.description} />
       </Head>
       <div className="relative w-full">
         <Link to="/" className="absolute top-6 left-6">
@@ -365,7 +379,6 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                       stats[0].floor.toNumber()
                     )(collectionQuery.data?.creator.stats) as number
                   )}
-
                 </span>
               )}
             </div>
@@ -408,8 +421,8 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               {loading ? (
                 <div className="block w-24 h-6 bg-gray-800 rounded" />
               ) : (
-                <span className="text-xl sol-amount">
-                  {collectionQuery.data?.creator.counts.creations}
+                <span className="text-xl">
+                  {collectionQuery.data?.creator.counts?.creations || 0}
                 </span>
               )}
             </div>
