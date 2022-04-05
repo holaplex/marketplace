@@ -141,7 +141,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
       )
 
     const holaplexCommunityWallet = new PublicKey(
-      'tsU33UT3K2JTfLgHUo7hdzRhRe4wth885cqVbM8WLiq'
+      'ho1aVYd4TDWCi1pMqFvboPPc3J13e4LgWkWzGJpPJty'
     )
 
     const withdrawFromTreasuryToHolaInstruction =
