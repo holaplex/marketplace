@@ -2,7 +2,7 @@ import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil, not, or } from 'ramda'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { Image as ImageIcon, User } from 'react-feather'
+import { Image as ImageIcon, DollarSign, User } from 'react-feather'
 import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
 import { useForm, Controller } from 'react-hook-form'
@@ -181,18 +181,18 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="flex flex-col items-center text-white bg-gray-900">
-        <div className="fixed top-0 z-10 flex items-center w-full justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
+        <div className="fixed top-0 z-10 flex items-center justify-between w-full p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
           <Link to="/">
             <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
               <img
-                className="object-cover w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
+                className="object-cover w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
                 src={marketplace.logoUrl}
               />
               <div className="hidden sm:block">{marketplace.name}</div>
             </button>
           </Link>
           <div className="flex items-center">
-            <div className="underline text-sm cursor-pointer mr-6">
+            <div className="mr-6 text-sm underline cursor-pointer">
               Admin Dashboard
             </div>
             <WalletPortal />
@@ -209,7 +209,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
                   alt={marketplace.name}
                   className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
                 />
-                <div className="absolute z-10 -bottom-5 left-1/2 transform -translate-x-1/2">
+                <div className="absolute z-10 transform -translate-x-1/2 -bottom-5 left-1/2">
                   <UploadFile onChange={onChange} name={name} />
                 </div>
               </>
@@ -226,9 +226,9 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
                   <>
                     <img
                       src={value.uri}
-                      className="absolute border-4 border-gray-900 object-cover rounded-full w-16 h-16 -top-28 md:w-28 md:h-28 md:-top-32"
+                      className="absolute object-cover w-16 h-16 border-4 border-gray-900 rounded-full -top-28 md:w-28 md:h-28 md:-top-32"
                     />
-                    <div className="absolute -top-16 left-8 md:-top-12 md:left-14 transform -translate-x-1/2">
+                    <div className="absolute transform -translate-x-1/2 -top-16 left-8 md:-top-12 md:left-14">
                       <UploadFile onChange={onChange} name={name} />
                     </div>
                   </>
@@ -237,32 +237,41 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
             />
           </div>
           <div className="flex flex-col md:flex-row">
-            <div className="flex-col md:mr-10 space-y-2 md:w-80 sm:block">
+            <div className="flex-col space-y-2 md:mr-10 md:w-80 sm:block">
               <div className="sticky top-0 max-h-screen py-4 overflow-auto">
                 <ul className="flex flex-col flex-grow gap-2">
-                  <li className="flex flex-row items-center bg-gray-800 p-2 rounded">
+                  <li className="flex flex-row items-center p-2 bg-gray-800 rounded">
                     <ImageIcon color="white" className="mr-1" size="1rem" />{' '}
                     Marketplace
                   </li>
                   <li className="p-2 rounded">
                     <Link
-                      className="w-full flex flex-row items-center"
+                      className="flex flex-row items-center w-full"
                       to="/admin/creators/edit"
                     >
                       <User color="white" className="mr-1" size="1rem" />{' '}
                       Creators
                     </Link>
                   </li>
+                  <li className="block p-2 rounded">
+                    <Link
+                      className="flex flex-row items-center w-full"
+                      to="/admin/financials/edit"
+                    >
+                      <DollarSign color="white" className="mr-1" size="1rem" />{' '}
+                      Financials
+                    </Link>
+                  </li>
                 </ul>
               </div>
             </div>
-            <div className="grow flex flex-col items-center w-full pb-16">
-              <div className="max-w-3xl w-full">
-                <div className="grid grid-cols-12 md:flex-row items-start md:justify-between">
+            <div className="flex flex-col items-center w-full pb-16 grow">
+              <div className="w-full max-w-3xl">
+                <div className="grid items-start grid-cols-12 md:flex-row md:justify-between">
                   <h2 className="w-full mb-4 col-span-full md:col-span-6 lg:col-span-7">
                     Edit marketplace
                   </h2>
-                  <div className="grid grid-cols-2 gap-2 col-span-full md:col-span-6 lg:col-span-5 w-full justify-end">
+                  <div className="grid justify-end w-full grid-cols-2 gap-2 col-span-full md:col-span-6 lg:col-span-5">
                     <Link to="/">
                       <Button
                         block
@@ -297,21 +306,21 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
                     </a>
                   </span>
                   <input
-                    className="w-full px-3 py-2 text-gray-100 text-right text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm"
+                    className="w-full px-3 py-2 text-base text-right text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
                     {...register('domain', { disabled: true })}
                   />
                   {errors.domain && <span>This field is required</span>}
 
                   <label className="mb-2 text-lg mt-9">Market Name</label>
                   <input
-                    className="w-full px-3 py-2 text-gray-100 text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm"
+                    className="w-full px-3 py-2 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
                     {...register('name', { required: true })}
                   />
                   {errors.name && <span>This field is required</span>}
 
                   <label className="mb-2 text-lg mt-9">Description</label>
                   <input
-                    className="w-full px-3 py-2 text-gray-100 text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm"
+                    className="w-full px-3 py-2 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
                     {...register('description', { required: true })}
                   />
                   {errors.description && <span>This field is required</span>}
@@ -323,7 +332,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
                   </span>
                   <input
                     type="number"
-                    className="w-full px-3 py-2 text-gray-100 text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm"
+                    className="w-full px-3 py-2 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
                     {...register('transactionFee')}
                   />
                   {errors.transactionFee && <span>This field is required</span>}

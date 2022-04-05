@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
-import { Image as ImageIcon, User } from 'react-feather'
+import { Image as ImageIcon, DollarSign, User } from 'react-feather'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
@@ -192,18 +192,18 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
 
   return (
     <div className="flex flex-col items-center text-white bg-gray-900">
-      <div className="fixed top-0 z-10 flex items-center w-full justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
+      <div className="fixed top-0 z-10 flex items-center justify-between w-full p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
         <Link to="/">
           <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
             <img
-              className="w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
+              className="w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
               src={marketplace.logoUrl}
             />
             <div className="hidden sm:block">{marketplace.name}</div>
           </button>
         </Link>
         <div className="flex items-center gap-6">
-          <div className="underline text-sm cursor-pointer">
+          <div className="text-sm underline cursor-pointer">
             Admin Dashboard
           </div>
           <WalletPortal />
@@ -220,31 +220,40 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
         <div className="relative w-full mt-20 mb-1">
           <img
             src={marketplace.logoUrl}
-            className="absolute border-4 border-gray-900 object-cover rounded-full w-16 h-16 -top-28 md:w-28 md:h-28 md:-top-32"
+            className="absolute object-cover w-16 h-16 border-4 border-gray-900 rounded-full -top-28 md:w-28 md:h-28 md:-top-32"
           />
         </div>
         <div className="flex flex-col md:flex-row">
-          <div className="flex-col md:mr-10 space-y-2 md:w-80 sm:block">
+          <div className="flex-col space-y-2 md:mr-10 md:w-80 sm:block">
             <div className="sticky top-0 max-h-screen py-4 overflow-auto">
               <ul className="flex flex-col flex-grow gap-2">
                 <li className="block p-2 rounded">
                   <Link
-                    className="w-full flex flex-row items-center"
+                    className="flex flex-row items-center w-full"
                     to="/admin/marketplace/edit"
                   >
                     <ImageIcon color="white" className="mr-1" size="1rem" />{' '}
                     Marketplace
                   </Link>
                 </li>
-                <li className="flex flex-row items-center bg-gray-800 p-2 rounded">
+                <li className="flex flex-row items-center p-2 bg-gray-800 rounded">
                   <User color="white" className="mr-1" size="1rem" /> Creators
+                </li>
+                <li className="block p-2 rounded">
+                  <Link
+                    className="flex flex-row items-center w-full"
+                    to="/admin/financials/edit"
+                  >
+                    <DollarSign color="white" className="mr-1" size="1rem" />{' '}
+                    Financials
+                  </Link>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="grow flex flex-col items-center w-full pb-16">
-            <div className="max-w-3xl w-full">
-              <div className="grid grid-cols-12 mb-10 md:mb-0 md:flex-row items-start md:justify-between">
+          <div className="flex flex-col items-center w-full pb-16 grow">
+            <div className="w-full max-w-3xl">
+              <div className="grid items-start grid-cols-12 mb-10 md:mb-0 md:flex-row md:justify-between">
                 <div className="w-full mb-4 col-span-full md:col-span-8 lg:col-span-10">
                   <h2>Creators</h2>
                   <p className="text-gray-300">
@@ -252,7 +261,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                     marketplace.
                   </p>
                 </div>
-                <div className="flex col-span-full md:col-span-4 lg:col-span-2 justify-end">
+                <div className="flex justify-end col-span-full md:col-span-4 lg:col-span-2">
                   <Button
                     block
                     onClick={() => setShowAdd(!!!showAdd)}
@@ -284,7 +293,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                             onChange('')
                           }}
                           placeholder="SOL wallet address"
-                          className="w-full px-3 py-2 text-gray-100 text-base border border-gray-700 focus:outline-none bg-gray-900 rounded-sm mb-10"
+                          className="w-full px-3 py-2 mb-10 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
                           value={value}
                           onChange={onChange}
                         />
@@ -293,12 +302,12 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                   }}
                 />
               )}
-              <ul className="flex flex-col max-h-screen py-4 mb-10 gap-6">
+              <ul className="flex flex-col max-h-screen gap-6 py-4 mb-10">
                 {fields.map((field, index) => {
                   return (
                     <li
                       key={field.address}
-                      className="flex w-full justify-between"
+                      className="flex justify-between w-full"
                     >
                       {truncateAddress(field.address)}
                       <Button
