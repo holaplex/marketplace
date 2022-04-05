@@ -10,17 +10,14 @@ Tech Stack:
 
 ## Getting Started
 
-Clone the repo, `cd` into the folder.
-You can change the GraphQL endpoint for your own self-hosted one [repo available here](https://github.com/holaplex/solana-indexer).
-In this case, we are using our `dev` GraphQL.
+Marketplaces is very easy to setup for local use or to be deployed on your own infrastructure. 
 
-Start the node server in dev mode.
-
-```bash
-$ npm install
-$ NEXT_PUBLIC_GRAPHQL_ENDPOINT=https://graph-test.holaplex.com/v0 PORT=3000 npx next dev
-```
-
+0. Create a Marketplace at https://holaplex.dev/marketplaces/new
+1. Clone the repo
+2. `cd` into the folder
+3. Install dependencies with `yarn install`
+4. Edit `.env.development` and add a subdomain, eg: `espi`
+5. Run it with `yarn dev`
 ## Proxy
 
 The active marketplace can be set by the `x-holaplex-subdomain` request header. Starting the `nginx` with [default.conf](/main/templates/default.conf.template) will set the subdomain header based on the current hostname context of the request.
