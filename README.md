@@ -6,7 +6,7 @@ Tech Stack:
 
 - Typescript
 - Apollo GraphQL
-- React
+- Next.JS/React
 
 ## Getting Started
 
@@ -18,6 +18,13 @@ Marketplaces is very easy to setup for local use or to be deployed on your own i
 3. Install dependencies with `yarn install`
 4. Edit `.env.development` and add a subdomain, eg: `espi`
 5. Run it with `yarn dev`
+
+## Create a Production Build 
+
+To create a production ready build use `yarn build`. Build files can be found in `.next`.
+
+Detailed documentation can be found at https://nextjs.org/docs/deployment#nextjs-build-api
+
 ## Proxy
 
 The active marketplace can be set by the `x-holaplex-subdomain` request header. Starting the `nginx` with [default.conf](/main/templates/default.conf.template) will set the subdomain header based on the current hostname context of the request.
