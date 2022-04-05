@@ -16,7 +16,7 @@ Marketplaces is very easy to setup for local use or to be deployed on your own i
 1. Clone the repo
 2. `cd` into the folder
 3. Install dependencies with `yarn install`
-4. Edit `.env.development` and add a subdomain, eg: `espi`
+4. Edit `.env.development` and add the subdomain you chose in step 0, or any other active subdomain, eg: `espi`
 5. Run it with `yarn dev`
 
 ## Create a Production Build 
