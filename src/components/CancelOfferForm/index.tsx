@@ -55,12 +55,7 @@ const CancelOfferForm = ({
     const tradeState = new PublicKey(offer.tradeState)
     const owner = new PublicKey(nft.owner.address)
     const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
-
-    const [tokenAccount] =
-      await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-        tokenMint,
-        owner
-      )
+    const tokenAccount = new PublicKey(nft.owner.associatedTokenAccountAddress)
 
     const [escrowPaymentAccount, escrowPaymentBump] =
       await AuctionHouseProgram.findEscrowPaymentAccountAddress(

@@ -63,12 +63,7 @@ const AcceptOfferForm = ({
     const auctionHouseTreasury = new PublicKey(
       marketplace.auctionHouse.auctionHouseTreasury
     )
-    const [tokenAccount] =
-      await AuctionHouseProgram.findAssociatedTokenAccountAddress(
-        tokenMint,
-        new PublicKey(nft.owner.address)
-      )
-
+    const tokenAccount = new PublicKey(nft.owner.associatedTokenAccountAddress)
     const bidReceipt = new PublicKey(offer.address)
     const buyerPubkey = new PublicKey(offer.buyer)
 

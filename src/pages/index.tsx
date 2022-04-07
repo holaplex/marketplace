@@ -71,6 +71,7 @@ const GET_NFTS = gql`
       image
       owner {
         address
+        associatedTokenAccountAddress
       }
       offers {
         address
@@ -215,7 +216,6 @@ interface NftFilterForm {
 const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const { publicKey, connected } = useWallet()
   const creators = map(prop('creatorAddress'))(marketplace.creators)
-
   const marketplaceQuery = useQuery<GetMarketplaceInfo>(GET_MARKETPLACE_INFO, {
     variables: {
       subdomain: marketplace.subdomain,
@@ -301,6 +301,10 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         <title>{marketplace.name}</title>
         <link rel="icon" href={marketplace.logoUrl} />
         <link rel="stylesheet" href="https://use.typekit.net/nxe8kpf.css" />
+        <meta property="og:site_name" content={marketplace.name} />
+        <meta property="og:title" content={marketplace.name} />
+        <meta property="og:image" content={marketplace.bannerUrl} />
+        <meta property="og:description" content={marketplace.description} />
       </Head>
       <div className="relative w-full">
         <div className="absolute flex justify-end right-6 top-[28px]">
@@ -390,7 +394,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 <div className="block bg-gray-800 w-24 h-6 rounded" />
               ) : (
                 <span className="text-xl">
-                  {marketplaceQuery.data?.marketplace.stats.nfts}
+                  {marketplaceQuery.data?.marketplace.stats?.nfts || 0}
                 </span>
               )}
             </div>

@@ -83,6 +83,7 @@ const GET_NFTS = gql`
       image
       owner {
         address
+        associatedTokenAccountAddress
       }
       offers {
         address
@@ -310,12 +311,24 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
         <link rel="stylesheet" href="https://use.typekit.net/nxe8kpf.css" />
+        <meta property="og:site_name" content={marketplace.name} />
+        <meta
+          property="og:title"
+          content={
+            truncateAddress(router.query?.collection as string) +
+            ' NFT Collection ' +
+            ' | ' +
+            marketplace.name
+          }
+        />
+        <meta property="og:image" content={marketplace.bannerUrl} />
+        <meta property="og:description" content={marketplace.description} />
       </Head>
       <div className="relative w-full">
         <Link to="/" className="absolute top-6 left-6">
           <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
             <img
-              className="object-cover w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
+              className="object-cover w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
               src={marketplace.logoUrl}
             />
             <div className="hidden sm:block">{marketplace.name}</div>
@@ -329,7 +342,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
             ) && (
               <Link
                 to="/admin/marketplace/edit"
-                className="text-sm cursor-pointer mr-6 hover:underline"
+                className="mr-6 text-sm cursor-pointer hover:underline"
               >
                 Admin Dashboard
               </Link>
@@ -344,12 +357,12 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
         />
       </div>
       <div className="w-full max-w-[1800px] px-8">
-        <div className="relative grid grid-cols-12 gap-4 justify-between w-full mt-20 mb-20">
-          <div className="col-span-12 md:col-span-8 mb-6">
+        <div className="relative grid justify-between w-full grid-cols-12 gap-4 mt-20 mb-20">
+          <div className="col-span-12 mb-6 md:col-span-8">
             <img
               src={marketplace.logoUrl}
               alt={marketplace.name}
-              className="absolute border-4 bg-gray-900 object-cover border-gray-900 rounded-full w-28 h-28 -top-32"
+              className="absolute object-cover bg-gray-900 border-4 border-gray-900 rounded-full w-28 h-28 -top-32"
             />
             <h2 className="text-xl text-gray-300">{marketplace.name}</h2>
             <h1 className="mb-4">
@@ -357,15 +370,15 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
             </h1>
             <p>{collectionDescriptionByAddress(router.query?.collection)}</p>
           </div>
-          <div className="col-span-12 md:col-span-4 grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 col-span-12 gap-4 md:col-span-4">
             <div>
-              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+              <span className="block w-full mb-2 text-sm font-semibold text-gray-300 uppercase">
                 Floor
               </span>
               {loading ? (
-                <div className="block bg-gray-800 w-20 h-6 rounded" />
+                <div className="block w-20 h-6 bg-gray-800 rounded" />
               ) : (
-                <span className="sol-amount text-xl">
+                <span className="text-xl sol-amount">
                   {toSOL(
                     ifElse(isEmpty, always(0), (stats) =>
                       stats[0].floor.toNumber()
@@ -375,13 +388,13 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               )}
             </div>
             <div>
-              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+              <span className="block w-full mb-2 text-sm font-semibold text-gray-300 uppercase">
                 Vol Last 24 hrs
               </span>
               {loading ? (
-                <div className="block bg-gray-800 w-20 h-6 rounded" />
+                <div className="block w-20 h-6 bg-gray-800 rounded" />
               ) : (
-                <span className="sol-amount text-xl">
+                <span className="text-xl sol-amount">
                   {toSOL(
                     ifElse(isEmpty, always(0), (stats) =>
                       stats[0].volume24hr.toNumber()
@@ -391,13 +404,13 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               )}
             </div>
             <div>
-              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+              <span className="block w-full mb-2 text-sm font-semibold text-gray-300 uppercase">
                 Avg Sale Price
               </span>
               {loading ? (
-                <div className="block bg-gray-800 w-16 h-6 rounded" />
+                <div className="block w-16 h-6 bg-gray-800 rounded" />
               ) : (
-                <span className="sol-amount text-xl">
+                <span className="text-xl sol-amount">
                   {toSOL(
                     ifElse(isEmpty, always(0), (stats) =>
                       stats[0].average.toNumber()
@@ -407,14 +420,14 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               )}
             </div>
             <div>
-              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+              <span className="block w-full mb-2 text-sm font-semibold text-gray-300 uppercase">
                 NFTs
               </span>
               {loading ? (
-                <div className="block bg-gray-800 w-24 h-6 rounded" />
+                <div className="block w-24 h-6 bg-gray-800 rounded" />
               ) : (
                 <span className="text-xl">
-                  {collectionQuery.data?.creator.counts.creations}
+                  {collectionQuery.data?.creator.counts?.creations || 0}
                 </span>
               )}
             </div>
@@ -434,9 +447,9 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                 onSubmit={(e) => {
                   e.preventDefault()
                 }}
-                className="px-4 sm:px-0 py-4"
+                className="px-4 py-4 sm:px-0"
               >
-                <ul className="flex flex-col gap-2 flex-grow mb-6">
+                <ul className="flex flex-col flex-grow gap-2 mb-6">
                   <li>
                     <Controller
                       control={control}
@@ -463,7 +476,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                             value={PresetNftFilter.All}
                             id="preset-all"
                           />
-                          {loading ? <div className="h-6 w-full" /> : 'All'}
+                          {loading ? <div className="w-full h-6" /> : 'All'}
                         </label>
                       )}
                     />
@@ -495,7 +508,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                             id="preset-listed"
                           />
                           {loading ? (
-                            <div className="h-6 w-full" />
+                            <div className="w-full h-6" />
                           ) : (
                             'Listed for sale'
                           )}
@@ -532,7 +545,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                                 id="preset-owned"
                               />
                               {loading ? (
-                                <div className="h-6 w-full" />
+                                <div className="w-full h-6" />
                               ) : (
                                 'Owned by me'
                               )}
@@ -567,7 +580,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                                 id="preset-open"
                               />
                               {loading ? (
-                                <div className="h-6 w-full" />
+                                <div className="w-full h-6" />
                               ) : (
                                 'My open offers'
                               )}
@@ -582,20 +595,20 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                   {loading ? (
                     <>
                       <div className="flex flex-col flex-grow gap-2">
-                        <label className="block h-4 w-14 bg-gray-800 rounded" />
-                        <div className="block h-10 w-full bg-gray-800 rounded" />
+                        <label className="block h-4 bg-gray-800 rounded w-14" />
+                        <div className="block w-full h-10 bg-gray-800 rounded" />
                       </div>
                       <div className="flex flex-col flex-grow gap-2">
-                        <label className="block h-4 w-14 bg-gray-800 rounded" />
-                        <div className="block h-10 w-full bg-gray-800 rounded" />
+                        <label className="block h-4 bg-gray-800 rounded w-14" />
+                        <div className="block w-full h-10 bg-gray-800 rounded" />
                       </div>
                       <div className="flex flex-col flex-grow gap-2">
-                        <label className="block h-4 w-14 bg-gray-800 rounded" />
-                        <div className="block h-10 w-full bg-gray-800 rounded" />
+                        <label className="block h-4 bg-gray-800 rounded w-14" />
+                        <div className="block w-full h-10 bg-gray-800 rounded" />
                       </div>
                       <div className="flex flex-col flex-grow gap-2">
-                        <label className="block h-4 w-14 bg-gray-800 rounded" />
-                        <div className="block h-10 w-full bg-gray-800 rounded" />
+                        <label className="block h-4 bg-gray-800 rounded w-14" />
+                        <div className="block w-full h-10 bg-gray-800 rounded" />
                       </div>
                     </>
                   ) : (
@@ -663,7 +676,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               emptyComponent={
                 <div className="w-full p-10 text-center border border-gray-800 rounded-lg">
                   <h3>No NFTs found</h3>
-                  <p className="mt- text-gray-500">
+                  <p className="text-gray-500 mt-">
                     No NFTs found matching these criteria.
                   </p>
                 </div>
@@ -682,7 +695,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
       <Button
         size={ButtonSize.Small}
         icon={<Filter size={16} className="mr-2" />}
-        className="fixed bottom-4 z-10 sm:hidden"
+        className="fixed z-10 bottom-4 sm:hidden"
         onClick={toggleSidebar}
       >
         Filter
