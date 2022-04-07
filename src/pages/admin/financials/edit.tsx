@@ -13,11 +13,7 @@ import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 
-import {
-  Transaction,
-  PublicKey,
-  SYSVAR_INSTRUCTIONS_PUBKEY,
-} from '@solana/web3.js'
+import { Transaction, PublicKey } from '@solana/web3.js'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -121,7 +117,6 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
     const auctionHouseTreasuryBalance = await connection.getBalance(
       auctionHouseTreasury
     )
-    debugger
 
     const withdrawFromTreasuryInstructionAccounts = {
       treasuryMint,
@@ -131,7 +126,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
       auctionHouse,
     }
     const withdrawFromTreasuryInstructionArgs = {
-      amount: auctionHouseTreasuryBalance / 2,
+      amount: auctionHouseTreasuryBalance,
     }
 
     const withdrawFromTreasuryInstruction =
@@ -140,28 +135,9 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
         withdrawFromTreasuryInstructionArgs
       )
 
-    const holaplexCommunityWallet = new PublicKey(
-      'ho1aVYd4TDWCi1pMqFvboPPc3J13e4LgWkWzGJpPJty'
-    )
-
-    const withdrawFromTreasuryToHolaInstruction =
-      createWithdrawFromTreasuryInstruction(
-        {
-          treasuryMint,
-          authority,
-          treasuryWithdrawalDestination: holaplexCommunityWallet,
-          auctionHouseTreasury,
-          auctionHouse,
-        },
-        {
-          amount: auctionHouseTreasuryBalance / 2,
-        }
-      )
-
     const txt = new Transaction()
-    txt
-      .add(withdrawFromTreasuryInstruction)
-      .add(withdrawFromTreasuryToHolaInstruction)
+
+    txt.add(withdrawFromTreasuryInstruction)
 
     txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
     txt.feePayer = publicKey
@@ -170,7 +146,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
 
     try {
       signed = await signTransaction(txt)
-    } catch (e) {
+    } catch (e: any) {
       toast.error(e.message)
       return
     }
@@ -221,7 +197,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
         <div className="relative w-full mt-20 mb-1">
           <img
             src={marketplace.logoUrl}
-            className="object-cover w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
+            className="absolute object-cover w-16 h-16 border-4 border-gray-900 rounded-full -top-28 md:w-28 md:h-28 md:-top-32"
           />
         </div>
         <div className="flex flex-col md:flex-row">
@@ -274,7 +250,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
                     size={ButtonSize.Small}
                     loading={withdrawlLoading}
                   >
-                    Disperse Funds
+                    Claim Funds
                   </Button>
                   &nbsp;&nbsp;
                 </div>

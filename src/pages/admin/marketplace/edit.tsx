@@ -319,12 +319,11 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
                   {errors.name && <span>This field is required</span>}
 
                   <label className="mb-2 text-lg mt-9">Description</label>
-                  <input
+                  <textarea
                     className="w-full px-3 py-2 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
                     {...register('description', { required: true })}
                   />
                   {errors.description && <span>This field is required</span>}
-
                   <label className="text-lg mt-9">Transaction fee</label>
                   <span className="mb-2 text-sm text-gray-300">
                     This is a fee added to all sales. Funds go to the auction
