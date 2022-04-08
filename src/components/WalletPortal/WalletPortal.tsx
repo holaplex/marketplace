@@ -29,16 +29,15 @@ const WalletPortal = () => {
 
   return or(connected, isLoading) ? (
     <Popover.Root>
-      <Popover.Trigger>
+      <Popover.Trigger asChild>
         <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align px-4 py-2 h-14 hover:bg-gray-600">
           {not(isLoading) && (
             <p>{truncateAddress(publicKey?.toBase58() as string)}</p>
           )}
         </button>
-        <Popover.Anchor />
       </Popover.Trigger>
-      <Popover.Content className="bg-gray-800 p-4 text-white">
-        <Popover.Arrow className="fill-gray-800" />
+      <Popover.Content className="bg-gray-800 rounded-lg p-5 mt-2 text-white">
+        {/* <Popover.Arrow className="fill-gray-800" offset={18} /> */}
         <div className="flex items-center justify-between mb-6 pl-10 pr-10">
           {isLoading ? (
             <div className="inline-block h-6 w-20 bg-gray-700 rounded" />
@@ -50,7 +49,7 @@ const WalletPortal = () => {
           <div className="h-8 w-44 rounded-full bg-gray-700" />
         ) : (
           <Button
-            className='focus:outline-none'
+            className="focus:outline-none"
             size={ButtonSize.Small}
             type={ButtonType.Tertiary}
             block
