@@ -162,7 +162,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
     `,
     variables: {
       subdomain: subdomain || SUBDOMAIN,
-      creator: query.collection,
+      creator: query.creator,
     },
   })
 
@@ -171,7 +171,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
       any(isNil)([marketplace, creator]),
       pipe(
         map(prop('creatorAddress')),
-        indexOf(query.collection),
+        indexOf(query.creator),
         equals(-1)
       )(marketplace?.creators || [])
     )
@@ -198,7 +198,7 @@ interface GetCollectionInfo {
   creator: Creator
 }
 
-interface CollectionPageProps extends AppProps {
+interface CreatorPageProps extends AppProps {
   marketplace: Marketplace
   creator: Creator
 }
@@ -208,10 +208,7 @@ interface NftFilterForm {
   preset: PresetNftFilter
 }
 
-const CollectionShow: NextPage<CollectionPageProps> = ({
-  marketplace,
-  creator,
-}) => {
+const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const { publicKey, connected } = useWallet()
   const [hasMore, setHasMore] = useState(true)
   const router = useRouter()
@@ -224,7 +221,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
   } = useQuery<GetNftsData>(GET_NFTS, {
     fetchPolicy: 'network-only',
     variables: {
-      creators: [router.query.collection],
+      creators: [router.query.creator],
       offset: 0,
       limit: 24,
     },
@@ -232,7 +229,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
 
   const collectionQuery = useQuery<GetCollectionInfo>(GET_COLLECTION_INFO, {
     variables: {
-      creator: router.query.collection,
+      creator: router.query.creator,
       auctionHouses: [marketplace.auctionHouse.address],
     },
   })
@@ -272,7 +269,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
       )(preset as PresetNftFilter)
 
       refetch({
-        creators: [router.query.collection],
+        creators: [router.query.creator],
         attributes: nextAttributes,
         owners,
         offerers,
@@ -289,7 +286,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
     marketplace,
     refetch,
     variables?.limit,
-    router.query.collection,
+    router.query.creator,
     creator,
   ])
 
@@ -301,7 +298,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
     >
       <Head>
         <title>
-          {truncateAddress(router.query?.collection as string)} NFT Collection |{' '}
+          {truncateAddress(router.query?.creator as string)} NFT Collection |{' '}
           {marketplace.name}
         </title>
         <link rel="icon" href={marketplace.logoUrl} />
@@ -310,7 +307,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
         <meta
           property="og:title"
           content={
-            truncateAddress(router.query?.collection as string) +
+            truncateAddress(router.query?.creator as string) +
             ' NFT Collection ' +
             ' | ' +
             marketplace.name
@@ -351,7 +348,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
           className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
         />
       </div>
-      <div className="w-full max-w-[1800px] px-8">
+      <div className="w-full max-w-[1800px] px-14">
         <div className="relative grid justify-between w-full grid-cols-12 gap-4 mt-20 mb-20">
           <div className="col-span-12 mb-6 md:col-span-8">
             <img
@@ -359,13 +356,12 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               alt={marketplace.name}
               className="absolute object-cover bg-gray-900 border-4 border-gray-900 rounded-full w-28 h-28 -top-32"
             />
-            <h2 className="text-sm text-gray-300">
-              {truncateAddress(router.query?.collection as string)}
-            </h2>
-            <h1 className="mb-4">{marketplace.name}</h1>
-            <p>{marketplace.description}</p>
+            <p className="text-lg text-gray-300 mb-2">Created by</p>
+            <p className="mb-4 text-3xl pubkey">
+              {truncateAddress(router.query?.creator as string)}
+            </p>
           </div>
-          <div className="grid grid-cols-2 col-span-12 gap-4 md:col-span-4">
+          <div className="grid grid-cols-2 col-span-12 gap-4 md:col-span-4 md:-mt-8">
             <div>
               <span className="block w-full mb-2 text-sm font-semibold text-gray-300 uppercase">
                 Floor
@@ -373,7 +369,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               {loading ? (
                 <div className="block w-20 h-6 bg-gray-800 rounded" />
               ) : (
-                <span className="text-xl sol-amount">
+                <span className="text-xl sol-amount font-semibold">
                   {toSOL(
                     ifElse(isEmpty, always(0), (stats) =>
                       stats[0].floor.toNumber()
@@ -389,7 +385,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               {loading ? (
                 <div className="block w-20 h-6 bg-gray-800 rounded" />
               ) : (
-                <span className="text-xl sol-amount">
+                <span className="text-xl sol-amount font-semibold">
                   {toSOL(
                     ifElse(isEmpty, always(0), (stats) =>
                       stats[0].volume24hr.toNumber()
@@ -405,7 +401,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               {loading ? (
                 <div className="block w-16 h-6 bg-gray-800 rounded" />
               ) : (
-                <span className="text-xl sol-amount">
+                <span className="text-xl sol-amount font-semibold">
                   {toSOL(
                     ifElse(isEmpty, always(0), (stats) =>
                       stats[0].average.toNumber()
@@ -421,7 +417,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               {loading ? (
                 <div className="block w-24 h-6 bg-gray-800 rounded" />
               ) : (
-                <span className="text-xl">
+                <span className="text-xl font-semibold">
                   {collectionQuery.data?.creator.counts?.creations || 0}
                 </span>
               )}
@@ -432,7 +428,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
           <div className="relative">
             <div
               className={cx(
-                'fixed top-0 right-0 bottom-0 left-0 z-10 bg-gray-900 flex-row flex-none space-y-2 sm:sticky sm:block sm:w-80 sm:mr-10  overflow-auto h-screen',
+                'fixed top-0 right-0 bottom-0 left-0 z-10 bg-gray-900 flex-row flex-none space-y-2 sm:sticky sm:block sm:w-64 sm:mr-8  overflow-auto h-screen',
                 {
                   hidden: not(sidebarOpen),
                 }
@@ -453,25 +449,31 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                         <label
                           htmlFor="preset-all"
                           className={cx(
-                            'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
+                            'flex items-center w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                             {
-                              'bg-gray-800': or(
-                                equals(PresetNftFilter.All, value),
-                                loading
-                              ),
+                              'bg-gray-800': loading,
                             }
                           )}
                         >
                           <input
                             onChange={onChange}
-                            className="hidden"
-                            disabled={loading}
+                            className="mr-3 appearance-none rounded-full h-3 w-3 
+                              border border-gray-100 bg-gray-700 
+                              checked:bg-gray-100 focus:outline-none bg-no-repeat bg-center bg-contain"
                             type="radio"
                             name="preset"
+                            disabled={loading}
+                            hidden={loading}
                             value={PresetNftFilter.All}
                             id="preset-all"
+                            checked={value === PresetNftFilter.All}
                           />
-                          {loading ? <div className="w-full h-6" /> : 'All'}
+
+                          {loading ? (
+                            <div className="h-6 w-full" />
+                          ) : (
+                            <span>All</span>
+                          )}
                         </label>
                       )}
                     />
@@ -484,28 +486,28 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                         <label
                           htmlFor="preset-listed"
                           className={cx(
-                            'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
+                            'flex items-center w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                             {
-                              'bg-gray-800': or(
-                                equals(PresetNftFilter.Listed, value),
-                                loading
-                              ),
+                              'bg-gray-800': loading,
                             }
                           )}
                         >
                           <input
                             onChange={onChange}
-                            className="hidden"
+                            className="mr-3 appearance-none rounded-full h-3 w-3 
+                              border border-gray-100 bg-gray-700 
+                              checked:bg-gray-100 focus:outline-none bg-no-repeat bg-center bg-contain"
                             disabled={loading}
+                            hidden={loading}
                             type="radio"
                             name="preset"
                             value={PresetNftFilter.Listed}
                             id="preset-listed"
                           />
                           {loading ? (
-                            <div className="w-full h-6" />
+                            <div className="h-6 w-full" />
                           ) : (
-                            'Listed for sale'
+                            <span>Current listings</span>
                           )}
                         </label>
                       )}
@@ -521,28 +523,28 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                             <label
                               htmlFor="preset-owned"
                               className={cx(
-                                'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
+                                'flex items-center w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                                 {
-                                  'bg-gray-800': or(
-                                    equals(PresetNftFilter.Owned, value),
-                                    loading
-                                  ),
+                                  'bg-gray-800': loading,
                                 }
                               )}
                             >
                               <input
                                 onChange={onChange}
-                                className="hidden"
+                                className="mr-3 appearance-none rounded-full h-3 w-3 
+                                  border border-gray-100 bg-gray-700 
+                                  checked:bg-gray-100 focus:outline-none bg-no-repeat bg-center bg-contain"
                                 type="radio"
-                                disabled={loading}
                                 name="preset"
+                                disabled={loading}
+                                hidden={loading}
                                 value={PresetNftFilter.Owned}
                                 id="preset-owned"
                               />
                               {loading ? (
-                                <div className="w-full h-6" />
+                                <div className="h-6 w-full" />
                               ) : (
-                                'Owned by me'
+                                <span>Owned by me</span>
                               )}
                             </label>
                           )}
@@ -556,28 +558,28 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                             <label
                               htmlFor="preset-open"
                               className={cx(
-                                'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
+                                'flex items-center w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                                 {
-                                  'bg-gray-800': or(
-                                    equals(PresetNftFilter.OpenOffers, value),
-                                    loading
-                                  ),
+                                  'bg-gray-800': loading,
                                 }
                               )}
                             >
                               <input
                                 onChange={onChange}
-                                className="hidden"
-                                type="radio"
+                                className="mr-3 appearance-none rounded-full h-3 w-3 
+                                  border border-gray-100 bg-gray-700 
+                                  checked:bg-gray-100 focus:outline-none bg-no-repeat bg-center bg-contain"
                                 disabled={loading}
+                                hidden={loading}
+                                type="radio"
                                 name="preset"
                                 value={PresetNftFilter.OpenOffers}
                                 id="preset-open"
                               />
                               {loading ? (
-                                <div className="w-full h-6" />
+                                <div className="h-6 w-full" />
                               ) : (
-                                'My open offers'
+                                <span>My open offers</span>
                               )}
                             </label>
                           )}
@@ -699,4 +701,4 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
   )
 }
 
-export default CollectionShow
+export default CreatorShow

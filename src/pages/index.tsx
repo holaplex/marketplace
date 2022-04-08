@@ -180,7 +180,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
     return {
       redirect: {
         permanent: false,
-        destination: `/collections/${marketplace.creators[0].creatorAddress}`,
+        destination: `/creators/${marketplace.creators[0].creatorAddress}`,
       },
     }
   }
@@ -329,7 +329,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
         />
       </div>
-      <div className="w-full max-w-[1800px] px-8">
+      <div className="w-full max-w-[1800px] px-14">
         <div className="relative grid grid-cols-12 gap-4 justify-between w-full mt-20 mb-20">
           <div className="col-span-12 md:col-span-8 mb-6">
             <img
@@ -338,9 +338,11 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               className="absolute border-4 object-cover border-gray-900 bg-gray-900 rounded-full w-28 h-28 -top-32"
             />
             <h1>{marketplace.name}</h1>
-            <p className="mt-4 max-w-prose">{marketplace.description}</p>
+            <p className="mt-4 max-w-prose text-gray-300">
+              {marketplace.description}
+            </p>
           </div>
-          <div className="col-span-12 md:col-span-4 grid grid-cols-2 gap-4">
+          <div className="col-span-12 md:col-span-4 grid grid-cols-2 gap-4 md:-mt-8">
             <div>
               <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
                 Floor
@@ -348,7 +350,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               {loading ? (
                 <div className="block bg-gray-800 w-20 h-6 rounded" />
               ) : (
-                <span className="sol-amount text-xl">
+                <span className="sol-amount text-xl font-semibold">
                   {toSOL(
                     (marketplaceQuery.data?.marketplace.auctionHouse.stats?.floor.toNumber() ||
                       0) as number
@@ -363,7 +365,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               {loading ? (
                 <div className="block bg-gray-800 w-20 h-6 rounded" />
               ) : (
-                <span className="sol-amount text-xl">
+                <span className="sol-amount text-xl font-semibold">
                   {toSOL(
                     (marketplaceQuery.data?.marketplace.auctionHouse.stats?.volume24hr.toNumber() ||
                       0) as number
@@ -378,7 +380,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               {loading ? (
                 <div className="block bg-gray-800 w-16 h-6 rounded" />
               ) : (
-                <span className="sol-amount text-xl">
+                <span className="sol-amount text-xl font-semibold">
                   {toSOL(
                     (marketplaceQuery.data?.marketplace.auctionHouse.stats?.average.toNumber() ||
                       0) as number
@@ -393,15 +395,24 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               {loading ? (
                 <div className="block bg-gray-800 w-24 h-6 rounded" />
               ) : (
-                <span className="text-xl">
+                <span className="text-xl font-semibold">
                   {marketplaceQuery.data?.marketplace.stats?.nfts || 0}
                 </span>
               )}
             </div>
           </div>
         </div>
-        <h2 className="mb-2">Collections</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-20">
+        {creators && (
+          <div className="flex justify-between items-center mb-6">
+            <h3>Creators</h3>
+            {/* TODO: */}
+            {/* <Link to="/" className="text-sm text-gray-300">
+              See all
+            </Link> */}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-10 mb-20">
           {loading ? (
             <>
               <div className="hover:translate-sale-1.5">
@@ -427,21 +438,51 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 <Link
                   className="transition-transform hover:scale-[1.02]"
                   key={creator.storeConfigAddress}
-                  to={`/collections/${creator.creatorAddress}`}
+                  to={`/creators/${creator.creatorAddress}`}
                 >
-                  <div>
-                    <div className="flex flex-grid mb-2 rounded-lg overflow-hidden">
+                  <div className="flex flex-col">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center">
+                        {/* TODO: Add twitter handle and image. */}
+                        {/* <img
+                          src={}
+                          alt={creator.creatorAddress}
+                          className="object-cover bg-gray-900 rounded-full w-12 h-12 mr-2"
+                        /> */}
+                        <span className="text-sm">
+                          {truncateAddress(creator.creatorAddress as string)}
+                        </span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        {/* TODO: Add nft counts once the api is updated. */}
+                        {/* <span className="text-gray-300 text-sm">NFTs</span>
+                        <span className="text-sm"></span> */}
+                      </div>
+                    </div>
+                    <div className="hidden xl:flex w-full flex-grid mb-2 gap-4 overflow-hidden ">
                       {creator.preview.map((nft) => {
                         return (
                           <img
-                            className="aspect-square w-1/3"
+                            className="h-28 object-cover rounded-md grow"
                             src={nft.image}
                             key={nft.address}
+                            alt={nft.name}
                           />
                         )
                       })}
                     </div>
-                    {truncateAddress(creator.creatorAddress)}
+                    <div className="flex xl:hidden w-full flex-grid mb-2 gap-4 overflow-hidden ">
+                      {creator.preview.slice(0, 2).map((nft) => {
+                        return (
+                          <img
+                            className="h-28 object-cover rounded-md grow"
+                            src={nft.image}
+                            key={nft.address}
+                            alt={nft.name}
+                          />
+                        )
+                      })}
+                    </div>
                   </div>
                 </Link>
               )
@@ -452,7 +493,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           <div className="relative">
             <div
               className={cx(
-                'fixed top-0 right-0 bottom-0 left-0 z-10 bg-gray-900 flex-row flex-none space-y-2 sm:sticky sm:block sm:w-80 sm:mr-10  overflow-auto h-screen',
+                'fixed top-0 right-0 bottom-0 left-0 z-10 bg-gray-900 flex-row flex-none space-y-2 sm:sticky sm:block sm:w-64 sm:mr-8  overflow-auto h-screen',
                 {
                   hidden: not(sidebarOpen),
                 }
@@ -473,25 +514,31 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                         <label
                           htmlFor="preset-all"
                           className={cx(
-                            'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
+                            'flex items-center w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                             {
-                              'bg-gray-800': or(
-                                equals(PresetNftFilter.All, value),
-                                loading
-                              ),
+                              'bg-gray-800': loading,
                             }
                           )}
                         >
                           <input
                             onChange={onChange}
-                            className="hidden"
+                            className="mr-3 appearance-none rounded-full h-3 w-3 
+                              border border-gray-100 bg-gray-700 
+                              checked:bg-gray-100 focus:outline-none bg-no-repeat bg-center bg-contain"
                             type="radio"
                             name="preset"
                             disabled={loading}
+                            hidden={loading}
                             value={PresetNftFilter.All}
                             id="preset-all"
+                            checked={value === PresetNftFilter.All}
                           />
-                          {loading ? <div className="h-6 w-full" /> : 'All'}
+
+                          {loading ? (
+                            <div className="h-6 w-full" />
+                          ) : (
+                            <span>All</span>
+                          )}
                         </label>
                       )}
                     />
@@ -504,19 +551,19 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                         <label
                           htmlFor="preset-listed"
                           className={cx(
-                            'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
+                            'flex items-center w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                             {
-                              'bg-gray-800': or(
-                                equals(PresetNftFilter.Listed, value),
-                                loading
-                              ),
+                              'bg-gray-800': loading,
                             }
                           )}
                         >
                           <input
                             onChange={onChange}
-                            className="hidden"
+                            className="mr-3 appearance-none rounded-full h-3 w-3 
+                              border border-gray-100 bg-gray-700 
+                              checked:bg-gray-100 focus:outline-none bg-no-repeat bg-center bg-contain"
                             disabled={loading}
+                            hidden={loading}
                             type="radio"
                             name="preset"
                             value={PresetNftFilter.Listed}
@@ -525,7 +572,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                           {loading ? (
                             <div className="h-6 w-full" />
                           ) : (
-                            'Listed for sale'
+                            <span>Current listings</span>
                           )}
                         </label>
                       )}
@@ -541,27 +588,28 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                             <label
                               htmlFor="preset-owned"
                               className={cx(
-                                'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
+                                'flex items-center w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                                 {
-                                  'bg-gray-800': or(
-                                    equals(PresetNftFilter.Owned, value),
-                                    loading
-                                  ),
+                                  'bg-gray-800': loading,
                                 }
                               )}
                             >
                               <input
                                 onChange={onChange}
-                                className="hidden"
+                                className="mr-3 appearance-none rounded-full h-3 w-3 
+                                  border border-gray-100 bg-gray-700 
+                                  checked:bg-gray-100 focus:outline-none bg-no-repeat bg-center bg-contain"
                                 type="radio"
                                 name="preset"
+                                disabled={loading}
+                                hidden={loading}
                                 value={PresetNftFilter.Owned}
                                 id="preset-owned"
                               />
                               {loading ? (
                                 <div className="h-6 w-full" />
                               ) : (
-                                'Owned by me'
+                                <span>Owned by me</span>
                               )}
                             </label>
                           )}
@@ -575,19 +623,19 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                             <label
                               htmlFor="preset-open"
                               className={cx(
-                                'flex justify-between w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
+                                'flex items-center w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
                                 {
-                                  'bg-gray-800': or(
-                                    equals(PresetNftFilter.OpenOffers, value),
-                                    loading
-                                  ),
+                                  'bg-gray-800': loading,
                                 }
                               )}
                             >
                               <input
                                 onChange={onChange}
-                                className="hidden"
+                                className="mr-3 appearance-none rounded-full h-3 w-3 
+                                  border border-gray-100 bg-gray-700 
+                                  checked:bg-gray-100 focus:outline-none bg-no-repeat bg-center bg-contain"
                                 disabled={loading}
+                                hidden={loading}
                                 type="radio"
                                 name="preset"
                                 value={PresetNftFilter.OpenOffers}
@@ -596,7 +644,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                               {loading ? (
                                 <div className="h-6 w-full" />
                               ) : (
-                                'My open offers'
+                                <span>My open offers</span>
                               )}
                             </label>
                           )}
