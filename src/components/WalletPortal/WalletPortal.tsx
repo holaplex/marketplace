@@ -50,6 +50,7 @@ const WalletPortal = () => {
           <div className="h-8 w-44 rounded-full bg-gray-700" />
         ) : (
           <Button
+            className='focus:outline-none'
             size={ButtonSize.Small}
             type={ButtonType.Tertiary}
             block

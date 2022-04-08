@@ -55,7 +55,7 @@ function App({ Component, pageProps }: AppProps) {
     ],
     []
   )
-  ;``
+
   useEffect(() => {
     if (equals(location.pathname, asPath)) {
       return
