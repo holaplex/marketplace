@@ -822,7 +822,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 </Routes>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-6 mt-8">
+            <div className="grid grid-cols-2 gap-3 mt-8">
               {loading ? (
                 <>
                   <div className="h-16 bg-gray-800 rounded" />
