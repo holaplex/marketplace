@@ -85,7 +85,7 @@ export const NftCard = ({
 
         <div className="flex items-center"></div>
       </header>
-      {listing ? (
+      {listing && listing.price.toNumber ? (
         <footer className="flex justify-center lg:justify-end items-center gap-2 px-4 h-12 sm:h-16 lg:h-20 border-t-gray-800 border-t-2">
           <div className="flex-grow sm:flex-1 mr-auto text-sm sm:text-base text-center lg:text-left">
             <p className="label hidden lg:block">Price</p>
