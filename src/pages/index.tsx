@@ -651,7 +651,12 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 return (
                   <Link to={`/nfts/${nft.address}`} key={nft.address}>
                     <a>
-                      <NftCard nft={nft} marketplace={marketplace} />
+                      <NftCard
+                        nft={nft}
+                        marketplace={marketplace}
+                        moonrank={undefined}
+                        howrareis={undefined}
+                      />
                     </a>
                   </Link>
                 )

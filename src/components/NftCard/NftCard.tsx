@@ -8,8 +8,8 @@ import { useWallet } from '@solana/wallet-adapter-react'
 interface NftCardProps {
   nft: Nft
   marketplace: Marketplace
-  moonrank: number | undefined
-  howrareis: number | undefined
+  moonrank?: number
+  howrareis?: number
 }
 
 export const NftCard = ({

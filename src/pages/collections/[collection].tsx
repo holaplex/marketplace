@@ -694,10 +694,10 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                       nft={nft}
                       marketplace={marketplace}
                       moonrank={
-                        moonrank ? moonrank[nft.mintAddress] : undefined
+                        (moonrank && moonrank[nft.mintAddress]) || undefined
                       }
                       howrareis={
-                        howrareis ? howrareis[nft.mintAddress] : undefined
+                        (howrareis && howrareis[nft.mintAddress]) || undefined
                       }
                     />
                   </Link>

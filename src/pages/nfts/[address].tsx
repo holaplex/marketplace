@@ -35,7 +35,11 @@ import { Route, Routes } from 'react-router-dom'
 import OfferPage from '../../components/Offer'
 import SellNftPage from '../../components/SellNft'
 import Avatar from '../../components/Avatar'
-import { truncateAddress } from '../../modules/address'
+import {
+  truncateAddress,
+  howrareisJSONByAddress,
+  moonrankJSONByAddress,
+} from '../../modules/address'
 
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
@@ -166,6 +170,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
         }
         nft(address: $address) {
           address
+          mintAddress
           image
           name
           description
@@ -246,6 +251,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   let activities = filter<Activity>(
     pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
   )(data?.nft.activities || [])
+
+  const moonrank = moonrankJSONByAddress(data?.nft.creators[0].address)
+  const howrareis = howrareisJSONByAddress(data?.nft.creators[0].address)
 
   const buyNftTransaction = async () => {
     if (!publicKey || !signTransaction) {
@@ -615,19 +623,58 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
             )}
           </div>
           <div>
-            <div className="hidden mb-8 lg:block">
+            <div className="hidden mb-4 lg:block">
               {loading ? (
                 <div className="w-full h-32 bg-gray-800 rounded-lg" />
               ) : (
                 <>
-                  <h1 className="mb-4 text-2xl lg:text-4xl md:text-3xl">
+                  <h1 className="mb-1 text-2xl lg:text-4xl md:text-3xl">
                     {data?.nft.name}
                   </h1>
                   <p className="text-lg">{data?.nft.description}</p>
+                  <div className="flex space-x-2 mt-4">
+                    {moonrank && moonrank[nft.mintAddress] && (
+                      <a
+                        href={'https://moonrank.app/' + nft.mintAddress}
+                        target="_blank"
+                        className="flex items-center justify-end space-x-2 sm:space-x-2"
+                      >
+                        <span className="text-[#6ef600] mb-1 select-none font-extrabold">
+                          ⍜
+                        </span>
+                        <span className="text-sm">
+                          {moonrank[nft.mintAddress]}
+                        </span>
+                      </a>
+                    )}
+                    {howrareis && howrareis[nft.mintAddress] && (
+                      <a
+                        href={'https://howrare.is/' + nft.mintAddress}
+                        target="_blank"
+                        className="flex items-center justify-end space-x-1"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="22"
+                          viewBox="0 0 44 44"
+                        >
+                          <g transform="translate(0 -3)">
+                            <path
+                              d="M30.611,28.053A6.852,6.852,0,0,0,33.694,25.3a7.762,7.762,0,0,0,1.059-4.013,7.3,7.3,0,0,0-2.117-5.382q-2.118-2.153-6.2-2.153h-4.86V11.52H15.841v2.233H12.48v5.259h3.361v4.92H12.48v5.013h3.361V36.48h5.737V28.945h3.387l3.989,7.535H35.52Zm-2.056-5.32a2.308,2.308,0,0,1-2.393,1.2H21.578v-4.92h4.8a2.074,2.074,0,0,1,2.178,1.153,2.611,2.611,0,0,1,0,2.568"
+                              fill="#6ef600"
+                            ></path>
+                          </g>
+                        </svg>
+                        <span className="text-sm">
+                          {howrareis[nft.mintAddress]}
+                        </span>
+                      </a>
+                    )}
+                  </div>
                 </>
               )}
             </div>
-            <div className="flex-1 mb-8">
+            {/* <div className="flex-1 mb-8 mt-4">
               <div className="mb-1 label">
                 {loading ? (
                   <div className="h-4 bg-gray-800 rounded w-14" />
@@ -658,7 +705,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   ))
                 )}
               </ul>
-            </div>
+            </div> */}
             <div
               className={cx('w-full p-6 mt-8 bg-gray-800 rounded-lg', {
                 'h-44': loading,
