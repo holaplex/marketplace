@@ -719,7 +719,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 {listing && (
                   <div className="flex-1">
                     <div className="label">PRICE</div>
-                    <p className="text-base md:text-xl lg:text-3xl">
+                    <p className="text-base md:text-xl">
                       <b className="sol-amount">
                         {toSOL(listing.price.toNumber())}
                       </b>
