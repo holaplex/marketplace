@@ -745,6 +745,23 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                     path={`/nfts/${data?.nft.address}`}
                     element={
                       <>
+                        {listing && !isOwner && (
+                          <form
+                            className="flex-1 mt-6"
+                            onSubmit={buyNowForm.handleSubmit(
+                              buyNftTransaction
+                            )}
+                          >
+                            <Button
+                              loading={buyNowForm.formState.isSubmitting}
+                              htmlType="submit"
+                              block
+                              className="bg-[#6ff600]"
+                            >
+                              Buy Now
+                            </Button>
+                          </form>
+                        )}
                         {!isOwner && !offer && (
                           <Link
                             to={`/nfts/${data?.nft.address}/offers/new`}
@@ -762,23 +779,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                           >
                             <Button block>Sell NFT</Button>
                           </Link>
-                        )}
-                        {listing && !isOwner && (
-                          <form
-                            className="flex-1 mt-6"
-                            onSubmit={buyNowForm.handleSubmit(
-                              buyNftTransaction
-                            )}
-                          >
-                            <Button
-                              loading={buyNowForm.formState.isSubmitting}
-                              htmlType="submit"
-                              block
-                              className="bg-[#6ff600]"
-                            >
-                              Buy Now
-                            </Button>
-                          </form>
                         )}
                         {listing && isOwner && (
                           <form
