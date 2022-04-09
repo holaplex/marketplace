@@ -363,7 +363,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
         />
       </div>
       <div className="w-full max-w-[1800px] px-8">
-        <div className="relative grid justify-between w-full grid-cols-12 gap-4 mt-20 mb-20">
+        <div className="relative grid justify-between w-full grid-cols-12 gap-4 mt-20 mb-10">
           <div className="col-span-12 mb-6 md:col-span-8">
             <img
               src={marketplace.logoUrl}

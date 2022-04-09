@@ -330,7 +330,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         />
       </div>
       <div className="w-full max-w-[1800px] px-8">
-        <div className="relative grid grid-cols-12 gap-4 justify-between w-full mt-20 mb-20">
+        <div className="relative grid grid-cols-12 gap-4 justify-between w-full mt-20 mb-10">
           <div className="col-span-12 md:col-span-8 mb-6">
             <img
               src={marketplace.logoUrl}
