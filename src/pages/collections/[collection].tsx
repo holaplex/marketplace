@@ -32,6 +32,8 @@ import {
   truncateAddress,
   collectionNameByAddress,
   collectionDescriptionByAddress,
+  howrareisJSONByAddress,
+  moonrankJSONByAddress,
 } from '../../modules/address'
 import client from '../../client'
 import {
@@ -78,6 +80,7 @@ const GET_NFTS = gql`
       attributes: $attributes
     ) {
       address
+      mintAddress
       name
       description
       image
@@ -297,6 +300,9 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
     router.query.collection,
     creator,
   ])
+
+  const moonrank = moonrankJSONByAddress(router.query?.collection)
+  const howrareis = howrareisJSONByAddress(router.query?.collection)
 
   return (
     <div
@@ -684,7 +690,16 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
               itemRender={(nft) => {
                 return (
                   <Link to={`/nfts/${nft.address}`} key={nft.address}>
-                    <NftCard nft={nft} marketplace={marketplace} />
+                    <NftCard
+                      nft={nft}
+                      marketplace={marketplace}
+                      moonrank={
+                        moonrank ? moonrank[nft.mintAddress] : undefined
+                      }
+                      howrareis={
+                        howrareis ? howrareis[nft.mintAddress] : undefined
+                      }
+                    />
                   </Link>
                 )
               }}

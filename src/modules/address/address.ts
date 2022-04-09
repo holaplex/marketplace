@@ -42,3 +42,31 @@ export const collectionDescriptionByAddress = function (
   }
   return truncateAddress(address)
 }
+
+export const moonrankJSONByAddress = function (
+  address: string
+): { [index: string]: number } | null {
+  switch (address) {
+    case 'Bhr9iWx7vAZ4JDD5DVSdHxQLqG9RvCLCSXvu6yC4TF6c':
+      return require('../../rankings/moonrank_skulls.json')
+    case '3wzFmJEHT3pfFukQPi9T73NCLb52qyvaKgEztumtTCJU':
+      return require('../../rankings/moonrank_zen0verse.json')
+    case '2QkXNKFB64x2vezfw5XLdWqhSwGr83Gs6MWD2gqfDcpE':
+      return require('../../rankings/moonrank_cursedmikes.json')
+    case '3oPa5K78fGusBgd2LtPE65e7AZuADJPadqrtqgWxmKLA':
+      return require('../../rankings/moonrank_darkelv.json')
+  }
+  return null
+}
+
+export const howrareisJSONByAddress = function (
+  address: string
+): { [index: string]: number } | null {
+  switch (address) {
+    case 'Bhr9iWx7vAZ4JDD5DVSdHxQLqG9RvCLCSXvu6yC4TF6c':
+      return require('../../rankings/howrareis_skulls.json')
+    case '2QkXNKFB64x2vezfw5XLdWqhSwGr83Gs6MWD2gqfDcpE':
+      return require('../../rankings/howrareis_cursedmikes.json')
+  }
+  return null
+}
