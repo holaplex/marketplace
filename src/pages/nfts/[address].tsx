@@ -774,6 +774,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                               loading={buyNowForm.formState.isSubmitting}
                               htmlType="submit"
                               block
+                              className="bg-[#6ff600]"
                             >
                               Buy Now
                             </Button>
