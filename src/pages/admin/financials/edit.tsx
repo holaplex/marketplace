@@ -190,7 +190,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
         <img
           src={marketplace.bannerUrl}
           alt={marketplace.name}
-          className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
+          className="object-cover w-full h-44 md:h-60"
         />
       </div>
       <div className="w-full max-w-[1800px] px-8">

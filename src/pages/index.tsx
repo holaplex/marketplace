@@ -326,7 +326,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         <img
           src={marketplace.bannerUrl}
           alt={marketplace.name}
-          className="object-cover w-full h-30 md:h-44 lg:h-60 xl:h-[18rem]"
+          className="object-cover w-full h-30 md:h-44 lg:h-60"
         />
       </div>
       <div className="w-full max-w-[1800px] px-8">

@@ -207,7 +207,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
                 <img
                   src={value.uri}
                   alt={marketplace.name}
-                  className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
+                  className="object-cover w-full h-44 md:h-60"
                 />
                 <div className="absolute z-10 transform -translate-x-1/2 -bottom-5 left-1/2">
                   <UploadFile onChange={onChange} name={name} />
