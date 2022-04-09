@@ -37,6 +37,7 @@ import SellNftPage from '../../components/SellNft'
 import Avatar from '../../components/Avatar'
 import {
   truncateAddress,
+  collectionNameByAddress,
   howrareisJSONByAddress,
   moonrankJSONByAddress,
 } from '../../modules/address'
@@ -614,6 +615,28 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     </div>
   )
 
+  const collectionLink = (address: string) => (
+    <h3 className="mb-4 text-lg">
+      <a href={`/collections/${address}`} className="text-[#6ff600]">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6 inline-block mr-1 -mt-1"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          />
+        </svg>
+        {collectionNameByAddress(address)}
+      </a>
+    </h3>
+  )
+
   return (
     <>
       <Head>
@@ -667,7 +690,8 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               ) : (
                 <>
                   <h1 className="mb-4 text-2xl">{data?.nft.name}</h1>
-                  <p className="text-lg">{data?.nft.description}</p>
+                  {collectionLink(data?.nft.creators[0].address)}
+                  <p className="text-lg mb-2">{data?.nft.description}</p>
                   {rankingsOwnersBlock}
                 </>
               )}
@@ -687,9 +711,8 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 <div className="w-full h-32 bg-gray-800 rounded-lg" />
               ) : (
                 <>
-                  <h1 className="mb-1 text-2xl lg:text-4xl md:text-3xl">
-                    {data?.nft.name}
-                  </h1>
+                  <h1 className="mb-4 text-2xl">{data?.nft.name}</h1>
+                  {collectionLink(data?.nft.creators[0].address)}
                   <p className="text-lg mb-2">{data?.nft.description}</p>
                   {rankingsOwnersBlock}
                 </>
