@@ -556,6 +556,64 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     }
   }
 
+  const rankingsOwnersBlock = (
+    <div className="flex w-full justify-evenly align-middle">
+      <div className="w-1/2">
+        <div className="mt-6 label">OWNED BY</div>
+        <div className="mt-1">
+          <a
+            href={`https://holaplex.com/profiles/${data?.nft.owner.address}`}
+            rel="noreferrer"
+            target="_blank"
+          >
+            <Avatar
+              name={truncateAddress(data?.nft.owner.address || '')}
+              className="font-mono text-sm"
+            />
+          </a>
+        </div>
+      </div>
+      <div className="w-1/2">
+        <div className="mt-6 label">RANKINGS</div>
+        <div className="flex space-x-2">
+          {moonrank && moonrank[nft.mintAddress] && (
+            <a
+              href={'https://moonrank.app/' + nft.mintAddress}
+              target="_blank"
+              className="flex items-center justify-end space-x-2 sm:space-x-2"
+            >
+              <span className="text-[#6ef600] mb-1 select-none font-extrabold">
+                ⍜
+              </span>
+              <span className="text-sm">{moonrank[nft.mintAddress]}</span>
+            </a>
+          )}
+          {howrareis && howrareis[nft.mintAddress] && (
+            <a
+              href={'https://howrare.is/' + nft.mintAddress}
+              target="_blank"
+              className="flex items-center justify-end space-x-1"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                viewBox="0 0 44 44"
+              >
+                <g transform="translate(0 -3)">
+                  <path
+                    d="M30.611,28.053A6.852,6.852,0,0,0,33.694,25.3a7.762,7.762,0,0,0,1.059-4.013,7.3,7.3,0,0,0-2.117-5.382q-2.118-2.153-6.2-2.153h-4.86V11.52H15.841v2.233H12.48v5.259h3.361v4.92H12.48v5.013h3.361V36.48h5.737V28.945h3.387l3.989,7.535H35.52Zm-2.056-5.32a2.308,2.308,0,0,1-2.393,1.2H21.578v-4.92h4.8a2.074,2.074,0,0,1,2.178,1.153,2.611,2.611,0,0,1,0,2.568"
+                    fill="#6ef600"
+                  ></path>
+                </g>
+              </svg>
+              <span className="text-sm">{howrareis[nft.mintAddress]}</span>
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <>
       <Head>
@@ -610,6 +668,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 <>
                   <h1 className="mb-4 text-2xl">{data?.nft.name}</h1>
                   <p className="text-lg">{data?.nft.description}</p>
+                  {rankingsOwnersBlock}
                 </>
               )}
             </div>
@@ -631,81 +690,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   <h1 className="mb-1 text-2xl lg:text-4xl md:text-3xl">
                     {data?.nft.name}
                   </h1>
-                  <p className="text-lg">{data?.nft.description}</p>
-                  <div className="flex space-x-2 mt-4">
-                    {moonrank && moonrank[nft.mintAddress] && (
-                      <a
-                        href={'https://moonrank.app/' + nft.mintAddress}
-                        target="_blank"
-                        className="flex items-center justify-end space-x-2 sm:space-x-2"
-                      >
-                        <span className="text-[#6ef600] mb-1 select-none font-extrabold">
-                          ⍜
-                        </span>
-                        <span className="text-sm">
-                          {moonrank[nft.mintAddress]}
-                        </span>
-                      </a>
-                    )}
-                    {howrareis && howrareis[nft.mintAddress] && (
-                      <a
-                        href={'https://howrare.is/' + nft.mintAddress}
-                        target="_blank"
-                        className="flex items-center justify-end space-x-1"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="22"
-                          viewBox="0 0 44 44"
-                        >
-                          <g transform="translate(0 -3)">
-                            <path
-                              d="M30.611,28.053A6.852,6.852,0,0,0,33.694,25.3a7.762,7.762,0,0,0,1.059-4.013,7.3,7.3,0,0,0-2.117-5.382q-2.118-2.153-6.2-2.153h-4.86V11.52H15.841v2.233H12.48v5.259h3.361v4.92H12.48v5.013h3.361V36.48h5.737V28.945h3.387l3.989,7.535H35.52Zm-2.056-5.32a2.308,2.308,0,0,1-2.393,1.2H21.578v-4.92h4.8a2.074,2.074,0,0,1,2.178,1.153,2.611,2.611,0,0,1,0,2.568"
-                              fill="#6ef600"
-                            ></path>
-                          </g>
-                        </svg>
-                        <span className="text-sm">
-                          {howrareis[nft.mintAddress]}
-                        </span>
-                      </a>
-                    )}
-                  </div>
+                  <p className="text-lg mb-2">{data?.nft.description}</p>
+                  {rankingsOwnersBlock}
                 </>
               )}
             </div>
-            {/* <div className="flex-1 mb-8 mt-4">
-              <div className="mb-1 label">
-                {loading ? (
-                  <div className="h-4 bg-gray-800 rounded w-14" />
-                ) : (
-                  ifElse(
-                    pipe(length, equals(1)),
-                    always('CREATOR'),
-                    always('CREATORS')
-                  )(data?.nft.creators || '')
-                )}
-              </div>
-              <ul>
-                {loading ? (
-                  <li>
-                    <div className="w-20 h-6 bg-gray-800 rounded" />
-                  </li>
-                ) : (
-                  data?.nft.creators.map(({ address }) => (
-                    <li key={address}>
-                      <a
-                        href={`https://holaplex.com/profiles/${address}`}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        <Avatar name={truncateAddress(address)} />
-                      </a>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div> */}
+
             <div
               className={cx('w-full p-6 mt-8 bg-gray-800 rounded-lg', {
                 'h-44': loading,
@@ -717,7 +707,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 })}
               >
                 {listing && (
-                  <div className="flex-1">
+                  <div className="flex-1 mb-6">
                     <div className="label">PRICE</div>
                     <p className="text-base md:text-xl">
                       <b className="sol-amount">
@@ -726,18 +716,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                     </p>
                   </div>
                 )}
-                <div className="flex-1">
-                  <div className="mb-1 label">OWNER</div>
-                  <a
-                    href={`https://holaplex.com/profiles/${data?.nft.owner.address}`}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    <Avatar
-                      name={truncateAddress(data?.nft.owner.address || '')}
-                    />
-                  </a>
-                </div>
               </div>
               <div className={cx('flex gap-4', { hidden: loading })}>
                 <Routes>
@@ -747,7 +725,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                       <>
                         {listing && !isOwner && (
                           <form
-                            className="flex-1 mt-6"
+                            className="flex-1"
                             onSubmit={buyNowForm.handleSubmit(
                               buyNftTransaction
                             )}
@@ -765,7 +743,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         {!isOwner && !offer && (
                           <Link
                             to={`/nfts/${data?.nft.address}/offers/new`}
-                            className="flex-1 mt-6"
+                            className="flex-1"
                           >
                             <Button type={ButtonType.Secondary} block>
                               Make Offer
@@ -775,14 +753,14 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         {isOwner && !listing && (
                           <Link
                             to={`/nfts/${data?.nft.address}/listings/new`}
-                            className="flex-1 mt-6"
+                            className="flex-1"
                           >
                             <Button block>Sell NFT</Button>
                           </Link>
                         )}
                         {listing && isOwner && (
                           <form
-                            className="flex-1 mt-6"
+                            className="flex-1"
                             onSubmit={cancelListingForm.handleSubmit(
                               cancelListingTransaction
                             )}

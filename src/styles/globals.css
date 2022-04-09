@@ -203,3 +203,8 @@ h4 {
 .select-base-theme .base__multi-value__label {
   @apply text-white;
 }
+
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+}
