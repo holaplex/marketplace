@@ -362,7 +362,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
           className="object-cover w-full h-44 md:h-60"
         />
       </div>
-      <div className="w-full max-w-[1800px] px-8">
+      <div className="w-full max-w-[1800px] px-4 sm:px-8">
         <div className="relative grid justify-between w-full grid-cols-12 gap-4 mt-20 mb-10">
           <div className="col-span-12 mb-6 md:col-span-8">
             <img
@@ -443,7 +443,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
           <div className="relative">
             <div
               className={cx(
-                'fixed top-0 right-0 bottom-0 left-0 z-10 bg-gray-900 flex-row flex-none space-y-2 sm:sticky sm:block sm:w-80 sm:mr-10  overflow-auto h-screen',
+                'fixed top-0 right-0 bottom-0 left-0 z-10 bg-gray-900 flex-row flex-none space-y-2 md:sticky md:block md:w-80 md:mr-10 overflow-auto h-screen',
                 {
                   hidden: not(sidebarOpen),
                 }
@@ -710,7 +710,7 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
       <Button
         size={ButtonSize.Small}
         icon={<Filter size={16} className="mr-2" />}
-        className="fixed z-10 bottom-4 sm:hidden"
+        className="fixed z-10 bottom-4 md:hidden"
         onClick={toggleSidebar}
       >
         Filter

@@ -29,10 +29,10 @@ export function List<D extends KeyType>({
   onLoadMore,
   dataKey = 'address',
   loadingCount = 12,
-  gridClassName = 'grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-8 xl:grid-cols-4 xl:gap-8',
+  gridClassName = 'grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-3 lg:gap-8 xl:grid-cols-4 xl:gap-8',
 }: ListProps<D>) {
   return (
-    <div className="container md:mx-auto lg:mx-auto">
+    <div className=" md:mx-auto">
       {loading ? (
         <ul className={gridClassName}>
           {map((i: number) => <li key={i}>{loadingComponent}</li>)(

@@ -85,31 +85,34 @@ export const NftCard = ({
 
         <div className="flex items-center"></div>
       </header>
-      <footer className="flex justify-end items-center gap-2 px-4 h-20 border-t-gray-800 border-t-2">
-        {listing ? (
-          <>
-            <div className="flex-1 mr-auto">
-              <p className="label">Price</p>
-              <p className="font-semibold icon-sol">
+      {listing ? (
+        <footer className="flex justify-center lg:justify-end items-center gap-2 px-4 h-12 sm:h-16 lg:h-20 border-t-gray-800 border-t-2">
+          <div className="flex-grow sm:flex-1 mr-auto text-sm sm:text-base text-center lg:text-left">
+            <p className="label hidden lg:block">Price</p>
+            <p className="font-semibold inline lg:block">
+              <span className="inline lg:hidden pr-2">Price</span>
+              <span className="icon-sol">
                 {toSOL(listing.price.toNumber())}
-              </p>
-            </div>
-            {not(isOwner) && (
-              <Link to={`/nfts/${nft.address}`}>
-                <button className="button small grow-0">Buy Now</button>
-              </Link>
-            )}
-          </>
-        ) : (
-          not(isOwner) && (
+              </span>
+            </p>
+          </div>
+          {not(isOwner) && (
+            <Link to={`/nfts/${nft.address}`} className="hidden lg:block">
+              <button className="button small grow-0">Buy Now</button>
+            </Link>
+          )}
+        </footer>
+      ) : (
+        <footer className="flex justify-center items-center gap-2 px-4 h-20 border-t-gray-800 border-t-2">
+          {not(isOwner) && (
             <Link to={`/nfts/${nft.address}/offers/new`}>
-              <button className="button tertiary small grow-0">
+              <button className="button tertiary small grow-0 mx-auto">
                 Make Offer
               </button>
             </Link>
-          )
-        )}
-      </footer>
+          )}
+        </footer>
+      )}
     </article>
   )
 }

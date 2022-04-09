@@ -193,7 +193,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
           className="object-cover w-full h-44 md:h-60"
         />
       </div>
-      <div className="w-full max-w-[1800px] px-8">
+      <div className="w-full max-w-[1800px] px-4 sm:px-8">
         <div className="relative w-full mt-20 mb-1">
           <img
             src={marketplace.logoUrl}
