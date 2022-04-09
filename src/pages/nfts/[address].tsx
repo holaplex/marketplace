@@ -846,6 +846,30 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 ))
               )}
             </div>
+            <div className="grid grid-cols-2 gap-3 mt-8 p-3 border border-gray-700 rounded">
+              {loading ? (
+                <>
+                  <div className="h-16 bg-gray-800 rounded" />
+                </>
+              ) : (
+                <>
+                  <p className="uppercase label">Mint Address</p>
+                  <p className="font-mono text-xs text-right">
+                    <a
+                      href={`https://solscan.io/token/${data?.nft.mintAddress}`}
+                    >
+                      {truncateAddress(data?.nft.mintAddress)}
+                    </a>
+                  </p>
+                  <p className="uppercase label">Token Address</p>
+                  <p className="font-mono text-xs text-right">
+                    <a href={`https://solscan.io/token/${data?.nft.address}`}>
+                      {truncateAddress(data?.nft.address)}
+                    </a>
+                  </p>
+                </>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex justify-between mt-10 mb-10 text-sm sm:text-base md:text-lg ">
