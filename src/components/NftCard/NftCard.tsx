@@ -33,8 +33,42 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
         )}
       </div>
       <header className="p-4">
-        <h4 className="lg:text-base mb-2 text-sm truncate ...">{nft.name}</h4>
-        <div className="flex items-center"></div>
+        <h4 className="text-sm lg:text-base mb-2 truncate">{nft.name}</h4>
+        <div className="">
+          {nft.creators?.length === 1 && (
+            <Link
+              to={`/creators/${nft.creators[0].address}`}
+              className="flex items-center gap-1"
+            >
+              <img
+                alt={nft.creators[0].profile.handle}
+                className="rounded-full h-5 w-5 object-cover bg-gray-300"
+                src={nft.creators[0].profile.profileImageUrl}
+              />
+
+              <div className="text-xs font-medium text-gray-300">Creator</div>
+            </Link>
+          )}
+          {nft.creators?.length > 1 && (
+            <div className="flex items-center ml-1.5">
+              {nft.creators.map((creator) => {
+                return (
+                  <Link
+                    to={`/creators/${creator.address}`}
+                    className="flex items-center gap-1 -ml-1.5"
+                    key={creator.address}
+                  >
+                    <img
+                      alt={creator.profile?.handle}
+                      className="rounded-full h-5 w-5 object-cover border-2 border-gray-900 bg-gray-300"
+                      src={creator.profile?.profileImageUrl}
+                    />
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </header>
       <footer className="flex justify-end items-center gap-2 px-4 h-20 border-t-gray-800 border-t-2">
         {listing ? (

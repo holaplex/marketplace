@@ -32,6 +32,8 @@ import {
   Nft,
   PresetNftFilter,
   AttributeFilter,
+  NftCount,
+  Wallet,
 } from '../types.d'
 import { List } from './../components/List'
 import { NftCard } from './../components/NftCard'
@@ -73,6 +75,15 @@ const GET_NFTS = gql`
         address
         associatedTokenAccountAddress
       }
+      creators {
+        address
+        verified
+        twitterHandle
+        profile {
+          profileImageUrl
+          bannerImageUrl
+        }
+      }
       offers {
         address
         price
@@ -81,6 +92,31 @@ const GET_NFTS = gql`
         address
         auctionHouse
         price
+      }
+    }
+  }
+`
+
+interface GetCounts {
+  nftCounts: NftCount
+  wallet: Wallet
+}
+
+const GET_COUNTS = gql`
+  query GetCounts(
+    $creators: [PublicKey!]!
+    $auctionHouses: [PublicKey!]
+    $address: PublicKey
+  ) {
+    nftCounts(creators: $creators) {
+      total
+      listed(auctionHouses: $auctionHouses)
+    }
+    wallet(address: $address) {
+      nftCounts(creators: $creators) {
+        owned
+        offered(auctionHouses: $auctionHouses)
+        listed(auctionHouses: $auctionHouses)
       }
     }
   }
@@ -222,6 +258,15 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     },
   })
 
+  const nftCountsQuery = useQuery<GetCounts>(GET_COUNTS, {
+    fetchPolicy: 'network-only',
+    variables: {
+      creators,
+      auctionHouses: [marketplace.auctionHouse.address],
+      publicKey,
+    },
+  })
+
   const nftsQuery = useQuery<GetNftsData>(GET_NFTS, {
     fetchPolicy: 'network-only',
     variables: {
@@ -293,7 +338,10 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   ])
 
   const loading =
-    creatorsQuery.loading || marketplaceQuery.loading || nftsQuery.loading
+    creatorsQuery.loading ||
+    marketplaceQuery.loading ||
+    nftsQuery.loading ||
+    nftCountsQuery.loading
 
   return (
     <div className="flex flex-col items-center text-white bg-gray-900">
@@ -320,6 +368,12 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 Admin Dashboard
               </Link>
             )}
+            <Link
+              to="/creators"
+              className="text-sm cursor-pointer mr-6 hover:underline "
+            >
+              Creators
+            </Link>
             <WalletPortal />
           </div>
         </div>
@@ -405,14 +459,13 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         {creators && (
           <div className="flex justify-between items-center mb-6">
             <h3>Creators</h3>
-            {/* TODO: */}
-            {/* <Link to="/" className="text-sm text-gray-300">
+            <Link to="/creators" className="text-sm text-gray-300">
               See all
-            </Link> */}
+            </Link>
           </div>
         )}
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-10 mb-20">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 mb-20">
           {loading ? (
             <>
               <div className="hover:translate-sale-1.5">
@@ -443,7 +496,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                   <div className="flex flex-col">
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center">
-                        {/* TODO: Add twitter handle and image. */}
+                        {/* TODO: Add twitter handle and image once the storecreator api is updated. */}
                         {/* <img
                           src={}
                           alt={creator.creatorAddress}
@@ -537,7 +590,12 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                           {loading ? (
                             <div className="h-6 w-full" />
                           ) : (
-                            <span>All</span>
+                            <div className="w-full flex justify-between">
+                              <div>All</div>
+                              <div className="text-gray-300">
+                                {nftCountsQuery.data?.nftCounts.total}
+                              </div>
+                            </div>
                           )}
                         </label>
                       )}
@@ -572,7 +630,12 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                           {loading ? (
                             <div className="h-6 w-full" />
                           ) : (
-                            <span>Current listings</span>
+                            <div className="w-full flex justify-between">
+                              <div>Current listings</div>
+                              <div className="text-gray-300">
+                                {nftCountsQuery.data?.nftCounts.listed}
+                              </div>
+                            </div>
                           )}
                         </label>
                       )}
@@ -609,7 +672,15 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                               {loading ? (
                                 <div className="h-6 w-full" />
                               ) : (
-                                <span>Owned by me</span>
+                                <div className="w-full flex justify-between">
+                                  <div>Owned by me</div>
+                                  <div className="text-gray-300">
+                                    {
+                                      nftCountsQuery.data?.wallet?.nftCounts
+                                        .owned
+                                    }
+                                  </div>
+                                </div>
                               )}
                             </label>
                           )}
@@ -644,7 +715,15 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                               {loading ? (
                                 <div className="h-6 w-full" />
                               ) : (
-                                <span>My open offers</span>
+                                <div className="w-full flex justify-between">
+                                  <div>My open offers</div>
+                                  <div className="text-gray-300">
+                                    {
+                                      nftCountsQuery.data?.wallet?.nftCounts
+                                        .offered
+                                    }
+                                  </div>
+                                </div>
                               )}
                             </label>
                           )}

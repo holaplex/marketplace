@@ -118,6 +118,31 @@ const GET_COLLECTION_INFO = gql`
   }
 `
 
+interface GetCounts {
+  nftCounts: NftCount
+  wallet: Wallet
+}
+
+const GET_COUNTS = gql`
+  query GetCounts(
+    $creators: [PublicKey!]!
+    $auctionHouses: [PublicKey!]
+    $address: PublicKey
+  ) {
+    nftCounts(creators: $creators) {
+      total
+      listed(auctionHouses: $auctionHouses)
+    }
+    wallet(address: $address) {
+      nftCounts(creators: $creators) {
+        owned
+        offered(auctionHouses: $auctionHouses)
+        listed(auctionHouses: $auctionHouses)
+      }
+    }
+  }
+`
+
 export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain']
 
@@ -231,6 +256,17 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     variables: {
       creator: router.query.creator,
       auctionHouses: [marketplace.auctionHouse.address],
+    },
+  })
+
+  const creators = map(prop('creatorAddress'))(marketplace.creators)
+
+  const nftCountsQuery = useQuery<GetCounts>(GET_COUNTS, {
+    fetchPolicy: 'network-only',
+    variables: {
+      creators,
+      auctionHouses: [marketplace.auctionHouse.address],
+      publicKey,
     },
   })
 
@@ -440,7 +476,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                 }}
                 className="px-4 py-4 sm:px-0"
               >
-                <ul className="flex flex-col flex-grow gap-2 mb-6">
+                <ul className="flex flex-col gap-2 flex-grow mb-6">
                   <li>
                     <Controller
                       control={control}
@@ -472,7 +508,12 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                           {loading ? (
                             <div className="h-6 w-full" />
                           ) : (
-                            <span>All</span>
+                            <div className="w-full flex justify-between">
+                              <div>All</div>
+                              <div className="text-gray-300">
+                                {nftCountsQuery.data?.nftCounts.total}
+                              </div>
+                            </div>
                           )}
                         </label>
                       )}
@@ -507,7 +548,12 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                           {loading ? (
                             <div className="h-6 w-full" />
                           ) : (
-                            <span>Current listings</span>
+                            <div className="w-full flex justify-between">
+                              <div>Current listings</div>
+                              <div className="text-gray-300">
+                                {nftCountsQuery.data?.nftCounts.listed}
+                              </div>
+                            </div>
                           )}
                         </label>
                       )}
@@ -544,7 +590,15 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                               {loading ? (
                                 <div className="h-6 w-full" />
                               ) : (
-                                <span>Owned by me</span>
+                                <div className="w-full flex justify-between">
+                                  <div>Owned by me</div>
+                                  <div className="text-gray-300">
+                                    {
+                                      nftCountsQuery.data?.wallet?.nftCounts
+                                        .owned
+                                    }
+                                  </div>
+                                </div>
                               )}
                             </label>
                           )}
@@ -579,7 +633,15 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                               {loading ? (
                                 <div className="h-6 w-full" />
                               ) : (
-                                <span>My open offers</span>
+                                <div className="w-full flex justify-between">
+                                  <div>My open offers</div>
+                                  <div className="text-gray-300">
+                                    {
+                                      nftCountsQuery.data?.wallet?.nftCounts
+                                        .offered
+                                    }
+                                  </div>
+                                </div>
                               )}
                             </label>
                           )}
