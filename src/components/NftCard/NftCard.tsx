@@ -42,11 +42,11 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
             >
               <img
                 alt={nft.creators[0].profile.handle}
-                className="rounded-full h-5 w-5 object-cover bg-gray-300"
+                className="rounded-full h-5 w-5 object-cover user-avatar border-2 border-gray-900"
                 src={nft.creators[0].profile.profileImageUrl}
               />
 
-              <div className="text-xs font-medium text-gray-300">Creator</div>
+              <div className="text-xs font-medium text-gray-300 ">Creator</div>
             </Link>
           )}
           {nft.creators?.length > 1 && (
@@ -60,7 +60,7 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
                   >
                     <img
                       alt={creator.profile?.handle}
-                      className="rounded-full h-5 w-5 object-cover border-2 border-gray-900 bg-gray-300"
+                      className="rounded-full h-5 w-5 object-cover border-2 border-gray-900 user-avatar"
                       src={creator.profile?.profileImageUrl}
                     />
                   </Link>

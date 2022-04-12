@@ -659,7 +659,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         >
                           <img
                             alt={creator.twitterHandle}
-                            className="rounded-full h-6 w-6 object-cover bg-gray-300 border-2 border-gray-900"
+                            className="rounded-full h-6 w-6 object-cover user-avatar border-2 border-gray-900"
                             src={creator.profile?.profileImageUrl}
                           />
                         </a>
@@ -684,17 +684,21 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                       {loading ? (
                         <div className="w-20 h-6 bg-gray-800 rounded" />
                       ) : (
-                        <div className="flex gap-1 items-center">
-                          {data?.nft.owner?.profile?.profileImageUrl && (
-                            <img
-                              alt={data?.nft.owner.address}
-                              className="rounded-full h-6 w-6 object-cover bg-gray-300 border-2 border-gray-900"
-                              src={data?.nft.owner.profile.profileImageUrl}
-                            />
-                          )}
-                          {data.nft.owner?.twitterHandle &&
-                            '@' + data.nft.owner.twitterHandle}
-                        </div>
+                        <a
+                          href={`https://holaplex.com/profiles/${data?.nft.owner.address}`}
+                          rel="nofollow"
+                          className="flex gap-1 items-center"
+                        >
+                          <img
+                            alt={data?.nft.owner.address}
+                            className="rounded-full h-6 w-6 object-cover user-avatar border-2 border-gray-900"
+                            src={data?.nft.owner.profile.profileImageUrl}
+                          />
+
+                          {data.nft.owner?.twitterHandle
+                            ? '@' + data.nft.owner.twitterHandle
+                            : truncateAddress(data?.nft.owner.address)}
+                        </a>
                       )}
                     </div>
                   </>
