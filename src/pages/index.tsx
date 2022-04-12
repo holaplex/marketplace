@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
 import Head from 'next/head'
@@ -343,6 +343,37 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     nftsQuery.loading ||
     nftCountsQuery.loading
 
+  const maxScrollWidth = useRef(0)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const carousel = useRef<any>(null)
+
+  const movePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prevState) => prevState - 1)
+    }
+  }
+
+  const moveNext = () => {
+    if (
+      carousel.current !== null &&
+      carousel.current.offsetWidth * currentIndex <= maxScrollWidth.current
+    ) {
+      setCurrentIndex((prevState) => prevState + 1)
+    }
+  }
+
+  useEffect(() => {
+    if (carousel !== null && carousel.current !== null) {
+      carousel.current.scrollLeft = carousel.current.offsetWidth * currentIndex
+    }
+  }, [currentIndex])
+
+  useEffect(() => {
+    maxScrollWidth.current = carousel.current
+      ? carousel.current.scrollWidth - carousel.current.offsetWidth
+      : 0
+  }, [])
+
   return (
     <div className="flex flex-col items-center text-white bg-gray-900">
       <Head>
@@ -354,6 +385,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         <meta property="og:image" content={marketplace.bannerUrl} />
         <meta property="og:description" content={marketplace.description} />
       </Head>
+
       <div className="relative w-full">
         <div className="absolute flex justify-end right-6 top-[28px]">
           <div className="flex items-center justify-end">
@@ -465,83 +497,124 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           </div>
         )}
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 mb-20">
+        <div className="relative mx-auto">
           {loading ? (
-            <>
-              <div className="hover:translate-sale-1.5">
-                <div className="flex flex-grid mb-2">
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                </div>
-                <div className="bg-gray-800 h-6 w-24 block" />
-              </div>
-              <div>
-                <div className="flex flex-grid mb-2">
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                </div>
-                <div className="bg-gray-800 h-6 w-24 block" />
-              </div>
-            </>
+            <div className="flex gap-8 md:gap-10 mb-20">
+              <div className="hover:translate-sale-1.5 bg-gray-800 h-28 w-1/2 lg:w-1/3 block" />
+              <div className="hover:translate-sale-1.5 bg-gray-800 h-28 w-1/2 lg:w-1/3 block" />
+            </div>
           ) : (
-            creatorsQuery.data?.marketplace.creators.map((creator) => {
-              return (
-                <Link
-                  className="transition-transform hover:scale-[1.02]"
-                  key={creator.storeConfigAddress}
-                  to={`/creators/${creator.creatorAddress}`}
+            <>
+              <div className="flex justify-between absolute top left w-full h-full">
+                <button
+                  onClick={movePrev}
+                  className=" text-white w-10 h-full text-center opacity-75 hover:opacity-100 z-10 p-0 m-0 transition-all ease-in-out duration-300"
                 >
-                  <div className="flex flex-col">
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex items-center">
-                        {/* TODO: Add twitter handle and image once the storecreator api is updated. */}
-                        {/* <img
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-12 w-12 p-3 -ml-3 mt-5 rounded-full bg-gray-800"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                  <span className="sr-only">Prev</span>
+                </button>
+                <button
+                  onClick={moveNext}
+                  className=" text-white w-10 h-full text-center opacity-75 hover:opacity-100 z-10 p-0 m-0 transition-all ease-in-out duration-300"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-12 w-12 p-3 -mr-15 mt-5 rounded-full bg-gray-800"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                  <span className="sr-only">Next</span>
+                </button>
+              </div>
+              <div
+                ref={carousel}
+                className="flex gap-8 md:gap-10 mb-20 overflow-hidden scroll-smooth snap-x snap-mandatory touch-pan-x z-0"
+              >
+                {creatorsQuery.data?.marketplace.creators.map((creator) => {
+                  return (
+                    <Link
+                      className="flex transition-transform hover:scale-[1.02] z-0 "
+                      key={creator.storeConfigAddress}
+                      to={`/creators/${creator.creatorAddress}`}
+                    >
+                      <div className="flex flex-col">
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="flex items-center">
+                            {/* TODO: Add twitter handle and image once the storecreator api is updated. */}
+                            {/* <img
                           src={}
                           alt={creator.creatorAddress}
                           className="object-cover bg-gray-900 rounded-full w-12 h-12 mr-2"
                         /> */}
-                        <span className="text-sm">
-                          {truncateAddress(creator.creatorAddress as string)}
-                        </span>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        {/* TODO: Add nft counts once the api is updated. */}
-                        {/* <span className="text-gray-300 text-sm">NFTs</span>
+                            <span className="text-sm">
+                              {truncateAddress(
+                                creator.creatorAddress as string
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            {/* TODO: Add nft counts once the api is updated. */}
+                            {/* <span className="text-gray-300 text-sm">NFTs</span>
                         <span className="text-sm"></span> */}
+                          </div>
+                        </div>
+                        <div className="hidden xl:flex mb-2 gap-4">
+                          {creator.preview.map((nft) => {
+                            return (
+                              <div key={nft.address} className="h-28 w-28">
+                                <img
+                                  className="h-28 object-cover rounded-md grow"
+                                  src={nft.image}
+                                  key={nft.address}
+                                  alt={nft.name}
+                                />
+                              </div>
+                            )
+                          })}
+                        </div>
+                        <div className="flex xl:hidden mb-2 gap-4">
+                          {creator.preview.slice(0, 2).map((nft) => {
+                            return (
+                              <div key={nft.address} className="h-28 w-28">
+                                <img
+                                  className="h-28 w-full object-cover rounded-md grow"
+                                  src={nft.image}
+                                  alt={nft.name}
+                                />
+                              </div>
+                            )
+                          })}
+                        </div>
                       </div>
-                    </div>
-                    <div className="hidden xl:flex w-full flex-grid mb-2 gap-4 overflow-hidden ">
-                      {creator.preview.map((nft) => {
-                        return (
-                          <img
-                            className="h-28 object-cover rounded-md grow"
-                            src={nft.image}
-                            key={nft.address}
-                            alt={nft.name}
-                          />
-                        )
-                      })}
-                    </div>
-                    <div className="flex xl:hidden w-full flex-grid mb-2 gap-4 overflow-hidden ">
-                      {creator.preview.slice(0, 2).map((nft) => {
-                        return (
-                          <img
-                            className="h-28 object-cover rounded-md grow"
-                            src={nft.image}
-                            key={nft.address}
-                            alt={nft.name}
-                          />
-                        )
-                      })}
-                    </div>
-                  </div>
-                </Link>
-              )
-            })
+                    </Link>
+                  )
+                })}
+              </div>
+            </>
           )}
         </div>
+
         <div className="flex">
           <div className="relative">
             <div
