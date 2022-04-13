@@ -1,3 +1,11 @@
+Skeleton Crew Quickstart:
+
+1. Add `MARKETPLACE_SUBDOMAIN=skeletoncrew` to your `.env` file in the root directory
+2. `yarn install`
+3. `NEXT_PUBLIC_GRAPHQL_ENDPOINT=https://graph.holaplex.com/v1 PORT=3000 npx next dev`
+
+----
+
 # Marketplace
 
 No-code Solana NFT marketplaces powered by Holaplex.
