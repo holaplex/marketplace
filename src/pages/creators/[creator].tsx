@@ -44,6 +44,12 @@ import cx from 'classnames'
 import { useSidebar } from '../../hooks/sidebar'
 import { Filter } from 'react-feather'
 import { toSOL } from '../../modules/lamports'
+import {
+  GetNftCounts,
+  GetWalletCounts,
+  GET_NFT_COUNTS,
+  GET_WALLET_COUNTS,
+} from '..'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -113,31 +119,6 @@ const GET_COLLECTION_INFO = gql`
           name
           count
         }
-      }
-    }
-  }
-`
-
-interface GetCounts {
-  nftCounts: NftCount
-  wallet: Wallet
-}
-
-const GET_COUNTS = gql`
-  query GetCounts(
-    $creators: [PublicKey!]!
-    $auctionHouses: [PublicKey!]
-    $address: PublicKey
-  ) {
-    nftCounts(creators: $creators) {
-      total
-      listed(auctionHouses: $auctionHouses)
-    }
-    wallet(address: $address) {
-      nftCounts(creators: $creators) {
-        owned
-        offered(auctionHouses: $auctionHouses)
-        listed(auctionHouses: $auctionHouses)
       }
     }
   }
@@ -261,12 +242,19 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
 
   const creators = map(prop('creatorAddress'))(marketplace.creators)
 
-  const nftCountsQuery = useQuery<GetCounts>(GET_COUNTS, {
+  const nftCountsQuery = useQuery<GetNftCounts>(GET_NFT_COUNTS, {
     fetchPolicy: 'network-only',
     variables: {
       creators,
       auctionHouses: [marketplace.auctionHouse.address],
-      publicKey,
+    },
+  })
+
+  const walletCountsQuery = useQuery<GetWalletCounts>(GET_WALLET_COUNTS, {
+    variables: {
+      address: publicKey?.toBase58(),
+      creators,
+      auctionHouses: [marketplace.auctionHouse.address],
     },
   })
 
@@ -277,6 +265,16 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   })
 
   const loading = loadingNfts || collectionQuery.loading
+
+  useEffect(() => {
+    if (publicKey) {
+      walletCountsQuery.refetch({
+        address: publicKey?.toBase58(),
+        creators,
+        auctionHouses: [marketplace.auctionHouse.address],
+      })
+    }
+  }, [creators, marketplace.auctionHouse.address, publicKey, walletCountsQuery])
 
   useEffect(() => {
     const subscription = watch(({ attributes, preset }) => {
@@ -594,7 +592,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                                   <div>Owned by me</div>
                                   <div className="text-gray-300">
                                     {
-                                      nftCountsQuery.data?.wallet?.nftCounts
+                                      walletCountsQuery.data?.wallet?.nftCounts
                                         .owned
                                     }
                                   </div>
@@ -637,7 +635,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                                   <div>My open offers</div>
                                   <div className="text-gray-300">
                                     {
-                                      nftCountsQuery.data?.wallet?.nftCounts
+                                      walletCountsQuery.data?.wallet?.nftCounts
                                         .offered
                                     }
                                   </div>

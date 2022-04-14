@@ -98,15 +98,15 @@ const GET_NFTS = gql`
   }
 `
 
-interface GetNftCounts {
+export interface GetNftCounts {
   nftCounts: NftCount
 }
 
-interface GetWalletCounts {
+export interface GetWalletCounts {
   wallet: Wallet
 }
 
-const GET_NFT_COUNTS = gql`
+export const GET_NFT_COUNTS = gql`
   query GetNftCounts($creators: [PublicKey!]!, $auctionHouses: [PublicKey!]) {
     nftCounts(creators: $creators) {
       total
@@ -115,7 +115,7 @@ const GET_NFT_COUNTS = gql`
   }
 `
 
-const GET_WALLET_COUNTS = gql`
+export const GET_WALLET_COUNTS = gql`
   query GetWalletCounts(
     $address: PublicKey!
     $creators: [PublicKey!]
