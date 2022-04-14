@@ -1,48 +1,44 @@
-import { useEffect, useRef, useState } from 'react'
-import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
-import Head from 'next/head'
-import { Link } from 'react-router-dom'
-
-import WalletPortal from '../components/WalletPortal'
-import cx from 'classnames'
-import {
-  isNil,
-  map,
-  prop,
-  equals,
-  or,
-  partial,
-  ifElse,
-  always,
-  length,
-  not,
-  when,
-  isEmpty,
-  pipe,
-} from 'ramda'
-import { truncateAddress } from '../modules/address'
 import { useWallet } from '@solana/wallet-adapter-react'
+import cx from 'classnames'
+import { NextPage, NextPageContext } from 'next'
 import { AppProps } from 'next/app'
-import { useForm, Controller } from 'react-hook-form'
-import client from '../client'
+import Head from 'next/head'
 import {
-  Marketplace,
-  Creator,
-  Nft,
-  PresetNftFilter,
+  always,
+  equals,
+  ifElse,
+  isEmpty,
+  isNil,
+  length,
+  map,
+  not,
+  partial,
+  pipe,
+  prop,
+  when,
+} from 'ramda'
+import { useEffect, useRef, useState } from 'react'
+import { Filter } from 'react-feather'
+import { Controller, useForm } from 'react-hook-form'
+import { Link } from 'react-router-dom'
+import client from '../client'
+import Button, { ButtonSize } from '../components/Button'
+import WalletPortal from '../components/WalletPortal'
+import { useSidebar } from '../hooks/sidebar'
+import { truncateAddress } from '../modules/address'
+import { toSOL } from '../modules/lamports'
+import {
   AttributeFilter,
+  Creator,
+  Marketplace,
+  Nft,
   NftCount,
+  PresetNftFilter,
   Wallet,
 } from '../types.d'
 import { List } from './../components/List'
 import { NftCard } from './../components/NftCard'
-import Button, { ButtonSize } from '../components/Button'
-import { Filter } from 'react-feather'
-import { useSidebar } from '../hooks/sidebar'
-import { useRouter } from 'next/router'
-import { toSOL } from '../modules/lamports'
-import { PublicKey } from '@solana/web3.js'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -367,7 +363,8 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     creatorsQuery.loading ||
     marketplaceQuery.loading ||
     nftsQuery.loading ||
-    nftCountsQuery.loading
+    nftCountsQuery.loading ||
+    walletCountsQuery.loading
 
   const maxScrollWidth = useRef(0)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -450,7 +447,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               className="absolute border-4 object-cover border-gray-900 bg-gray-900 rounded-full w-28 h-28 -top-32"
             />
             <h1>{marketplace.name}</h1>
-            <p className="mt-4 max-w-prose text-gray-300">
+            <p className="mt-4 max-w-prose text-gray-300 sm:mr-12">
               {marketplace.description}
             </p>
           </div>
@@ -514,14 +511,13 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
             </div>
           </div>
         </div>
-        {creators && (
-          <div className="flex justify-between items-center mb-6">
-            <h3>Creators</h3>
-            <Link to="/creators" className="text-sm text-gray-300">
-              See all
-            </Link>
-          </div>
-        )}
+
+        <div className="flex justify-between items-center mb-6">
+          <h3>Creators</h3>
+          <Link to="/creators" className="text-sm text-gray-300">
+            See all
+          </Link>
+        </div>
 
         <div className="relative mx-auto">
           {loading ? (

@@ -1,9 +1,9 @@
+import { useWallet } from '@solana/wallet-adapter-react'
+import { equals, find, not, pipe, prop } from 'ramda'
 import React from 'react'
-import { find, pipe, prop, equals, not } from 'ramda'
-import { Nft, Marketplace, Listing } from './../../types'
 import { Link } from 'react-router-dom'
 import { toSOL } from './../../modules/lamports'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { Listing, Marketplace, Nft } from './../../types'
 
 interface NftCardProps {
   nft: Nft
@@ -34,39 +34,26 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
       </div>
       <header className="p-4">
         <h4 className="text-sm lg:text-base mb-2 truncate">{nft.name}</h4>
-        <div className="">
+        <div className="flex gap-1 items-center">
+          <div className="flex items-center ml-1.5">
+            {nft.creators.map((creator) => {
+              return (
+                <Link
+                  to={`/creators/${creator.address}`}
+                  className="flex items-center gap-1 -ml-1.5"
+                  key={creator.address}
+                >
+                  <img
+                    alt={creator.profile?.handle}
+                    className="rounded-full h-5 w-5 object-cover border-2 border-gray-900 user-avatar transform hover:scale-[1.5]"
+                    src={creator.profile?.profileImageUrl}
+                  />
+                </Link>
+              )
+            })}
+          </div>
           {nft.creators?.length === 1 && (
-            <Link
-              to={`/creators/${nft.creators[0].address}`}
-              className="flex items-center gap-1"
-            >
-              <img
-                alt={nft.creators[0].profile.handle}
-                className="rounded-full h-5 w-5 object-cover user-avatar border-2 border-gray-900"
-                src={nft.creators[0].profile.profileImageUrl}
-              />
-
-              <div className="text-xs font-medium text-gray-300 ">Creator</div>
-            </Link>
-          )}
-          {nft.creators?.length > 1 && (
-            <div className="flex items-center ml-1.5">
-              {nft.creators.map((creator) => {
-                return (
-                  <Link
-                    to={`/creators/${creator.address}`}
-                    className="flex items-center gap-1 -ml-1.5"
-                    key={creator.address}
-                  >
-                    <img
-                      alt={creator.profile?.handle}
-                      className="rounded-full h-5 w-5 object-cover border-2 border-gray-900 user-avatar"
-                      src={creator.profile?.profileImageUrl}
-                    />
-                  </Link>
-                )
-              })}
-            </div>
+            <div className="text-xs font-medium text-gray-300 ">Creator</div>
           )}
         </div>
       </header>

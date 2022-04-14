@@ -1,44 +1,15 @@
-import { useEffect, useState } from 'react'
-import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
-import Head from 'next/head'
-import { Link } from 'react-router-dom'
-
-import WalletPortal from '../../components/WalletPortal'
-import cx from 'classnames'
-import {
-  isNil,
-  map,
-  prop,
-  equals,
-  or,
-  partial,
-  ifElse,
-  always,
-  length,
-  not,
-  when,
-  isEmpty,
-  pipe,
-} from 'ramda'
-import { truncateAddress } from '../../modules/address'
 import { useWallet } from '@solana/wallet-adapter-react'
+import { NextPage, NextPageContext } from 'next'
 import { AppProps } from 'next/app'
-import { useForm, Controller } from 'react-hook-form'
+import Head from 'next/head'
+import { equals, isNil, length, map, pipe, prop } from 'ramda'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import client from '../../client'
-import {
-  Marketplace,
-  Creator,
-  Nft,
-  PresetNftFilter,
-  AttributeFilter,
-} from '../../types.d'
-import { List } from '.././../components/List'
-import { NftCard } from '.././../components/NftCard'
-import Button, { ButtonSize } from '../../components/Button'
-import { Filter } from 'react-feather'
-import { useSidebar } from '../../hooks/sidebar'
-import { toSOL } from '../../modules/lamports'
+import WalletPortal from '../../components/WalletPortal'
+import { truncateAddress } from '../../modules/address'
+import { AttributeFilter, Marketplace, PresetNftFilter } from '../../types.d'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -153,11 +124,11 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
   return (
     <div className="flex flex-col items-center text-white bg-gray-900">
       <Head>
-        <title>{marketplace.name + ' Creators'}</title>
+        <title>{`${marketplace.name} Creators`}</title>
         <link rel="icon" href={marketplace.logoUrl} />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content={marketplace.name} />
-        <meta property="og:title" content={marketplace.name + ' Creators'} />
+        <meta property="og:title" content={`${marketplace.name} Creators`} />
         <meta property="og:image" content={marketplace.bannerUrl} />
         <meta property="og:description" content={marketplace.description} />
       </Head>
@@ -222,7 +193,7 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
               return (
                 <Link
                   className="transition-transform hover:scale-[1.02]"
-                  key={creator.storeConfigAddress}
+                  key={creator.creatorAddress}
                   to={`/creators/${creator.creatorAddress}`}
                 >
                   <div className="flex flex-col">

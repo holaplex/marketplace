@@ -1,55 +1,55 @@
-import { useEffect, useState } from 'react'
-import { NextPage, NextPageContext } from 'next'
 import { gql, useQuery } from '@apollo/client'
-import { Link } from 'react-router-dom'
-import Head from 'next/head'
 import { useWallet } from '@solana/wallet-adapter-react'
-import WalletPortal from '../../components/WalletPortal'
+import cx from 'classnames'
+import { NextPage, NextPageContext } from 'next'
+import { AppProps } from 'next/app'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
 import {
+  always,
+  any,
+  equals,
+  filter,
+  ifElse,
+  indexOf,
+  isEmpty,
   isNil,
+  length,
   map,
   modify,
-  filter,
+  not,
+  or,
   partial,
   pipe,
   prop,
-  or,
-  indexOf,
-  isEmpty,
-  not,
-  any,
-  equals,
-  ifElse,
-  always,
   when,
-  length,
 } from 'ramda'
-import { useRouter } from 'next/router'
-import { AppProps } from 'next/app'
-import Select from 'react-select'
-import { useForm, Controller } from 'react-hook-form'
-import { truncateAddress } from '../../modules/address'
-import client from '../../client'
-import {
-  Marketplace,
-  Creator,
-  Nft,
-  PresetNftFilter,
-  AttributeFilter,
-} from '../../types.d'
-import { List } from '../../components/List'
-import { NftCard } from '../../components/NftCard'
-import Button, { ButtonSize } from '../../components/Button'
-import cx from 'classnames'
-import { useSidebar } from '../../hooks/sidebar'
+import { useEffect, useState } from 'react'
 import { Filter } from 'react-feather'
-import { toSOL } from '../../modules/lamports'
+import { Controller, useForm } from 'react-hook-form'
+import { Link } from 'react-router-dom'
+import Select from 'react-select'
 import {
   GetNftCounts,
   GetWalletCounts,
   GET_NFT_COUNTS,
   GET_WALLET_COUNTS,
 } from '..'
+import client from '../../client'
+import Button, { ButtonSize } from '../../components/Button'
+import { List } from '../../components/List'
+import { NftCard } from '../../components/NftCard'
+import WalletPortal from '../../components/WalletPortal'
+import { useSidebar } from '../../hooks/sidebar'
+import { truncateAddress } from '../../modules/address'
+import { toSOL } from '../../modules/lamports'
+import {
+  AttributeFilter,
+  Creator,
+  Marketplace,
+  Nft,
+  PresetNftFilter,
+} from '../../types.d'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -264,7 +264,11 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     defaultValues: { preset: PresetNftFilter.All },
   })
 
-  const loading = loadingNfts || collectionQuery.loading
+  const loading =
+    loadingNfts ||
+    collectionQuery.loading ||
+    nftCountsQuery.loading ||
+    walletCountsQuery.loading
 
   useEffect(() => {
     if (publicKey) {

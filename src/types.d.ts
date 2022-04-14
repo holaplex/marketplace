@@ -11,7 +11,7 @@ interface CreatorCounts {
 }
 export interface UserWallet {
   address: string
-  profile: TwitterProfile
+  profile: TwitterProfile | null
 }
 
 export interface Marketplace {

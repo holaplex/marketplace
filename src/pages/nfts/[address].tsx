@@ -1,60 +1,57 @@
-import { NextPage, NextPageContext } from 'next'
-import { AppProps } from 'next/app'
-import { gql } from '@apollo/client'
-import {
-  isNil,
-  pipe,
-  ifElse,
-  or,
-  always,
-  equals,
-  length,
-  find,
-  prop,
-  isEmpty,
-  filter,
-  and,
-  not,
-  concat,
-  all,
-  map,
-  any,
-  gt,
-  intersection,
-  partialRight,
-} from 'ramda'
-import Head from 'next/head'
-import cx from 'classnames'
-import client from '../../client'
-import { useRouter } from 'next/router'
-import { useQuery } from '@apollo/client'
-import { Link } from 'react-router-dom'
-import WalletPortal from '../../components/WalletPortal'
-import Button, { ButtonType } from '../../components/Button'
-import { Route, Routes } from 'react-router-dom'
-import OfferPage from '../../components/Offer'
-import SellNftPage from '../../components/SellNft'
-import Avatar from '../../components/Avatar'
-import { truncateAddress } from '../../modules/address'
-
-import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { gql, useQuery } from '@apollo/client'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
-import { format } from 'timeago.js'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import {
-  Transaction,
   PublicKey,
   SYSVAR_INSTRUCTIONS_PUBKEY,
+  Transaction,
   TransactionInstruction,
 } from '@solana/web3.js'
-import { toSOL } from '../../modules/lamports'
-import { toast } from 'react-toastify'
-import { useForm } from 'react-hook-form'
-import CancelOfferForm from '../../components/CancelOfferForm'
-import AcceptOfferForm from '../../components/AcceptOfferForm'
-import { useLogin } from '../../hooks/login'
-import { Marketplace, Nft, Listing, Offer, Activity } from '../../types.d'
+import cx from 'classnames'
+import { NextPage, NextPageContext } from 'next'
+import { AppProps } from 'next/app'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
+import {
+  all,
+  always,
+  and,
+  any,
+  concat,
+  equals,
+  filter,
+  find,
+  gt,
+  ifElse,
+  intersection,
+  isEmpty,
+  isNil,
+  length,
+  map,
+  not,
+  or,
+  partialRight,
+  pipe,
+  prop,
+} from 'ramda'
 import { DollarSign, Tag } from 'react-feather'
+import { useForm } from 'react-hook-form'
+import { Link, Route, Routes } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { format } from 'timeago.js'
+import client from '../../client'
+import AcceptOfferForm from '../../components/AcceptOfferForm'
+import Avatar from '../../components/Avatar'
+import Button, { ButtonType } from '../../components/Button'
+import CancelOfferForm from '../../components/CancelOfferForm'
+import OfferPage from '../../components/Offer'
+import SellNftPage from '../../components/SellNft'
+import WalletPortal from '../../components/WalletPortal'
+import { useLogin } from '../../hooks/login'
+import { truncateAddress } from '../../modules/address'
+import { toSOL } from '../../modules/lamports'
+import { Activity, Listing, Marketplace, Nft, Offer } from '../../types.d'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -240,8 +237,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
       address: router.query?.address,
     },
   })
-
-  console.log('nft data', data)
 
   const isMarketplaceAuctionHouse = equals(marketplace.auctionHouse.address)
   const isOwner = equals(data?.nft.owner.address, publicKey?.toBase58()) || null
@@ -660,7 +655,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                           target="_blank"
                         >
                           <img
-                            className="rounded-full h-6 w-6 object-cover user-avatar border-2 border-gray-900"
+                            className="rounded-full h-6 w-6 object-cover user-avatar border-2 border-gray-900 transform hover:scale-[1.5]"
                             src={creator.profile?.profileImageUrl}
                           />
                         </a>
@@ -692,14 +687,14 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                           className="flex gap-1 items-center"
                         >
                           <img
-                            className="rounded-full h-6 w-6 object-cover user-avatar border-2 border-gray-900"
+                            className="rounded-full h-6 w-6 object-cover user-avatar border-2 border-gray-900 transform hover:scale-[1.5]"
                             src={
                               data?.nft.owner.profile?.profileImageUrl as string
                             }
                           />
 
                           {data.nft.owner?.twitterHandle
-                            ? '@' + data.nft.owner.twitterHandle
+                            ? `@${data.nft.owner.twitterHandle}`
                             : truncateAddress(data?.nft.owner.address)}
                         </a>
                       )}
