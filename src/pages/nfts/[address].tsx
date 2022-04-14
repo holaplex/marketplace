@@ -241,6 +241,8 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
     },
   })
 
+  console.log('nft data', data)
+
   const isMarketplaceAuctionHouse = equals(marketplace.auctionHouse.address)
   const isOwner = equals(data?.nft.owner.address, publicKey?.toBase58()) || null
   const login = useLogin()
@@ -658,7 +660,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                           target="_blank"
                         >
                           <img
-                            alt={creator.twitterHandle}
                             className="rounded-full h-6 w-6 object-cover user-avatar border-2 border-gray-900"
                             src={creator.profile?.profileImageUrl}
                           />
@@ -686,13 +687,15 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                       ) : (
                         <a
                           href={`https://holaplex.com/profiles/${data?.nft.owner.address}`}
-                          rel="nofollow"
+                          rel="noreferrer"
+                          target="_blank"
                           className="flex gap-1 items-center"
                         >
                           <img
-                            alt={data?.nft.owner.address}
                             className="rounded-full h-6 w-6 object-cover user-avatar border-2 border-gray-900"
-                            src={data?.nft.owner.profile.profileImageUrl}
+                            src={
+                              data?.nft.owner.profile?.profileImageUrl as string
+                            }
                           />
 
                           {data.nft.owner?.twitterHandle

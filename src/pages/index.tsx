@@ -42,6 +42,7 @@ import { Filter } from 'react-feather'
 import { useSidebar } from '../hooks/sidebar'
 import { useRouter } from 'next/router'
 import { toSOL } from '../modules/lamports'
+import { PublicKey } from '@solana/web3.js'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -97,22 +98,31 @@ const GET_NFTS = gql`
   }
 `
 
-interface GetCounts {
+interface GetNftCounts {
   nftCounts: NftCount
+}
+
+interface GetWalletCounts {
   wallet: Wallet
 }
 
-const GET_COUNTS = gql`
-  query GetCounts(
-    $creators: [PublicKey!]!
-    $auctionHouses: [PublicKey!]
-    $address: PublicKey
-  ) {
+const GET_NFT_COUNTS = gql`
+  query GetNftCounts($creators: [PublicKey!]!, $auctionHouses: [PublicKey!]) {
     nftCounts(creators: $creators) {
       total
       listed(auctionHouses: $auctionHouses)
     }
+  }
+`
+
+const GET_WALLET_COUNTS = gql`
+  query GetWalletCounts(
+    $address: PublicKey!
+    $creators: [PublicKey!]
+    $auctionHouses: [PublicKey!]
+  ) {
     wallet(address: $address) {
+      address
       nftCounts(creators: $creators) {
         owned
         offered(auctionHouses: $auctionHouses)
@@ -258,12 +268,18 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     },
   })
 
-  const nftCountsQuery = useQuery<GetCounts>(GET_COUNTS, {
-    fetchPolicy: 'network-only',
+  const nftCountsQuery = useQuery<GetNftCounts>(GET_NFT_COUNTS, {
     variables: {
       creators,
       auctionHouses: [marketplace.auctionHouse.address],
-      publicKey,
+    },
+  })
+
+  const walletCountsQuery = useQuery<GetWalletCounts>(GET_WALLET_COUNTS, {
+    variables: {
+      address: publicKey?.toBase58(),
+      creators,
+      auctionHouses: [marketplace.auctionHouse.address],
     },
   })
 
@@ -289,6 +305,16 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const { watch, control } = useForm<NftFilterForm>({
     defaultValues: { preset: PresetNftFilter.All },
   })
+
+  useEffect(() => {
+    if (publicKey) {
+      walletCountsQuery.refetch({
+        address: publicKey?.toBase58(),
+        creators,
+        auctionHouses: [marketplace.auctionHouse.address],
+      })
+    }
+  }, [creators, marketplace.auctionHouse.address, publicKey, walletCountsQuery])
 
   useEffect(() => {
     const subscription = watch(({ preset }) => {
@@ -555,7 +581,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                   return (
                     <Link
                       className="flex transition-transform hover:scale-[1.02] z-0 "
-                      key={creator.storeConfigAddress}
+                      key={creator.creatorAddress}
                       to={`/creators/${creator.creatorAddress}`}
                     >
                       <div className="flex flex-col">
@@ -586,7 +612,6 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                                 <img
                                   className="h-28 object-cover rounded-md grow"
                                   src={nft.image}
-                                  key={nft.address}
                                   alt={nft.name}
                                 />
                               </div>
@@ -749,7 +774,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                                   <div>Owned by me</div>
                                   <div className="text-gray-300">
                                     {
-                                      nftCountsQuery.data?.wallet?.nftCounts
+                                      walletCountsQuery.data?.wallet?.nftCounts
                                         .owned
                                     }
                                   </div>
@@ -792,7 +817,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                                   <div>My open offers</div>
                                   <div className="text-gray-300">
                                     {
-                                      nftCountsQuery.data?.wallet?.nftCounts
+                                      walletCountsQuery.data?.wallet?.nftCounts
                                         .offered
                                     }
                                   </div>
@@ -843,9 +868,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               itemRender={(nft) => {
                 return (
                   <Link to={`/nfts/${nft.address}`} key={nft.address}>
-                    <a>
-                      <NftCard nft={nft} marketplace={marketplace} />
-                    </a>
+                    <NftCard nft={nft} marketplace={marketplace} />
                   </Link>
                 )
               }}
