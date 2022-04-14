@@ -40,7 +40,7 @@ import { Filter } from 'react-feather'
 import { useSidebar } from '../hooks/sidebar'
 import { useRouter } from 'next/router'
 import { toSOL } from '../modules/lamports'
-
+import { ADDRESSES } from '../utils/utilities'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
 interface GetNftsData {
@@ -425,8 +425,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
             creatorsQuery.data?.marketplace.creators
               .filter(
                 (creator) =>
-                  creator.creatorAddress !=
-                  '4cUyDakNPeMEZtJPDJGNujWLGF1XNH7WbQnheUEfD2xX'
+                  creator.creatorAddress != ADDRESSES.DUPLICATE_COLLECTION
               )
               .map((creator) => {
                 return (

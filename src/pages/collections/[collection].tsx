@@ -50,7 +50,7 @@ import cx from 'classnames'
 import { useSidebar } from '../../hooks/sidebar'
 import { Filter } from 'react-feather'
 import { toSOL } from '../../modules/lamports'
-
+import { ADDRESSES } from './../../utils/utilities'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
 type OptionType = { label: string; value: number }
@@ -176,7 +176,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   if (
     or(
       any(isNil)([marketplace, creator]),
-      creator?.address == '4cUyDakNPeMEZtJPDJGNujWLGF1XNH7WbQnheUEfD2xX',
+      creator?.address == ADDRESSES.DUPLICATE_COLLECTION,
       pipe(
         map(prop('creatorAddress')),
         indexOf(query.collection),
