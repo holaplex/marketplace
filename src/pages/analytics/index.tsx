@@ -21,6 +21,7 @@ import { toSOL } from 'src/modules/lamports'
 import { Activity, Marketplace } from 'src/types'
 import { format } from 'timeago.js'
 import cx from 'classnames'
+import Chart from 'src/components/Chart'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -122,9 +123,9 @@ const Analytics: NextPage<Props> = ({ marketplace }) => {
         <p className="mt-6 mb-2 max-w-prose">Activity and analytics for</p>
         <h2>{marketplace.name}</h2>
         <div>
-          <div className="flex justify-between pt-14 pr-16">
+          <div className="flex flex-wrap gap-12 justify-between pt-14 pr-16">
             <div className="flex flex-col">
-              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+              <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
                 Floor Price
               </span>
               {loading ? (
@@ -139,7 +140,7 @@ const Analytics: NextPage<Props> = ({ marketplace }) => {
               )}
             </div>
             <div className="flex flex-col">
-              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+              <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
                 Avg Price
               </span>
               {loading ? (
@@ -154,7 +155,7 @@ const Analytics: NextPage<Props> = ({ marketplace }) => {
               )}
             </div>
             <div className="flex flex-col">
-              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+              <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
                 Vol Last 24h
               </span>
               {loading ? (
@@ -169,7 +170,7 @@ const Analytics: NextPage<Props> = ({ marketplace }) => {
               )}
             </div>
             <div className="flex flex-col">
-              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+              <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
                 Vol All Time
               </span>
               {loading ? (
@@ -182,105 +183,110 @@ const Analytics: NextPage<Props> = ({ marketplace }) => {
             </div>
           </div>
         </div>
-        {/* <Chart /> */}
+        <div className="flex flex-wrap md:flex-nowrap w-full gap-12 my-20">
+          <Chart className="w-full md:w-1/2" chartName="Floor Price" />
+          <Chart className="w-full md:w-1/2" chartName="Average Price" />
+        </div>
         <h2 className="mb-4 mt-14 text-xl md:text-2xl text-bold">Activity</h2>
-        {ifElse(
-          (activities: Activity[]) =>
-            and(pipe(length, equals(0))(activities), not(loading)),
-          always(
-            <div className="w-full p-10 text-center border border-gray-800 rounded-lg">
-              <h3>No activities found</h3>
-              <p className="text-gray-500 mt-">
-                There are currently no activities for this NFT.
-              </p>
-            </div>
-          ),
-          (activities: Activity[]) => (
-            <section className="w-full">
-              <header className="grid px-4 mb-2 grid-cols-4">
-                <span className="label">EVENT</span>
-                <span className="label">WALLETS</span>
-                <span className="label">PRICE</span>
-                <span className="label">WHEN</span>
-              </header>
-              {loading ? (
-                <>
-                  <article className="bg-gray-800 mb-4 h-16 rounded" />
-                  <article className="bg-gray-800 mb-4 h-16 rounded" />
-                  <article className="bg-gray-800 mb-4 h-16 rounded" />
-                  <article className="bg-gray-800 mb-4 h-16 rounded" />
-                </>
-              ) : (
-                activities.map((a: Activity) => {
-                  const hasWallets = moreThanOne(a.wallets)
+        <div className="mb-10">
+          {ifElse(
+            (activities: Activity[]) =>
+              and(pipe(length, equals(0))(activities), not(loading)),
+            always(
+              <div className="w-full p-10 text-center border border-gray-800 rounded-lg">
+                <h3>No activities found</h3>
+                <p className="text-gray-500 mt-">
+                  There are currently no activities for this NFT.
+                </p>
+              </div>
+            ),
+            (activities: Activity[]) => (
+              <section className="w-full">
+                <header className="grid px-4 mb-2 grid-cols-4">
+                  <span className="label">EVENT</span>
+                  <span className="label">WALLETS</span>
+                  <span className="label">PRICE</span>
+                  <span className="label">WHEN</span>
+                </header>
+                {loading ? (
+                  <>
+                    <article className="bg-gray-800 mb-4 h-16 rounded" />
+                    <article className="bg-gray-800 mb-4 h-16 rounded" />
+                    <article className="bg-gray-800 mb-4 h-16 rounded" />
+                    <article className="bg-gray-800 mb-4 h-16 rounded" />
+                  </>
+                ) : (
+                  activities.map((a: Activity) => {
+                    const hasWallets = moreThanOne(a.wallets)
 
-                  return (
-                    <article
-                      key={a.address}
-                      className="grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded"
-                    >
-                      <div className="flex self-center">
-                        {a.activityType === 'purchase' ? (
-                          <DollarSign
-                            className="mr-2 self-center text-gray-300"
-                            size="18"
-                          />
-                        ) : (
-                          <Tag
-                            className="mr-2 self-center text-gray-300"
-                            size="18"
-                          />
-                        )}
-                        <div>
-                          {a.activityType === 'purchase' ? 'Sold' : 'Listed'}
-                        </div>
-                      </div>
-                      <div
-                        className={cx('flex items-center self-center ', {
-                          '-ml-6': hasWallets,
-                        })}
+                    return (
+                      <article
+                        key={a.address}
+                        className="grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded"
                       >
-                        {hasWallets && (
-                          <img
-                            src="/images/uturn.svg"
-                            className="mr-2 text-gray-300 w-4"
-                            alt="wallets"
-                          />
-                        )}
-                        <div className="flex flex-col">
-                          <a
-                            href={`https://holaplex.com/profiles/${a.wallets[0]}`}
-                            rel="nofollower"
-                            className="text-sm"
-                          >
-                            {truncateAddress(a.wallets[0])}
-                          </a>
+                        <div className="flex self-center">
+                          {a.activityType === 'purchase' ? (
+                            <DollarSign
+                              className="mr-2 self-center text-gray-300"
+                              size="18"
+                            />
+                          ) : (
+                            <Tag
+                              className="mr-2 self-center text-gray-300"
+                              size="18"
+                            />
+                          )}
+                          <div>
+                            {a.activityType === 'purchase' ? 'Sold' : 'Listed'}
+                          </div>
+                        </div>
+                        <div
+                          className={cx('flex items-center self-center ', {
+                            '-ml-6': hasWallets,
+                          })}
+                        >
                           {hasWallets && (
+                            <img
+                              src="/images/uturn.svg"
+                              className="mr-2 text-gray-300 w-4"
+                              alt="wallets"
+                            />
+                          )}
+                          <div className="flex flex-col">
                             <a
-                              href={`https://holaplex.com/profiles/${a.wallets[1]}`}
+                              href={`https://holaplex.com/profiles/${a.wallets[0]}`}
                               rel="nofollower"
                               className="text-sm"
                             >
-                              {truncateAddress(a.wallets[1])}
+                              {truncateAddress(a.wallets[0])}
                             </a>
-                          )}
+                            {hasWallets && (
+                              <a
+                                href={`https://holaplex.com/profiles/${a.wallets[1]}`}
+                                rel="nofollower"
+                                className="text-sm"
+                              >
+                                {truncateAddress(a.wallets[1])}
+                              </a>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <div className="self-center">
-                        <span className="sol-amount">
-                          {toSOL(a.price.toNumber())}
-                        </span>
-                      </div>
-                      <div className="self-center text-sm">
-                        {format(a.createdAt, 'en_US')}
-                      </div>
-                    </article>
-                  )
-                })
-              )}
-            </section>
-          )
-        )(activities)}
+                        <div className="self-center">
+                          <span className="sol-amount">
+                            {toSOL(a.price.toNumber())}
+                          </span>
+                        </div>
+                        <div className="self-center text-sm">
+                          {format(a.createdAt, 'en_US')}
+                        </div>
+                      </article>
+                    )
+                  })
+                )}
+              </section>
+            )
+          )(activities)}
+        </div>
       </div>
     </div>
   )
