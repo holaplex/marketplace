@@ -18,7 +18,7 @@ import {
   prop,
   when,
 } from 'ramda'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Filter } from 'react-feather'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
@@ -136,9 +136,15 @@ const GET_CREATORS_PREVIEW = gql`
       creators {
         creatorAddress
         storeConfigAddress
+        twitterHandle
+        nftCount
         preview {
           address
           image
+        }
+        profile {
+          handle
+          profileImageUrl
         }
       }
     }
@@ -366,9 +372,23 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     nftCountsQuery.loading ||
     walletCountsQuery.loading
 
-  const maxScrollWidth = useRef(0)
   const [currentIndex, setCurrentIndex] = useState(0)
-  const carousel = useRef<any>(null)
+  const [showPrev, setShowPrev] = useState(false)
+  const [showNext, setShowNext] = useState(false)
+
+  let carousel = useRef<any>()
+  const carouselRef = useCallback((node) => {
+    if (node !== null) {
+      carousel.current = node
+      if (node.offsetWidth < node.scrollWidth) {
+        setShowNext(true)
+        setShowPrev(true)
+      } else {
+        setShowNext(false)
+        setShowPrev(false)
+      }
+    }
+  }, [])
 
   const movePrev = () => {
     if (currentIndex > 0) {
@@ -378,24 +398,31 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
 
   const moveNext = () => {
     if (
-      carousel.current !== null &&
-      carousel.current.offsetWidth * currentIndex <= maxScrollWidth.current
+      carousel.current &&
+      carousel.current.offsetWidth * currentIndex <=
+        carousel.current.scrollWidth - carousel.current.offsetWidth
     ) {
       setCurrentIndex((prevState) => prevState + 1)
     }
   }
 
   useEffect(() => {
-    if (carousel !== null && carousel.current !== null) {
+    if (carousel && carousel.current) {
       carousel.current.scrollLeft = carousel.current.offsetWidth * currentIndex
     }
   }, [currentIndex])
 
-  useEffect(() => {
-    maxScrollWidth.current = carousel.current
-      ? carousel.current.scrollWidth - carousel.current.offsetWidth
-      : 0
-  }, [])
+  // useEffect(() => {
+  //   if (carousel && carousel.current) {
+  //     if (carousel.current.offsetWidth < carousel.current.scrollWidth) {
+  //       setShowNext(true)
+  //       setShowPrev(true)
+  //     } else {
+  //       setShowNext(false)
+  //       setShowPrev(false)
+  //     }
+  //   }
+  // }, [carousel?.current?.scrollWidth, carousel?.current?.offsetWidth])
 
   return (
     <div className="flex flex-col items-center text-white bg-gray-900">
@@ -519,7 +546,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           </Link>
         </div>
 
-        <div className="relative mx-auto">
+        <div className="relative">
           {loading ? (
             <div className="flex gap-8 md:gap-10 mb-20">
               <div className="hover:translate-sale-1.5 bg-gray-800 h-28 w-1/2 lg:w-1/3 block" />
@@ -530,7 +557,8 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               <div className="flex justify-between absolute top left w-full h-full">
                 <button
                   onClick={movePrev}
-                  className=" text-white w-10 h-full text-center opacity-75 hover:opacity-100 z-10 p-0 m-0 transition-all ease-in-out duration-300"
+                  className="disabled:invisible text-white w-10 h-full text-center opacity-75 hover:opacity-100 z-10 p-0 m-0 transition-all ease-in-out duration-300"
+                  disabled={!showPrev}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -550,11 +578,12 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 </button>
                 <button
                   onClick={moveNext}
-                  className=" text-white w-10 h-full text-center opacity-75 hover:opacity-100 z-10 p-0 m-0 transition-all ease-in-out duration-300"
+                  className="disabled:invisible text-white w-10 h-full text-center opacity-75 hover:opacity-100 z-10 p-0 m-0 transition-all ease-in-out duration-300"
+                  disabled={!showNext}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-12 w-12 p-3 -mr-15 mt-5 rounded-full bg-gray-800"
+                    className="h-12 w-12 p-3 -mr-3 mt-5 rounded-full bg-gray-800"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -570,35 +599,36 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 </button>
               </div>
               <div
-                ref={carousel}
+                ref={carouselRef}
                 className="flex gap-8 md:gap-10 mb-20 overflow-hidden scroll-smooth snap-x snap-mandatory touch-pan-x z-0"
               >
                 {creatorsQuery.data?.marketplace.creators.map((creator) => {
                   return (
                     <Link
-                      className="flex transition-transform hover:scale-[1.02] z-0 "
+                      className="flex transition-transform hover:scale-[1.02] snap-start z-0"
                       key={creator.creatorAddress}
                       to={`/creators/${creator.creatorAddress}`}
                     >
                       <div className="flex flex-col">
-                        <div className="flex justify-between items-center mb-2">
+                        <div className="flex justify-between items-center mb-3">
                           <div className="flex items-center">
-                            {/* TODO: Add twitter handle and image once the storecreator api is updated. */}
-                            {/* <img
-                          src={}
-                          alt={creator.creatorAddress}
-                          className="object-cover bg-gray-900 rounded-full w-12 h-12 mr-2"
-                        /> */}
-                            <span className="text-sm">
-                              {truncateAddress(
-                                creator.creatorAddress as string
+                            <img
+                              src={creator.profile?.profileImageUrl}
+                              className="object-cover bg-gray-900 rounded-full w-10 h-10 user-avatar"
+                            />
+                            <div className="text-sm ml-3">
+                              {creator.twitterHandle ? (
+                                <span className="font-semibold">{`@${creator.twitterHandle}`}</span>
+                              ) : (
+                                <span className="pubkey">
+                                  {truncateAddress(creator.creatorAddress)}
+                                </span>
                               )}
-                            </span>
+                            </div>
                           </div>
                           <div className="flex flex-col items-end">
-                            {/* TODO: Add nft counts once the api is updated. */}
-                            {/* <span className="text-gray-300 text-sm">NFTs</span>
-                        <span className="text-sm"></span> */}
+                            <span className="text-gray-300 text-sm">NFTs</span>
+                            <span className="text-sm">{creator.nftCount}</span>
                           </div>
                         </div>
                         <div className="hidden xl:flex mb-2 gap-4">

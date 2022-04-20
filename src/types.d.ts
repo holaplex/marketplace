@@ -33,7 +33,10 @@ interface GraphQLObject {
 export interface MarketplaceCreator {
   creatorAddress: string
   storeConfigAddress: string
+  twitterHandle: string
   preview: Nft[]
+  profile: TwitterProfile | null
+  nftCount: number
 }
 
 export interface AuctionHouse {

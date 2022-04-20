@@ -21,9 +21,15 @@ const GET_CREATORS_PREVIEW = gql`
       creators {
         creatorAddress
         storeConfigAddress
+        twitterHandle
+        nftCount
         preview {
           address
           image
+        }
+        profile {
+          handle
+          profileImageUrl
         }
       }
     }
@@ -115,8 +121,6 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
     },
   })
 
-  console.log('Creators', creatorsQuery.data)
-
   const [hasMore, setHasMore] = useState(true)
 
   const loading = creatorsQuery.loading
@@ -168,7 +172,7 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
           <h2>{marketplace.name + ' Creators'}</h2>
         </div>
 
-        <div className="grid grid-cols-2 gap-8 md:gap-10 lg:gap-14 mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-8 md:gap-10 lg:gap-14 gap-y-14 mb-20">
           {loading ? (
             <>
               <div className="hover:translate-sale-1.5">
@@ -197,24 +201,28 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
                   to={`/creators/${creator.creatorAddress}`}
                 >
                   <div className="flex flex-col">
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex items-center">
-                        {/* TODO: Add twitter handle and image. */}
-                        {/* <img
-                          src={}
-                          alt={creator.creatorAddress}
-                          className="object-cover bg-gray-900 rounded-full w-12 h-12 mr-2"
-                        /> */}
-                        <span className="text-sm">
-                          {truncateAddress(creator.creatorAddress as string)}
-                        </span>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        {/* TODO: Add nft counts once the api is updated. */}
-                        {/* <span className="text-gray-300 text-sm">NFTs</span>
-                        <span className="text-sm"></span> */}
+                    <div className="flex items-center mb-7">
+                      <img
+                        src={creator.profile?.profileImageUrl}
+                        className="object-cover bg-gray-900 rounded-full w-16 h-16 user-avatar"
+                      />
+                      <div className="flex flex-col ml-3 gap-2">
+                        <div>
+                          {creator.twitterHandle ? (
+                            <span className="font-medium">{`@${creator.twitterHandle}`}</span>
+                          ) : (
+                            <span className="pubkey">
+                              {truncateAddress(creator.creatorAddress)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-gray-300 text-sm">NFTs</span>
+                          <span className="text-sm">{creator.nftCount}</span>
+                        </div>
                       </div>
                     </div>
+
                     <div className="hidden xl:flex w-full flex-grid mb-2 gap-4 overflow-hidden ">
                       {creator.preview.map((nft) => {
                         return (

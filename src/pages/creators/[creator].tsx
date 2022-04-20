@@ -87,6 +87,15 @@ const GET_NFTS = gql`
         address
         associatedTokenAccountAddress
       }
+      creators {
+        address
+        verified
+        twitterHandle
+        profile {
+          profileImageUrl
+          bannerImageUrl
+        }
+      }
       offers {
         address
       }
@@ -240,12 +249,10 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     },
   })
 
-  const creators = map(prop('creatorAddress'))(marketplace.creators)
-
   const nftCountsQuery = useQuery<GetNftCounts>(GET_NFT_COUNTS, {
     fetchPolicy: 'network-only',
     variables: {
-      creators,
+      creators: [router.query.creator],
       auctionHouses: [marketplace.auctionHouse.address],
     },
   })
@@ -253,7 +260,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const walletCountsQuery = useQuery<GetWalletCounts>(GET_WALLET_COUNTS, {
     variables: {
       address: publicKey?.toBase58(),
-      creators,
+      creators: [router.query.creator],
       auctionHouses: [marketplace.auctionHouse.address],
     },
   })
@@ -274,11 +281,11 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     if (publicKey) {
       walletCountsQuery.refetch({
         address: publicKey?.toBase58(),
-        creators,
+        creators: [router.query.creator],
         auctionHouses: [marketplace.auctionHouse.address],
       })
     }
-  }, [creators, marketplace.auctionHouse.address, publicKey, walletCountsQuery])
+  }, [marketplace.auctionHouse.address, publicKey, walletCountsQuery])
 
   useEffect(() => {
     const subscription = watch(({ attributes, preset }) => {
