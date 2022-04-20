@@ -40,7 +40,7 @@ $ docker run --network=host -v $(pwd)/templates:/etc/nginx/templates \
 
 If you already have something running in port `80` already, feel free to change that to a different port. Keep in mind that you'll need to append `:<port>` on the url to access the NGINX server.
 
-## Test your setup!
+## Test your proxy setup!
 
 Open a test marketplace, like [espi's marketplace](http://espi.dev.holaplex.market.127.0.0.1.nip.io).
 Page should load without issues.
