@@ -92,6 +92,7 @@ const GET_NFTS = gql`
         verified
         twitterHandle
         profile {
+          handle
           profileImageUrl
           bannerImageUrl
         }

@@ -1,7 +1,9 @@
 import { useWallet } from '@solana/wallet-adapter-react'
-import { equals, find, not, pipe, prop } from 'ramda'
+import { PublicKey } from '@solana/web3.js'
+import { equals, find, not, pipe, prop, when, isNil, always } from 'ramda'
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { addressAvatar } from 'src/modules/address'
 import { toSOL } from './../../modules/lamports'
 import { Listing, Marketplace, Nft } from './../../types'
 
@@ -38,17 +40,21 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
           <div className="flex items-center ml-1.5">
             {nft.creators.map((creator) => {
               return (
-                <Link
-                  to={`/creators/${creator.address}`}
-                  className="flex items-center gap-1 -ml-1.5"
+                <div
+                  className="flex items-center gap-1 -ml-1.5 z-10"
                   key={creator.address}
                 >
                   <img
                     alt={creator.profile?.handle}
-                    className="rounded-full h-5 w-5 object-cover border-2 border-gray-900 user-avatar transform hover:scale-[1.5]"
-                    src={creator.profile?.profileImageUrl}
+                    className="rounded-full h-5 w-5 object-cover border-2 border-gray-900 "
+                    src={
+                      when(
+                        isNil,
+                        always(addressAvatar(new PublicKey(creator.address)))
+                      )(creator.profile?.profileImageUrl) as string
+                    }
                   />
-                </Link>
+                </div>
               )
             })}
           </div>

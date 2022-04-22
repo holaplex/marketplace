@@ -2,8 +2,8 @@ import { gql, useQuery } from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import cx from 'classnames'
 import { NextPage, NextPageContext } from 'next'
+import { PublicKey } from '@solana/web3.js'
 import { AppProps } from 'next/app'
-import Carousel from 'react-multi-carousel'
 import Head from 'next/head'
 import {
   always,
@@ -28,7 +28,7 @@ import Button, { ButtonSize } from '../components/Button'
 import WalletPortal from '../components/WalletPortal'
 import { Slider } from '../components/Slider'
 import { useSidebar } from '../hooks/sidebar'
-import { truncateAddress } from '../modules/address'
+import { addressAvatar, truncateAddress } from '../modules/address'
 import { toSOL } from '../modules/lamports'
 import {
   AttributeFilter,
@@ -79,6 +79,7 @@ const GET_NFTS = gql`
         verified
         twitterHandle
         profile {
+          handle
           profileImageUrl
           bannerImageUrl
         }
@@ -577,8 +578,17 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                     <div className="flex justify-between items-center mb-3">
                       <div className="flex items-center">
                         <img
-                          src={creator.profile?.profileImageUrl}
-                          className="object-cover bg-gray-900 rounded-full w-10 h-10 user-avatar"
+                          src={
+                            when(
+                              isNil,
+                              always(
+                                addressAvatar(
+                                  new PublicKey(creator.creatorAddress)
+                                )
+                              )
+                            )(creator.profile?.profileImageUrl) as string
+                          }
+                          className="object-cover bg-gray-900 rounded-full w-10 h-10"
                         />
                         <div className="text-sm ml-3">
                           {creator.twitterHandle ? (
