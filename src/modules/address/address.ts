@@ -1,4 +1,5 @@
-import { pipe, split, take, join, takeLast } from 'ramda'
+import { PublicKey } from '@solana/web3.js'
+import { pipe, split, take, join, takeLast, add } from 'ramda'
 
 export const truncateAddress = pipe(
   split(''),
@@ -8,3 +9,8 @@ export const truncateAddress = pipe(
   ],
   join('...')
 )
+
+export const addressAvatar = (publicKey: PublicKey) => {
+  const gradient = publicKey.toBytes().reduce(add, 0) % 8
+  return `https://holaplex.com/images/gradients/gradient-${gradient + 1}.png`
+}

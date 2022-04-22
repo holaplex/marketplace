@@ -1,11 +1,11 @@
-import { isNil, not, or } from 'ramda'
+import { isNil, not, or, and } from 'ramda'
 import { useQuery, gql } from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import * as Popover from '@radix-ui/react-popover'
 import Button, { ButtonSize, ButtonType } from '../Button'
 import { toSOL } from '../../modules/lamports'
 import { Viewer } from './../../types.d'
-import { truncateAddress } from '../../modules/address'
+import { addressAvatar, truncateAddress } from '../../modules/address'
 import { useLogin } from './../../hooks/login'
 import { Check, ChevronRight } from 'react-feather'
 import { toast } from 'react-toastify'
@@ -31,7 +31,7 @@ const WalletPortal = () => {
 
   const handleLabelClick = async () => {
     if (publicKey?.toBase58().length) {
-      await navigator.clipboard.writeText(publicKey.toBase58());
+      await navigator.clipboard.writeText(publicKey.toBase58())
       toast(
         <div className="flex items-center justify-between">
           <div className="flex items-center text-white">
@@ -39,23 +39,31 @@ const WalletPortal = () => {
             <div>Wallet address copied to clipboard.</div>
           </div>
         </div>
-      );
+      )
     }
-  };
+  }
 
   return or(connected, isLoading) ? (
     <Popover.Root>
       <Popover.Trigger asChild>
-        <div className="block w-12 h-12 rounded-full bg-gray-800">
-          {not(isLoading) && <div className="user-avatar h-[48px] w-[48px]" />}
+        <div className="block w-12 h-12 rounded-full bg-gray-800 overflow-hidden">
+          {not(isLoading) && publicKey && (
+            <img
+              src={addressAvatar(publicKey) as string}
+              className="h-full w-full"
+            />
+          )}
         </div>
       </Popover.Trigger>
       <Popover.Content className="bg-gray-800 rounded-lg p-5 text-white">
         {/* <Popover.Arrow className="fill-gray-800" offset={18} /> */}
         <div className="flex items-center mb-6">
           <div className="w-16 h-16 inline-block rounded-full bg-gray-700 mr-20">
-            {not(isLoading) && (
-              <div className="user-avatar w-full h-full block" />
+            {not(isLoading) && publicKey && (
+              <img
+                src={addressAvatar(publicKey) as string}
+                className="h-full w-full"
+              />
             )}
           </div>
           {not(isLoading) && (

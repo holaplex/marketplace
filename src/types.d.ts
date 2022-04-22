@@ -9,6 +9,10 @@ interface MarketplaceStats {
 interface CreatorCounts {
   creations: number
 }
+export interface UserWallet {
+  address: string
+  profile: TwitterProfile | null
+}
 
 export interface Marketplace {
   subdomain: string
@@ -29,7 +33,10 @@ interface GraphQLObject {
 export interface MarketplaceCreator {
   creatorAddress: string
   storeConfigAddress: string
+  twitterHandle: string
   preview: Nft[]
+  profile: TwitterProfile | null
+  nftCount: number
 }
 
 export interface AuctionHouse {
@@ -67,8 +74,7 @@ export interface MintStats {
   mint: string
   auctionHouse: string
 }
-export interface Creator {
-  address: string
+export interface Creator extends UserWallet {
   attributeGroups: AttributeGroup[]
   stats: MintStats[]
   counts: CreatorCounts
@@ -79,12 +85,17 @@ export interface NftAttribute {
   traitType: string
 }
 
-export interface UserWallet {
-  address: string
+export interface NftOwner extends UserWallet {
+  associatedTokenAccountAddress: string
+  twitterHandle: string
 }
 
-export interface NftOwnerWallet extends UserWallet {
-  associatedTokenAccountAddress: string
+export interface NftCreator extends UserWallet {
+  twitterHandle: string
+  metadataAddress: string
+  share: number
+  verified: boolean
+  position: number
 }
 
 interface AddressKeyType {
@@ -134,9 +145,10 @@ export interface Nft extends KeyType {
   image: string
   sellerFeeBasisPoints: number
   mintAddress: string
+  primarySaleHappened: boolean
   attributes: NftAttribute[]
-  creators: UserWallet[]
-  owner: NftOwnerWallet
+  creators: NftCreator[]
+  owner: NftOwner
   listings: Listing[]
   purchases: Purchase[]
   offers: Offer[]
@@ -177,4 +189,32 @@ export interface Activity {
   createdAt: string
   wallets: string[]
   activityType: string
+}
+
+export interface NftCount {
+  total: number
+  listed: number
+}
+
+export interface Wallet extends UserWallet {
+  nftCounts: WalletNftCount
+  connectionCounts: ConnectionCounts
+}
+
+export interface TwitterProfile {
+  handle: string
+  profileImageUrl: string
+  bannerImageUrl: string
+  description: string
+}
+
+export interface WalletNftCount {
+  owned: number
+  offered: number
+  listed: number
+}
+
+export interface ConnectionCounts {
+  fromCount: number
+  toCount: number
 }
