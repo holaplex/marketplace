@@ -216,7 +216,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
           className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
         />
       </div>
-      <div className="w-full max-w-[1800px] px-8">
+      <div className="w-full max-w-[1800px] px-6 md:px-12">
         <div className="relative w-full mt-20 mb-1">
           <img
             src={marketplace.logoUrl}

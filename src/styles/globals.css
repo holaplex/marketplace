@@ -117,6 +117,18 @@ h4 {
   @apply rounded-full;
 }
 
+.app-slider .react-multiple-carousel__arrow--right {
+  @apply right-2;
+}
+
+.app-slider .react-multiple-carousel__arrow--left {
+  @apply left-2;
+}
+
+.app-slider.react-multi-carousel-list {
+  @apply p-1;
+}
+
 .overlay-1 {
   background: var(--overlay-1);
 }

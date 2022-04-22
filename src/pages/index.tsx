@@ -3,6 +3,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import cx from 'classnames'
 import { NextPage, NextPageContext } from 'next'
 import { AppProps } from 'next/app'
+import Carousel from 'react-multi-carousel'
 import Head from 'next/head'
 import {
   always,
@@ -25,6 +26,7 @@ import { Link } from 'react-router-dom'
 import client from '../client'
 import Button, { ButtonSize } from '../components/Button'
 import WalletPortal from '../components/WalletPortal'
+import { Slider } from '../components/Slider'
 import { useSidebar } from '../hooks/sidebar'
 import { truncateAddress } from '../modules/address'
 import { toSOL } from '../modules/lamports'
@@ -372,58 +374,6 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     nftCountsQuery.loading ||
     walletCountsQuery.loading
 
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [showPrev, setShowPrev] = useState(false)
-  const [showNext, setShowNext] = useState(false)
-
-  let carousel = useRef<any>()
-  const carouselRef = useCallback((node) => {
-    if (node !== null) {
-      carousel.current = node
-      if (node.offsetWidth < node.scrollWidth) {
-        setShowNext(true)
-        setShowPrev(true)
-      } else {
-        setShowNext(false)
-        setShowPrev(false)
-      }
-    }
-  }, [])
-
-  const movePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prevState) => prevState - 1)
-    }
-  }
-
-  const moveNext = () => {
-    if (
-      carousel.current &&
-      carousel.current.offsetWidth * currentIndex <=
-        carousel.current.scrollWidth - carousel.current.offsetWidth
-    ) {
-      setCurrentIndex((prevState) => prevState + 1)
-    }
-  }
-
-  useEffect(() => {
-    if (carousel && carousel.current) {
-      carousel.current.scrollLeft = carousel.current.offsetWidth * currentIndex
-    }
-  }, [currentIndex])
-
-  // useEffect(() => {
-  //   if (carousel && carousel.current) {
-  //     if (carousel.current.offsetWidth < carousel.current.scrollWidth) {
-  //       setShowNext(true)
-  //       setShowPrev(true)
-  //     } else {
-  //       setShowNext(false)
-  //       setShowPrev(false)
-  //     }
-  //   }
-  // }, [carousel?.current?.scrollWidth, carousel?.current?.offsetWidth])
-
   return (
     <div className="flex flex-col items-center text-white bg-gray-900">
       <Head>
@@ -452,7 +402,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
             )}
             <Link
               to="/creators"
-              className="text-sm cursor-pointer mr-6 hover:underline "
+              className="text-sm cursor-pointer mr-6 hover:underline"
             >
               Creators
             </Link>
@@ -465,7 +415,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
         />
       </div>
-      <div className="w-full max-w-[1800px] px-14">
+      <div className="w-full max-w-[1800px] px-6 md:px-12">
         <div className="relative grid grid-cols-12 gap-4 justify-between w-full mt-20 mb-20">
           <div className="col-span-12 md:col-span-8 mb-6">
             <img
@@ -473,7 +423,9 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               alt={marketplace.name}
               className="absolute border-4 object-cover border-gray-900 bg-gray-900 rounded-full w-28 h-28 -top-32"
             />
-            <h1>{marketplace.name}</h1>
+            <h1 className="text-lg md:text-2xl lg:text-4xl">
+              {marketplace.name}
+            </h1>
             <p className="mt-4 max-w-prose text-gray-300 sm:mr-12">
               {marketplace.description}
             </p>
@@ -538,134 +490,136 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
             </div>
           </div>
         </div>
-
         <div className="flex justify-between items-center mb-6">
           <h3>Creators</h3>
-          <Link to="/creators" className="text-sm text-gray-300">
+          <Link
+            to="/creators"
+            className="text-sm text-gray-300 hover:underline"
+          >
             See all
           </Link>
         </div>
-
-        <div className="relative">
-          {loading ? (
-            <div className="flex gap-8 md:gap-10 mb-20">
-              <div className="hover:translate-sale-1.5 bg-gray-800 h-28 w-1/2 lg:w-1/3 block" />
-              <div className="hover:translate-sale-1.5 bg-gray-800 h-28 w-1/2 lg:w-1/3 block" />
-            </div>
-          ) : (
-            <>
-              <div className="flex justify-between absolute top left w-full h-full">
-                <button
-                  onClick={movePrev}
-                  className="disabled:invisible text-white w-10 h-full text-center opacity-75 hover:opacity-100 z-10 p-0 m-0 transition-all ease-in-out duration-300"
-                  disabled={!showPrev}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-12 w-12 p-3 -ml-3 mt-5 rounded-full bg-gray-800"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                  <span className="sr-only">Prev</span>
-                </button>
-                <button
-                  onClick={moveNext}
-                  className="disabled:invisible text-white w-10 h-full text-center opacity-75 hover:opacity-100 z-10 p-0 m-0 transition-all ease-in-out duration-300"
-                  disabled={!showNext}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-12 w-12 p-3 -mr-3 mt-5 rounded-full bg-gray-800"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                  <span className="sr-only">Next</span>
-                </button>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-20 gap-4">
+            <div className="flex w-full">
+              <div className="flex flex-col w-full">
+                <div className="flex justify-between items-center mb-3">
+                  <div className="flex items-center">
+                    <div className="bg-gray-800 rounded-full w-10 h-10" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 mb-2 gap-4">
+                  <div className="bg-gray-800 w-full aspect-square" />
+                  <div className="bg-gray-800 w-full aspect-square" />
+                  <div className="bg-gray-800 w-full aspect-square hidden md:block" />
+                </div>
               </div>
-              <div
-                ref={carouselRef}
-                className="flex gap-8 md:gap-10 mb-20 overflow-hidden scroll-smooth snap-x snap-mandatory touch-pan-x z-0"
-              >
-                {creatorsQuery.data?.marketplace.creators.map((creator) => {
-                  return (
-                    <Link
-                      className="flex transition-transform hover:scale-[1.02] snap-start z-0"
-                      key={creator.creatorAddress}
-                      to={`/creators/${creator.creatorAddress}`}
-                    >
-                      <div className="flex flex-col">
-                        <div className="flex justify-between items-center mb-3">
-                          <div className="flex items-center">
-                            <img
-                              src={creator.profile?.profileImageUrl}
-                              className="object-cover bg-gray-900 rounded-full w-10 h-10 user-avatar"
-                            />
-                            <div className="text-sm ml-3">
-                              {creator.twitterHandle ? (
-                                <span className="font-semibold">{`@${creator.twitterHandle}`}</span>
-                              ) : (
-                                <span className="pubkey">
-                                  {truncateAddress(creator.creatorAddress)}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <span className="text-gray-300 text-sm">NFTs</span>
-                            <span className="text-sm">{creator.nftCount}</span>
-                          </div>
-                        </div>
-                        <div className="hidden xl:flex mb-2 gap-4">
-                          {creator.preview.map((nft) => {
-                            return (
-                              <div key={nft.address} className="h-28 w-28">
-                                <img
-                                  className="h-28 object-cover rounded-md grow"
-                                  src={nft.image}
-                                  alt={nft.name}
-                                />
-                              </div>
-                            )
-                          })}
-                        </div>
-                        <div className="flex xl:hidden mb-2 gap-4">
-                          {creator.preview.slice(0, 2).map((nft) => {
-                            return (
-                              <div key={nft.address} className="h-28 w-28">
-                                <img
-                                  className="h-28 w-full object-cover rounded-md grow"
-                                  src={nft.image}
-                                  alt={nft.name}
-                                />
-                              </div>
-                            )
-                          })}
+            </div>
+            <div className="hidden md:flex w-full">
+              <div className="flex flex-col w-full">
+                <div className="flex justify-between items-center mb-3">
+                  <div className="flex items-center">
+                    <div className="bg-gray-800 rounded-full w-10 h-10" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 mb-2 gap-4">
+                  <div className="bg-gray-800 w-full aspect-square" />
+                  <div className="bg-gray-800 w-full aspect-square" />
+                  <div className="bg-gray-800 w-full aspect-square hidden md:block" />
+                </div>
+              </div>
+            </div>
+            <div className="hidden lg:flex w-full">
+              <div className="flex flex-col w-full">
+                <div className="flex justify-between items-center mb-3">
+                  <div className="flex items-center">
+                    <div className="bg-gray-800 rounded-full w-10 h-10" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 mb-2 gap-4">
+                  <div className="bg-gray-800 w-full aspect-square" />
+                  <div className="bg-gray-800 w-full aspect-square" />
+                  <div className="bg-gray-800 w-full aspect-square hidden md:block" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <Slider
+            className="mb-20"
+            responsive={{
+              superLargeDesktop: {
+                breakpoint: { max: 4000, min: 3000 },
+                items: 5,
+              },
+              desktop: {
+                breakpoint: { max: 3000, min: 1024 },
+                items: 3,
+              },
+              tablet: {
+                breakpoint: { max: 1024, min: 620 },
+                items: 2,
+              },
+              mobile: {
+                breakpoint: { max: 620, min: 0 },
+                items: 1,
+              },
+            }}
+          >
+            {creatorsQuery.data?.marketplace.creators.map((creator) => {
+              return (
+                <Link
+                  className="flex transition-transform hover:scale-[1.02] snap-start z-0 mr-4"
+                  key={creator.creatorAddress}
+                  to={`/creators/${creator.creatorAddress}`}
+                >
+                  <div className="flex flex-col">
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex items-center">
+                        <img
+                          src={creator.profile?.profileImageUrl}
+                          className="object-cover bg-gray-900 rounded-full w-10 h-10 user-avatar"
+                        />
+                        <div className="text-sm ml-3">
+                          {creator.twitterHandle ? (
+                            <span className="font-semibold">{`@${creator.twitterHandle}`}</span>
+                          ) : (
+                            <span className="pubkey">
+                              {truncateAddress(creator.creatorAddress)}
+                            </span>
+                          )}
                         </div>
                       </div>
-                    </Link>
-                  )
-                })}
-              </div>
-            </>
-          )}
-        </div>
-
+                      <div className="flex flex-col items-end">
+                        <span className="text-gray-300 text-sm">NFTs</span>
+                        <span className="text-sm">{creator.nftCount}</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 mb-2 gap-4">
+                      {creator.preview.map((nft, index) => {
+                        return (
+                          <div
+                            key={nft.address}
+                            className={cx('w-full', {
+                              'hidden md:block':
+                                index === creator.preview.length - 1,
+                            })}
+                          >
+                            <img
+                              className="object-cover rounded-md grow aspect-square"
+                              src={nft.image}
+                              alt={nft.name}
+                            />
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </Slider>
+        )}
         <div className="flex">
           <div className="relative">
             <div

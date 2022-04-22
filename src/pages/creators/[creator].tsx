@@ -393,7 +393,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
           className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
         />
       </div>
-      <div className="w-full max-w-[1800px] px-14">
+      <div className="w-full max-w-[1800px] px-6 md:px-12">
         <div className="relative grid justify-between w-full grid-cols-12 gap-4 mt-20 mb-20">
           <div className="col-span-12 mb-6 md:col-span-8">
             <img

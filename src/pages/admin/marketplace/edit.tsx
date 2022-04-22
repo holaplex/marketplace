@@ -216,7 +216,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
             )}
           />
         </div>
-        <div className="w-full max-w-[1800px] px-8">
+        <div className="w-full max-w-[1800px] px-6 md:px-12">
           <div className="relative w-full mt-20 mb-1">
             <Controller
               control={control}

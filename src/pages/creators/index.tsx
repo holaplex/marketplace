@@ -7,6 +7,7 @@ import { equals, isNil, length, map, pipe, prop } from 'ramda'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import client from '../../client'
+import cx from 'classnames'
 import WalletPortal from '../../components/WalletPortal'
 import { truncateAddress } from '../../modules/address'
 import { AttributeFilter, Marketplace, PresetNftFilter } from '../../types.d'
@@ -94,21 +95,12 @@ interface GetMarketplace {
   marketplace: Marketplace | null
 }
 
-interface GetMarketplaceInfo {
-  marketplace: Marketplace
-}
-
 interface GetCreatorPreviews {
   marketplace: Marketplace
 }
 
 interface CreatorsPageProps extends AppProps {
   marketplace: Marketplace
-}
-
-interface NftFilterForm {
-  attributes: AttributeFilter[]
-  preset: PresetNftFilter
 }
 
 const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
@@ -120,8 +112,6 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
       subdomain: marketplace.subdomain,
     },
   })
-
-  const [hasMore, setHasMore] = useState(true)
 
   const loading = creatorsQuery.loading
 
@@ -136,16 +126,21 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
         <meta property="og:image" content={marketplace.bannerUrl} />
         <meta property="og:description" content={marketplace.description} />
       </Head>
-      <div className="relative w-full mb-14">
-        <div className="absolute flex items-center w-full justify-between top-[28px]">
-          <Link to="/">
+      <div className="sticky w-full top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
+        <Link to="/">
+          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
             <img
+              className="object-cover w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
               src={marketplace.logoUrl}
-              alt={marketplace.name}
-              className="ml-6 border-4 object-cover border-gray-900 bg-gray-900 rounded-full w-16 h-16"
             />
-          </Link>
-          <div className="absolute flex items-center justify-end right-6">
+            <div className="hidden sm:block">{marketplace.name}</div>
+          </button>
+        </Link>
+        <div className="block">
+          <div className="flex items-center justify-end">
+            <div className="text-sm cursor-pointer mr-6 hover:underline underline">
+              Creators
+            </div>
             {equals(
               publicKey?.toBase58(),
               marketplace.auctionHouse.authority
@@ -157,39 +152,49 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
                 Admin Dashboard
               </Link>
             )}
-            <Link
-              to="/creators"
-              className="text-sm cursor-pointer mr-6 underline "
-            >
-              Creators
-            </Link>
             <WalletPortal />
           </div>
         </div>
       </div>
-      <div className="w-full max-w-[1800px] px-14">
+      <div className="w-full max-w-[1800px] px-6 md:px-12">
         <div className="mt-20 mb-20">
-          <h2>{marketplace.name + ' Creators'}</h2>
+          <h2>{`${marketplace.name} Creators`}</h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-8 md:gap-10 lg:gap-14 gap-y-14 mb-20">
           {loading ? (
             <>
-              <div className="hover:translate-sale-1.5">
-                <div className="flex flex-grid mb-2">
+              <div className="flex flex-col">
+                <div className="bg-gray-800 rounded-full w-16 h-16 mb-7" />
+                <div className="flex flex-grid mb-2 gap-4">
                   <div className="bg-gray-800 w-1/3 aspect-square" />
                   <div className="bg-gray-800 w-1/3 aspect-square" />
                   <div className="bg-gray-800 w-1/3 aspect-square" />
                 </div>
-                <div className="bg-gray-800 h-6 w-24 block" />
               </div>
-              <div>
-                <div className="flex flex-grid mb-2">
+              <div className="flex flex-col">
+                <div className="bg-gray-800 rounded-full w-16 h-16 mb-7" />
+                <div className="flex flex-grid mb-2 gap-4">
                   <div className="bg-gray-800 w-1/3 aspect-square" />
                   <div className="bg-gray-800 w-1/3 aspect-square" />
                   <div className="bg-gray-800 w-1/3 aspect-square" />
                 </div>
-                <div className="bg-gray-800 h-6 w-24 block" />
+              </div>
+              <div className="flex flex-col">
+                <div className="bg-gray-800 rounded-full w-16 h-16 mb-7" />
+                <div className="flex flex-grid mb-2 gap-4">
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <div className="bg-gray-800 rounded-full w-16 h-16 mb-7" />
+                <div className="flex flex-grid mb-2 gap-4">
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                </div>
               </div>
             </>
           ) : (
@@ -223,27 +228,22 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
                       </div>
                     </div>
 
-                    <div className="hidden xl:flex w-full flex-grid mb-2 gap-4 overflow-hidden ">
-                      {creator.preview.map((nft) => {
+                    <div className="grid grid-cols-2 md:grid-cols-3 mb-2 gap-4 overflow-hidden">
+                      {creator.preview.map((nft, index) => {
                         return (
-                          <img
-                            className="h-28 object-cover rounded-md grow"
-                            src={nft.image}
-                            key={nft.address}
-                            alt={nft.name}
-                          />
-                        )
-                      })}
-                    </div>
-                    <div className="flex xl:hidden w-full flex-grid mb-2 gap-4 overflow-hidden ">
-                      {creator.preview.slice(0, 2).map((nft) => {
-                        return (
-                          <img
-                            className="h-28 object-cover rounded-md grow"
-                            src={nft.image}
-                            key={nft.address}
-                            alt={nft.name}
-                          />
+                          <div className="w-full" key={nft.address}>
+                            <img
+                              className={cx(
+                                'w-full object-cover aspect-square rounded-md',
+                                {
+                                  'hidden md:block':
+                                    index === creator.preview.length - 1,
+                                }
+                              )}
+                              src={nft.image}
+                              alt={nft.name}
+                            />
+                          </div>
                         )
                       })}
                     </div>
