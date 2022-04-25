@@ -171,7 +171,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
     <div className="flex flex-col items-center text-white bg-gray-900">
       <div className="fixed top-0 z-10 flex items-center justify-between w-full p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
         <Link to="/">
-          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
+          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition duration-100 transform hover:scale-[1.02]">
             <img
               className="w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
               src={marketplace.logoUrl}
@@ -193,7 +193,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
           className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
         />
       </div>
-      <div className="w-full max-w-[1800px] px-8">
+      <div className="w-full max-w-[1800px] px-6 md:px-12">
         <div className="relative w-full mt-20 mb-1">
           <img
             src={marketplace.logoUrl}
