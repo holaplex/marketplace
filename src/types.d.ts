@@ -189,6 +189,7 @@ export interface Activity {
   createdAt: string
   wallets: string[]
   activityType: string
+  nft: Nft
 }
 
 export interface NftCount {
@@ -217,4 +218,15 @@ export interface WalletNftCount {
 export interface ConnectionCounts {
   fromCount: number
   toCount: number
+}
+
+export interface PricePoint {
+  price: BN
+  date: string
+}
+
+export interface PriceChart {
+  listingFloor: PricePoint[]
+  salesAverage: PricePoint[]
+  totalVolume: PricePoint[]
 }
