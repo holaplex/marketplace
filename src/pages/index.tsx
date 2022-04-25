@@ -439,7 +439,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                     )
                   })}
                 </div>
-                Skeleton Crew Art Drops
+                Limited Edition Auctions, Raffles, and Sales
               </div>
             </Link>
           )}

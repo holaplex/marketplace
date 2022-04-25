@@ -158,6 +158,7 @@ const DropsShow: NextPage<DropsPageProps> = ({ marketplace }) => {
             />
             <h2 className="text-xl text-gray-300">Skeleton Crew</h2>
             <h1 className="mb-4">Art Drops</h1>
+            <p>Limited Edition Auctions, Raffles &amp; Sales</p>
           </div>
         </div>
         <div className="flex">
