@@ -1,6 +1,5 @@
 import { gql, useQuery } from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { PublicKey } from '@solana/web3.js'
 import cx from 'classnames'
 import { NextPage, NextPageContext } from 'next'
 import { AppProps } from 'next/app'
@@ -30,11 +29,7 @@ import { Filter } from 'react-feather'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import Select from 'react-select'
-import {
-  defaultVariables,
-  IncomingThemeVariables,
-  NotificationsButton,
-} from '@dialectlabs/react-ui'
+import DialectNotificationsButton from 'src/components/DialectNotificationsButton'
 import {
   GetNftCounts,
   GetWalletCounts,
@@ -58,17 +53,6 @@ import {
 } from '../../types.d'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
-
-const HOLAPLEX_MONITORING_PUBLIC_KEY = new PublicKey(
-  'HZrny6ciLzhUt2HfZxj731NzAJUhTbwXhdKgQZsG8CTf'
-)
-
-export const themeVariables: IncomingThemeVariables = {
-  dark: {
-    bellButton: 'w-[48px] h-[48px] shadow-xl shadow-neutral-800',
-    modal: `${defaultVariables.dark.modal} sm:rounded-3xl shadow-xl shadow-neutral-900 pt-1`,
-  },
-}
 
 type OptionType = { label: string; value: number }
 
@@ -404,14 +388,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
               </Link>
             )}
             <div className="mr-2">
-              <NotificationsButton
-                wallet={wallet}
-                publicKey={HOLAPLEX_MONITORING_PUBLIC_KEY}
-                notifications={[{ name: 'Offer on NFT', detail: 'Event' }]}
-                theme="dark"
-                variables={themeVariables}
-                network="localnet"
-              />
+              <DialectNotificationsButton />
             </div>
             <WalletPortal />
           </div>
