@@ -28,7 +28,7 @@ export const drops: Drop[] = [
     title: 'Cable Manager',
     artist: 'SIMPLE MONSTER PARTY',
     image:
-      'https://www.arweave.net/5Kykvt3Rl_ug_mUuqhIawCG8x-1W_Cz9dzZ89qI__Bc?ext=gif',
+      'https://assets2.holaplex.tools/arweave/5Kykvt3Rl_ug_mUuqhIawCG8x-1W_Cz9dzZ89qI__Bc?width=400',
     startDate: new Date('2022-04-26T18:00:00'),
     tokenType: DropToken.SKULL,
     startingPrice: 75000,
@@ -40,7 +40,7 @@ export const drops: Drop[] = [
     title: 'Spring',
     artist: 'ALPERH',
     image:
-      'https://www.arweave.net/JYiNS0sI9uzT2nnhq7rGuvRQ3n8VAX7NbKfQqrJm-lw?ext=jpeg',
+      'https://assets2.holaplex.tools/arweave/JYiNS0sI9uzT2nnhq7rGuvRQ3n8VAX7NbKfQqrJm-lw?width=400',
     startDate: new Date('2022-04-26T18:00:00'),
     tokenType: DropToken.SKULL,
     startingPrice: 75000,
@@ -52,7 +52,7 @@ export const drops: Drop[] = [
     title: 'Tiger of Eden',
     artist: 'SIMON KIM',
     image:
-      'https://www.arweave.net/h1aitptLE3IPGfXmScF8TRxY12d8zRyyDj22sED2jgA?ext=png',
+      'https://assets2.holaplex.tools/arweave/h1aitptLE3IPGfXmScF8TRxY12d8zRyyDj22sED2jgA?width=400',
     startDate: new Date('2022-04-26T18:00:00'),
     tokenType: DropToken.SKULL,
     startingPrice: 75000,
@@ -64,7 +64,7 @@ export const drops: Drop[] = [
     title: 'Thulsa Boom',
     artist: 'SIMPLE MONSTER PARTY',
     image:
-      'https://www.arweave.net/X9LPRXxxEwo-KSDaKGAFDAe13iQiUHonyURIt7mz_kQ?ext=png',
+      'https://assets2.holaplex.tools/arweave/X9LPRXxxEwo-KSDaKGAFDAe13iQiUHonyURIt7mz_kQ?width=400',
     startDate: new Date('2022-04-27T18:00:00'),
     tokenType: DropToken.SOL,
     startingPrice: 1,
@@ -76,7 +76,7 @@ export const drops: Drop[] = [
     title: 'Lodger',
     artist: 'ALPERH',
     image:
-      'https://www.arweave.net/cb4qSKUYJsWvlakQwD_lPQmfL_w31N0BUZsAfipDl0c?ext=jpeg',
+      'https://assets2.holaplex.tools/arweave/cb4qSKUYJsWvlakQwD_lPQmfL_w31N0BUZsAfipDl0c?width=400',
     startDate: new Date('2022-04-28T18:00:00'),
     tokenType: DropToken.SOL,
     startingPrice: 1,
