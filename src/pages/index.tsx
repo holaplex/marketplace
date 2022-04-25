@@ -41,6 +41,7 @@ import { useSidebar } from '../hooks/sidebar'
 import { useRouter } from 'next/router'
 import { toSOL } from '../modules/lamports'
 import { ADDRESSES } from '../utils/utilities'
+import { drops } from '../utils/drops'
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
 interface GetNftsData {
@@ -400,6 +401,49 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
             </div>
           </div>
         </div>
+        <h2 className="mb-4">Drops</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-20">
+          {loading ? (
+            <>
+              <div className="hover:translate-sale-1.5">
+                <div className="flex flex-grid mb-2">
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                </div>
+                <div className="bg-gray-800 h-6 w-24 block" />
+              </div>
+              <div>
+                <div className="flex flex-grid mb-2">
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                  <div className="bg-gray-800 w-1/3 aspect-square" />
+                </div>
+                <div className="bg-gray-800 h-6 w-24 block" />
+              </div>
+            </>
+          ) : (
+            <Link
+              className="transition-transform hover:scale-[1.02]"
+              to={`/drops`}
+            >
+              <div>
+                <div className="flex flex-grid mb-2 rounded-lg overflow-hidden">
+                  {drops.slice(0, 3).map((drop) => {
+                    return (
+                      <img
+                        className="aspect-square object-cover w-1/3"
+                        src={drop.image}
+                        key={drop.url}
+                      />
+                    )
+                  })}
+                </div>
+                Skeleton Crew Art Drops
+              </div>
+            </Link>
+          )}
+        </div>
         <h2 className="mb-4">Collections</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-20">
           {loading ? (
@@ -439,7 +483,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                         {creator.preview.map((nft) => {
                           return (
                             <img
-                              className="aspect-square w-1/3"
+                              className="aspect-square object-cover w-1/3"
                               src={nft.image}
                               key={nft.address}
                             />
