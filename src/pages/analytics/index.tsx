@@ -23,6 +23,7 @@ import { format } from 'timeago.js'
 import cx from 'classnames'
 import Chart from '../../components/Chart'
 import { subDays } from 'date-fns'
+import { start } from 'repl'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -43,6 +44,7 @@ const GET_MARKETPLACE_INFO = gql`
           floor
           average
           volume24hr
+          volumeTotal
         }
       }
     }
@@ -52,8 +54,8 @@ const GET_MARKETPLACE_INFO = gql`
 const GET_PRICE_CHART_DATA = gql`
   query GetPriceChartData(
     $auctionHouses: [PublicKey!]!
-    $startDate: String!
-    $endDate: String!
+    $startDate: DateTimeUtc!
+    $endDate: DateTimeUtc!
   ) {
     charts(
       auctionHouses: $auctionHouses
@@ -162,6 +164,9 @@ const Analytics: NextPage<Props> = ({ marketplace }) => {
       subdomain: marketplace.subdomain,
     },
   })
+  const startDate = subDays(new Date(), 6).toISOString() // '2021-01-01T21:46:28Z'
+  const endDate = new Date().toISOString()
+  console.log(startDate, endDate)
 
   const priceChartDataQuery = useQuery<GetPriceChartData>(
     GET_PRICE_CHART_DATA,
@@ -169,21 +174,21 @@ const Analytics: NextPage<Props> = ({ marketplace }) => {
       fetchPolicy: 'network-only',
       variables: {
         auctionHouses: [marketplace.auctionHouse.address],
-        startDate: '2021-01-01T21:46:28+00:00',
-        endDate: '2022-04-01T21:46:28+00:00',
+        startDate: '2022-04-19T21:46:28Z',
+        endDate: '2022-04-25T14:49:13.130Z',
       },
     }
   )
+  console.log('Price Chart Query:', priceChartDataQuery)
+  console.log('Price Chart Data:', priceChartDataQuery.data?.charts)
 
   const activitiesQuery = useQuery<GetActivities>(GET_ACTIVITIES, {
     variables: {
-      auctionHouses: ['EsrVUnwaqmsq8aDyZ3xLf8f5RmpcHL6ym5uTzwCRLqbE'],
+      auctionHouses: [marketplace.auctionHouse.address],
     },
   })
 
   let activities: Activity[] = activitiesQuery.data?.activities || []
-
-  console.log('Price Chart Data:', priceChartDataQuery.data?.charts)
 
   const loading =
     marketplaceQuery.loading ||
@@ -259,19 +264,28 @@ const Analytics: NextPage<Props> = ({ marketplace }) => {
                 <div className="block bg-gray-800 w-20 h-6 rounded" />
               ) : (
                 <span className="sol-amount text-3xl font-bold">
-                  {'__' + toSOL(0 as number)}
+                  {toSOL(
+                    (marketplaceQuery.data?.marketplace.auctionHouse.stats?.volumeTotal.toNumber() ||
+                      0) as number
+                  )}
                 </span>
               )}
             </div>
           </div>
         </div>
         <div className="flex flex-wrap md:flex-nowrap w-full gap-12 my-20">
-          <Chart className="w-full md:w-1/2" chartName="Floor Price" />
-          <Chart className="w-full md:w-1/2" chartName="Average Price" />
+          <Chart
+            className="w-full md:w-1/2"
+            chartName="Floor Price"
+            chartData={priceChartDataQuery.data?.charts.listingFloor}
+          />
+          <Chart
+            className="w-full md:w-1/2"
+            chartName="Average Price"
+            chartData={priceChartDataQuery.data?.charts.salesAverage}
+          />
         </div>
-        <h2 className="mb-4 mt-14 mb-12 text-xl md:text-2xl text-bold">
-          Activity
-        </h2>
+        <h2 className="mt-14 mb-12 text-xl md:text-2xl text-bold">Activity</h2>
         <div className="mb-10">
           {ifElse(
             (activities: Activity[]) =>

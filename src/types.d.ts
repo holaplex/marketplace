@@ -69,6 +69,7 @@ export interface AttributeGroup {
 
 export interface MintStats {
   volume24hr: BN
+  volumeTotal: BN
   average: BN
   floor: BN
   mint: string
