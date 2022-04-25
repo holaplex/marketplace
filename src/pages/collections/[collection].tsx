@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import Head from 'next/head'
 import { useWallet } from '@solana/wallet-adapter-react'
 import WalletPortal from '../../components/WalletPortal'
+import { PublicKey } from '@solana/web3.js'
 import {
   isNil,
   map,
@@ -44,8 +45,22 @@ import cx from 'classnames'
 import { useSidebar } from '../../hooks/sidebar'
 import { Filter } from 'react-feather'
 import { toSOL } from '../../modules/lamports'
+import { defaultVariables, IncomingThemeVariables, NotificationsButton } from "@dialectlabs/react-ui";
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
+
+const HOLAPLEX_MONITORING_PUBLIC_KEY = new PublicKey(
+  'HZrny6ciLzhUt2HfZxj731NzAJUhTbwXhdKgQZsG8CTf'
+)
+
+export const themeVariables: IncomingThemeVariables = {
+  dark: {
+    bellButton:
+      'w-[48px] h-[48px] shadow-xl shadow-neutral-800',
+    modal: `${defaultVariables.dark.modal} sm:rounded-3xl shadow-xl shadow-neutral-900 pt-1`,
+  },
+}
+
 
 type OptionType = { label: string; value: number }
 
@@ -212,7 +227,8 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
   marketplace,
   creator,
 }) => {
-  const { publicKey, connected } = useWallet()
+  const wallet = useWallet()
+  const { publicKey, connected } = wallet;
   const [hasMore, setHasMore] = useState(true)
   const router = useRouter()
   const {
@@ -342,6 +358,16 @@ const CollectionShow: NextPage<CollectionPageProps> = ({
                 Admin Dashboard
               </Link>
             )}
+            <div className="mr-2">
+              <NotificationsButton
+                wallet={wallet}
+                publicKey={HOLAPLEX_MONITORING_PUBLIC_KEY}
+                notifications={[{ name: 'Offer on NFT', detail: 'Event' }]}
+                theme="dark"
+                variables={themeVariables}
+                network="localnet"
+              />
+            </div>
             <WalletPortal />
           </div>
         </div>
