@@ -72,6 +72,7 @@ export const DropCard = ({ drop }: DropCardProps) => {
               date={drop.startDate}
               prefix={'Drops in'}
               status={'View'}
+              onComplete={() => window.location.reload()}
             />
           </button>
         )}
