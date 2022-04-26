@@ -70,7 +70,7 @@ export const DropCard = ({ drop }: DropCardProps) => {
           <button className="button tertiary small grow-0 mx-auto" disabled>
             <DropCountdown
               date={drop.startDate}
-              prefix={'Dropping in'}
+              prefix={'Drops in'}
               status={'View'}
             />
           </button>
