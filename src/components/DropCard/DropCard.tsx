@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Drop, DropToken, DropType } from '../../utils/drops'
-import { DropCountdown } from './DropCountdown'
+// import { DropCountdown } from './DropCountdown'
 import cx from 'classnames'
 
 interface DropCardProps {
@@ -9,7 +9,7 @@ interface DropCardProps {
 }
 
 export const DropCard = ({ drop }: DropCardProps) => {
-  const live = drop.startDate < new Date()
+  const live = false // drop.startDate < new Date()
 
   const typeString = (type: DropType): string => {
     if (type == DropType.AUCTION) {
@@ -68,12 +68,13 @@ export const DropCard = ({ drop }: DropCardProps) => {
           </Link>
         ) : (
           <button className="button tertiary small grow-0 mx-auto" disabled>
-            <DropCountdown
+            {/* <DropCountdown
               date={drop.startDate}
               prefix={'Drops in'}
               status={'View'}
               onComplete={() => window.location.reload()}
-            />
+            /> */}
+            POSTPONED, STANDBY
           </button>
         )}
       </footer>
