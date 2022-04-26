@@ -29,7 +29,7 @@ export const drops: Drop[] = [
     artist: 'SIMPLE MONSTER PARTY',
     image:
       'https://assets2.holaplex.tools/arweave/5Kykvt3Rl_ug_mUuqhIawCG8x-1W_Cz9dzZ89qI__Bc?width=400',
-    startDate: new Date('2022-04-26T13:00:00-05:00'),
+    startDate: new Date('2022-04-26T13:00:00-04:00'),
     tokenType: DropToken.SKULL,
     startingPrice: 75000,
     quantity: 33,
@@ -41,7 +41,7 @@ export const drops: Drop[] = [
     artist: 'ALPERH',
     image:
       'https://assets2.holaplex.tools/arweave/JYiNS0sI9uzT2nnhq7rGuvRQ3n8VAX7NbKfQqrJm-lw?width=400',
-    startDate: new Date('2022-04-26T13:00:00-05:00'),
+    startDate: new Date('2022-04-26T13:00:00-04:00'),
     tokenType: DropToken.SKULL,
     startingPrice: 75000,
     quantity: 33,
@@ -53,7 +53,7 @@ export const drops: Drop[] = [
     artist: 'SIMON KIM',
     image:
       'https://assets2.holaplex.tools/arweave/h1aitptLE3IPGfXmScF8TRxY12d8zRyyDj22sED2jgA?width=400',
-    startDate: new Date('2022-04-26T13:00:00-05:00'),
+    startDate: new Date('2022-04-26T13:00:00-04:00'),
     tokenType: DropToken.SKULL,
     startingPrice: 75000,
     quantity: 33,
@@ -65,7 +65,7 @@ export const drops: Drop[] = [
     artist: 'SIMPLE MONSTER PARTY',
     image:
       'https://assets2.holaplex.tools/arweave/X9LPRXxxEwo-KSDaKGAFDAe13iQiUHonyURIt7mz_kQ?width=400',
-    startDate: new Date('2022-04-27T13:00:00-05:00'),
+    startDate: new Date('2022-04-27T13:00:00-04:00'),
     tokenType: DropToken.SOL,
     startingPrice: 1,
     quantity: 1,
@@ -77,7 +77,7 @@ export const drops: Drop[] = [
     artist: 'ALPERH',
     image:
       'https://assets2.holaplex.tools/arweave/cb4qSKUYJsWvlakQwD_lPQmfL_w31N0BUZsAfipDl0c?width=400',
-    startDate: new Date('2022-04-28T13:00:00-05:00'),
+    startDate: new Date('2022-04-28T13:00:00-04:00'),
     tokenType: DropToken.SOL,
     startingPrice: 1,
     quantity: 1,
@@ -89,7 +89,7 @@ export const drops: Drop[] = [
     artist: 'SIMON KIM',
     image:
       'https://assets2.holaplex.tools/arweave/cFA3z9QDTbz-8Qc0PRnHwpDpbWFttdAWOiOHyi90JEM?width=400',
-    startDate: new Date('2022-04-29T13:00:00-05:00'),
+    startDate: new Date('2022-04-29T13:00:00-04:00'),
     tokenType: DropToken.SOL,
     startingPrice: 1,
     quantity: 1,
