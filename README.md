@@ -6,20 +6,24 @@ Tech Stack:
 
 - Typescript
 - Apollo GraphQL
-- React
+- Next.JS/React
 
 ## Getting Started
 
-Clone the repo, `cd` into the folder.
-You can change the GraphQL endpoint for your own self-hosted one [repo available here](https://github.com/holaplex/solana-indexer).
-In this case, we are using our `dev` GraphQL.
+Marketplaces is very easy to setup for local use or to be deployed on your own infrastructure. 
 
-Start the node server in dev mode.
+0. Create a Marketplace at https://holaplex.dev/marketplace/new
+1. Clone the repo
+2. `cd` into the folder
+3. Install dependencies with `yarn install`
+4. Edit `.env.development` and add the subdomain you chose in step 0, or any other active subdomain, eg: `espi`
+5. Run it with `yarn dev`
 
-```bash
-$ npm install
-$ NEXT_PUBLIC_GRAPHQL_ENDPOINT=https://graph-test.holaplex.com/v0 PORT=3000 npx next dev
-```
+## Create a Production Build 
+
+To create a production ready build use `yarn build`. Build files can be found in `.next`.
+
+Detailed documentation can be found at https://nextjs.org/docs/deployment#nextjs-build-api
 
 ## Proxy
 
@@ -36,7 +40,7 @@ $ docker run --network=host -v $(pwd)/templates:/etc/nginx/templates \
 
 If you already have something running in port `80` already, feel free to change that to a different port. Keep in mind that you'll need to append `:<port>` on the url to access the NGINX server.
 
-## Test your setup!
+## Test your proxy setup!
 
 Open a test marketplace, like [espi's marketplace](http://espi.dev.holaplex.market.127.0.0.1.nip.io).
 Page should load without issues.

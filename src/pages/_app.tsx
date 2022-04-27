@@ -3,9 +3,9 @@ import '@fontsource/inter/300.css'
 import '@fontsource/inter/600.css'
 import '@fontsource/jetbrains-mono/200.css'
 import '@fontsource/material-icons'
-import type { AppContext, AppProps } from 'next/app'
+import 'react-multi-carousel/lib/styles.css'
+import type { AppProps } from 'next/app'
 import { ApolloProvider } from '@apollo/client'
-import { gql } from '@apollo/client'
 import React, { useMemo, useEffect } from 'react'
 import {
   ConnectionProvider,
@@ -55,7 +55,7 @@ function App({ Component, pageProps }: AppProps) {
     ],
     []
   )
-  ;``
+
   useEffect(() => {
     if (equals(location.pathname, asPath)) {
       return

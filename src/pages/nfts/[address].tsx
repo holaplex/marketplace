@@ -1,60 +1,58 @@
-import { NextPage, NextPageContext } from 'next'
-import { AppProps } from 'next/app'
-import { gql } from '@apollo/client'
-import {
-  isNil,
-  pipe,
-  ifElse,
-  or,
-  always,
-  equals,
-  length,
-  find,
-  prop,
-  isEmpty,
-  filter,
-  and,
-  not,
-  concat,
-  all,
-  map,
-  any,
-  gt,
-  intersection,
-  partialRight,
-} from 'ramda'
-import Head from 'next/head'
-import cx from 'classnames'
-import client from '../../client'
-import { useRouter } from 'next/router'
-import { useQuery } from '@apollo/client'
-import { Link } from 'react-router-dom'
-import WalletPortal from '../../components/WalletPortal'
-import Button, { ButtonType } from '../../components/Button'
-import { Route, Routes } from 'react-router-dom'
-import OfferPage from '../../components/Offer'
-import SellNftPage from '../../components/SellNft'
-import Avatar from '../../components/Avatar'
-import { truncateAddress } from '../../modules/address'
-
-import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { gql, useQuery } from '@apollo/client'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
-import { format } from 'timeago.js'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import {
-  Transaction,
   PublicKey,
   SYSVAR_INSTRUCTIONS_PUBKEY,
+  Transaction,
   TransactionInstruction,
 } from '@solana/web3.js'
-import { toSOL } from '../../modules/lamports'
-import { toast } from 'react-toastify'
-import { useForm } from 'react-hook-form'
-import CancelOfferForm from '../../components/CancelOfferForm'
-import AcceptOfferForm from '../../components/AcceptOfferForm'
-import { useLogin } from '../../hooks/login'
-import { Marketplace, Nft, Listing, Offer, Activity } from '../../types.d'
+import cx from 'classnames'
+import { NextPage, NextPageContext } from 'next'
+import { AppProps } from 'next/app'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
+import {
+  all,
+  always,
+  and,
+  when,
+  any,
+  concat,
+  equals,
+  filter,
+  find,
+  gt,
+  ifElse,
+  intersection,
+  isEmpty,
+  isNil,
+  length,
+  map,
+  not,
+  or,
+  partialRight,
+  pipe,
+  prop,
+} from 'ramda'
 import { DollarSign, Tag } from 'react-feather'
+import { useForm } from 'react-hook-form'
+import { Link, Route, Routes } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { format } from 'timeago.js'
+import client from '../../client'
+import AcceptOfferForm from '../../components/AcceptOfferForm'
+import Avatar from '../../components/Avatar'
+import Button, { ButtonType } from '../../components/Button'
+import CancelOfferForm from '../../components/CancelOfferForm'
+import OfferPage from '../../components/Offer'
+import SellNftPage from '../../components/SellNft'
+import WalletPortal from '../../components/WalletPortal'
+import { useLogin } from '../../hooks/login'
+import { truncateAddress, addressAvatar } from '../../modules/address'
+import { toSOL } from '../../modules/lamports'
+import { Activity, Listing, Marketplace, Nft, Offer } from '../../types.d'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -80,9 +78,15 @@ const GET_NFT = gql`
       sellerFeeBasisPoints
       mintAddress
       description
+      primarySaleHappened
       owner {
         address
         associatedTokenAccountAddress
+        twitterHandle
+        profile {
+          handle
+          profileImageUrl
+        }
       }
       attributes {
         traitType
@@ -90,6 +94,11 @@ const GET_NFT = gql`
       }
       creators {
         address
+        twitterHandle
+        profile {
+          handle
+          profileImageUrl
+        }
       }
       offers {
         address
@@ -111,13 +120,13 @@ const GET_NFT = gql`
       listings {
         address
         auctionHouse
-        bookkeeper
+        # bookkeeper
         seller
         metadata
-        purchaseReceipt
+        # purchaseReceipt
         price
-        tokenSize
-        bump
+        # tokenSize
+        # bump
         tradeState
         tradeStateBump
         createdAt
@@ -569,7 +578,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
         <Link to="/">
           <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
             <img
-              className="object-cover w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
+              className="object-cover w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
               src={marketplace.logoUrl}
             />
             <div className="hidden sm:block">{marketplace.name}</div>
@@ -583,7 +592,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
             ) && (
               <Link
                 to="/admin/marketplace/edit"
-                className="text-sm cursor-pointer mr-6 hover:underline "
+                className="mr-6 text-sm cursor-pointer hover:underline "
               >
                 Admin Dashboard
               </Link>
@@ -610,7 +619,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
             ) : (
               <img
                 src={data?.nft.image}
-                className="block h-auto w-full border-none rounded-lg shadow"
+                className="block w-full h-auto border-none rounded-lg shadow"
               />
             )}
           </div>
@@ -627,37 +636,90 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 </>
               )}
             </div>
-            <div className="flex-1 mb-8">
-              <div className="mb-1 label">
-                {loading ? (
-                  <div className="h-4 bg-gray-800 rounded w-14" />
-                ) : (
-                  ifElse(
-                    pipe(length, equals(1)),
-                    always('CREATOR'),
-                    always('CREATORS')
-                  )(data?.nft.creators || '')
+            <div className="flex justify-between mb-8">
+              <div>
+                <div className="mb-1 label">
+                  {loading ? (
+                    <div className="h-4 bg-gray-800 rounded w-14" />
+                  ) : (
+                    <span className="text-sm text-gray-300">Created by</span>
+                  )}
+                </div>
+                <div className="flex ml-1.5">
+                  {loading ? (
+                    <div className="w-20 h-6 bg-gray-800 rounded -ml-1.5" />
+                  ) : (
+                    data?.nft.creators.map((creator) => (
+                      <div key={creator.address} className="-ml-1.5">
+                        <a
+                          href={`https://holaplex.com/profiles/${creator.address}`}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <img
+                            className="rounded-full h-6 w-6 object-cover border-2 border-gray-900 transition-transform hover:scale-[1.5]"
+                            src={
+                              when(
+                                isNil,
+                                always(
+                                  addressAvatar(new PublicKey(creator.address))
+                                )
+                              )(creator.profile?.profileImageUrl) as string
+                            }
+                          />
+                        </a>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+              <div>
+                {data?.nft.primarySaleHappened && (
+                  <>
+                    <div className="flex justify-end mb-1 label">
+                      {loading ? (
+                        <div className="h-4 bg-gray-800 rounded w-14" />
+                      ) : (
+                        <span className="text-sm text-gray-300">
+                          Collected by
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex justify-end">
+                      {loading ? (
+                        <div className="w-20 h-6 bg-gray-800 rounded" />
+                      ) : (
+                        <a
+                          href={`https://holaplex.com/profiles/${data?.nft.owner.address}`}
+                          rel="noreferrer"
+                          target="_blank"
+                          className="flex gap-1 items-center transition-transform hover:scale-[1.2]"
+                        >
+                          <img
+                            className="object-cover w-6 h-6 border-2 border-gray-900 rounded-full user-avatar"
+                            src={
+                              when(
+                                isNil,
+                                always(
+                                  addressAvatar(
+                                    new PublicKey(data?.nft.owner.address)
+                                  )
+                                )
+                              )(
+                                data?.nft.owner.profile?.profileImageUrl
+                              ) as string
+                            }
+                          />
+
+                          {data.nft.owner?.twitterHandle
+                            ? `@${data.nft.owner.twitterHandle}`
+                            : truncateAddress(data?.nft.owner.address)}
+                        </a>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
-              <ul>
-                {loading ? (
-                  <li>
-                    <div className="w-20 h-6 bg-gray-800 rounded" />
-                  </li>
-                ) : (
-                  data?.nft.creators.map(({ address }) => (
-                    <li key={address}>
-                      <a
-                        href={`https://holaplex.com/profiles/${address}`}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        <Avatar name={truncateAddress(address)} />
-                      </a>
-                    </li>
-                  ))
-                )}
-              </ul>
             </div>
             <div
               className={cx('w-full p-6 mt-8 bg-gray-800 rounded-lg', {
@@ -670,7 +732,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 })}
               >
                 {listing && (
-                  <div className="flex-1">
+                  <div className="flex-1 mb-6">
                     <div className="label">PRICE</div>
                     <p className="text-base md:text-xl lg:text-3xl">
                       <b className="sol-amount">
@@ -679,18 +741,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                     </p>
                   </div>
                 )}
-                <div className="flex-1">
-                  <div className="mb-1 label">OWNER</div>
-                  <a
-                    href={`https://holaplex.com/profiles/${data?.nft.owner.address}`}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    <Avatar
-                      name={truncateAddress(data?.nft.owner.address || '')}
-                    />
-                  </a>
-                </div>
               </div>
               <div className={cx('flex gap-4', { hidden: loading })}>
                 <Routes>
@@ -701,7 +751,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         {!isOwner && !offer && (
                           <Link
                             to={`/nfts/${data?.nft.address}/offers/new`}
-                            className="flex-1 mt-6"
+                            className="flex-1"
                           >
                             <Button type={ButtonType.Secondary} block>
                               Make Offer
@@ -711,14 +761,14 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         {isOwner && !listing && (
                           <Link
                             to={`/nfts/${data?.nft.address}/listings/new`}
-                            className="flex-1 mt-6"
+                            className="flex-1"
                           >
                             <Button block>Sell NFT</Button>
                           </Link>
                         )}
                         {listing && !isOwner && (
                           <form
-                            className="flex-1 mt-6"
+                            className="flex-1"
                             onSubmit={buyNowForm.handleSubmit(
                               buyNftTransaction
                             )}
@@ -734,7 +784,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         )}
                         {listing && isOwner && (
                           <form
-                            className="flex-1 mt-6"
+                            className="flex-1"
                             onSubmit={cancelListingForm.handleSubmit(
                               cancelListingTransaction
                             )}
@@ -834,9 +884,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   </header>
                   {loading ? (
                     <>
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
                     </>
                   ) : (
                     offers.map((o: Offer) => (
@@ -866,7 +916,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         </div>
                         <div>{format(o.createdAt, 'en_US')}</div>
                         {(offer || isOwner) && (
-                          <div className="flex w-full gap-2 justify-end">
+                          <div className="flex justify-end w-full gap-2">
                             {equals(
                               o.buyer,
                               publicKey?.toBase58() as string
@@ -896,7 +946,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               )
             )(offers)}
 
-            <h2 className="mb-4 mt-14 text-xl md:text-2xl text-bold">
+            <h2 className="mb-4 text-xl mt-14 md:text-2xl text-bold">
               Activity
             </h2>
             {ifElse(
@@ -912,7 +962,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               ),
               (activities: Activity[]) => (
                 <section className="w-full">
-                  <header className="grid px-4 mb-2 grid-cols-4">
+                  <header className="grid grid-cols-4 px-4 mb-2">
                     <span className="label">EVENT</span>
                     <span className="label">WALLETS</span>
                     <span className="label">PRICE</span>
@@ -920,10 +970,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   </header>
                   {loading ? (
                     <>
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
                     </>
                   ) : (
                     activities.map((a: Activity) => {
@@ -937,12 +987,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                           <div className="flex self-center">
                             {a.activityType === 'purchase' ? (
                               <DollarSign
-                                className="mr-2 self-center text-gray-300"
+                                className="self-center mr-2 text-gray-300"
                                 size="18"
                               />
                             ) : (
                               <Tag
-                                className="mr-2 self-center text-gray-300"
+                                className="self-center mr-2 text-gray-300"
                                 size="18"
                               />
                             )}
@@ -960,7 +1010,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                             {hasWallets && (
                               <img
                                 src="/images/uturn.svg"
-                                className="mr-2 text-gray-300 w-4"
+                                className="w-4 mr-2 text-gray-300"
                                 alt="wallets"
                               />
                             )}

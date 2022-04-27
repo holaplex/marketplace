@@ -1,9 +1,11 @@
-import React from 'react'
-import { find, pipe, prop, equals, not } from 'ramda'
-import { Nft, Marketplace, Listing } from './../../types'
-import { Link } from 'react-router-dom'
-import { toSOL } from './../../modules/lamports'
 import { useWallet } from '@solana/wallet-adapter-react'
+import { PublicKey } from '@solana/web3.js'
+import { equals, find, not, pipe, prop, when, isNil, always } from 'ramda'
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { addressAvatar } from 'src/modules/address'
+import { toSOL } from './../../modules/lamports'
+import { Listing, Marketplace, Nft } from './../../types'
 
 interface NftCardProps {
   nft: Nft
@@ -33,8 +35,33 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
         )}
       </div>
       <header className="p-4">
-        <h4 className="lg:text-base mb-2 text-sm truncate ...">{nft.name}</h4>
-        <div className="flex items-center"></div>
+        <h4 className="text-sm lg:text-base mb-2 truncate">{nft.name}</h4>
+        <div className="flex gap-1 items-center">
+          <div className="flex items-center ml-1.5">
+            {nft.creators.map((creator) => {
+              return (
+                <div
+                  className="flex items-center gap-1 -ml-1.5 z-10"
+                  key={creator.address}
+                >
+                  <img
+                    alt={creator.profile?.handle}
+                    className="rounded-full h-5 w-5 object-cover border-2 border-gray-900 "
+                    src={
+                      when(
+                        isNil,
+                        always(addressAvatar(new PublicKey(creator.address)))
+                      )(creator.profile?.profileImageUrl) as string
+                    }
+                  />
+                </div>
+              )
+            })}
+          </div>
+          {nft.creators?.length === 1 && (
+            <div className="text-xs font-medium text-gray-300 ">Creator</div>
+          )}
+        </div>
       </header>
       <footer className="flex justify-end items-center gap-2 px-4 h-20 border-t-gray-800 border-t-2">
         {listing ? (
