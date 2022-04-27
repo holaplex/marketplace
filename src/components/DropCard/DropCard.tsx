@@ -61,11 +61,11 @@ export const DropCard = ({ drop }: DropCardProps) => {
       </header>
       <footer className="flex justify-center items-center gap-2 px-4 h-20 border-t-gray-800 border-t-2">
         {live ? (
-          <Link to={drop.url}>
+          <a href={drop.url}>
             <button className="button tertiary small grow-0 mx-auto">
               View
             </button>
-          </Link>
+          </a>
         ) : drop.startDate ? (
           <button className="button tertiary small grow-0 mx-auto" disabled>
             <DropCountdown
