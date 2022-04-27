@@ -154,8 +154,13 @@ export interface Nft extends KeyType {
   purchases: Purchase[]
   offers: Offer[]
   activities: Activity[]
+  files: NftFile[]
 }
 
+export interface NftFile {
+  fileType: String
+  uri: String
+}
 export interface AttributeFilter {
   traitType: string
   values: string[]

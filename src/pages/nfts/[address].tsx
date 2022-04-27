@@ -79,6 +79,11 @@ const GET_NFT = gql`
       mintAddress
       description
       primarySaleHappened
+      category
+      files {
+        fileType
+        uri
+      }
       owner {
         address
         associatedTokenAccountAddress
@@ -616,11 +621,26 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
             </div>
             {loading ? (
               <div className="w-full bg-gray-800 border-none rounded-lg aspect-square" />
-            ) : (
+            ) : data?.nft.category === 'video' ||
+              data?.nft.category === 'audio' ? (
+              <video
+                className=""
+                playsInline={true}
+                autoPlay={true}
+                muted={true}
+                controls={true}
+                controlsList="nodownload"
+                loop={true}
+                poster={data?.nft.image}
+                src={data?.nft.files.at(-1)?.uri}
+              ></video>
+            ) : data?.nft.category === 'image' ? (
               <img
                 src={data?.nft.image}
                 className="block w-full h-auto border-none rounded-lg shadow"
               />
+            ) : (
+              <></>
             )}
           </div>
           <div>
