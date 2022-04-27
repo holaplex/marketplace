@@ -120,13 +120,13 @@ const GET_NFT = gql`
       listings {
         address
         auctionHouse
-        bookkeeper
+        # bookkeeper
         seller
         metadata
-        purchaseReceipt
+        # purchaseReceipt
         price
-        tokenSize
-        bump
+        # tokenSize
+        # bump
         tradeState
         tradeStateBump
         createdAt
@@ -578,7 +578,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
         <Link to="/">
           <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
             <img
-              className="object-cover w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
+              className="object-cover w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
               src={marketplace.logoUrl}
             />
             <div className="hidden sm:block">{marketplace.name}</div>
@@ -592,7 +592,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
             ) && (
               <Link
                 to="/admin/marketplace/edit"
-                className="text-sm cursor-pointer mr-6 hover:underline "
+                className="mr-6 text-sm cursor-pointer hover:underline "
               >
                 Admin Dashboard
               </Link>
@@ -619,7 +619,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
             ) : (
               <img
                 src={data?.nft.image}
-                className="block h-auto w-full border-none rounded-lg shadow"
+                className="block w-full h-auto border-none rounded-lg shadow"
               />
             )}
           </div>
@@ -642,7 +642,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   {loading ? (
                     <div className="h-4 bg-gray-800 rounded w-14" />
                   ) : (
-                    <span className="text-gray-300 text-sm">Created by</span>
+                    <span className="text-sm text-gray-300">Created by</span>
                   )}
                 </div>
                 <div className="flex ml-1.5">
@@ -676,11 +676,11 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               <div>
                 {data?.nft.primarySaleHappened && (
                   <>
-                    <div className="mb-1 label flex justify-end">
+                    <div className="flex justify-end mb-1 label">
                       {loading ? (
                         <div className="h-4 bg-gray-800 rounded w-14" />
                       ) : (
-                        <span className="text-gray-300 text-sm">
+                        <span className="text-sm text-gray-300">
                           Collected by
                         </span>
                       )}
@@ -696,7 +696,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                           className="flex gap-1 items-center transition-transform hover:scale-[1.2]"
                         >
                           <img
-                            className="rounded-full h-6 w-6 object-cover user-avatar border-2 border-gray-900"
+                            className="object-cover w-6 h-6 border-2 border-gray-900 rounded-full user-avatar"
                             src={
                               when(
                                 isNil,
@@ -884,9 +884,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   </header>
                   {loading ? (
                     <>
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
                     </>
                   ) : (
                     offers.map((o: Offer) => (
@@ -916,7 +916,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         </div>
                         <div>{format(o.createdAt, 'en_US')}</div>
                         {(offer || isOwner) && (
-                          <div className="flex w-full gap-2 justify-end">
+                          <div className="flex justify-end w-full gap-2">
                             {equals(
                               o.buyer,
                               publicKey?.toBase58() as string
@@ -946,7 +946,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               )
             )(offers)}
 
-            <h2 className="mb-4 mt-14 text-xl md:text-2xl text-bold">
+            <h2 className="mb-4 text-xl mt-14 md:text-2xl text-bold">
               Activity
             </h2>
             {ifElse(
@@ -962,7 +962,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               ),
               (activities: Activity[]) => (
                 <section className="w-full">
-                  <header className="grid px-4 mb-2 grid-cols-4">
+                  <header className="grid grid-cols-4 px-4 mb-2">
                     <span className="label">EVENT</span>
                     <span className="label">WALLETS</span>
                     <span className="label">PRICE</span>
@@ -970,10 +970,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   </header>
                   {loading ? (
                     <>
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
                     </>
                   ) : (
                     activities.map((a: Activity) => {
@@ -987,12 +987,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                           <div className="flex self-center">
                             {a.activityType === 'purchase' ? (
                               <DollarSign
-                                className="mr-2 self-center text-gray-300"
+                                className="self-center mr-2 text-gray-300"
                                 size="18"
                               />
                             ) : (
                               <Tag
-                                className="mr-2 self-center text-gray-300"
+                                className="self-center mr-2 text-gray-300"
                                 size="18"
                               />
                             )}
@@ -1010,7 +1010,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                             {hasWallets && (
                               <img
                                 src="/images/uturn.svg"
-                                className="mr-2 text-gray-300 w-4"
+                                className="w-4 mr-2 text-gray-300"
                                 alt="wallets"
                               />
                             )}
