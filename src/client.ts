@@ -39,10 +39,20 @@ const client = new ApolloClient({
           volume24hr: {
             read: asBN,
           },
+          volumeTotal: {
+            read: asBN,
+          },
           average: {
             read: asBN,
           },
           floor: {
+            read: asBN,
+          },
+        },
+      },
+      PricePoint: {
+        fields: {
+          price: {
             read: asBN,
           },
         },
