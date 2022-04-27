@@ -1,4 +1,4 @@
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery, useLazyQuery } from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import cx from 'classnames'
 import { NextPage, NextPageContext } from 'next'
@@ -114,7 +114,6 @@ const GET_COLLECTION_INFO = gql`
     creator(address: $creator) {
       address
       stats(auctionHouses: $auctionHouses) {
-        mint
         auctionHouse
         volume24hr
         average
@@ -258,13 +257,16 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     },
   })
 
-  const walletCountsQuery = useQuery<GetWalletCounts>(GET_WALLET_COUNTS, {
-    variables: {
-      address: publicKey?.toBase58(),
-      creators: [router.query.creator],
-      auctionHouses: [marketplace.auctionHouse.address],
-    },
-  })
+  const [getWalletCounts, walletCountsQuery] = useLazyQuery<GetWalletCounts>(
+    GET_WALLET_COUNTS,
+    {
+      variables: {
+        address: publicKey?.toBase58(),
+        creators: [router.query.creator],
+        auctionHouses: [marketplace.auctionHouse.address],
+      },
+    }
+  )
 
   const { sidebarOpen, toggleSidebar } = useSidebar()
 
@@ -280,13 +282,9 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
 
   useEffect(() => {
     if (publicKey) {
-      walletCountsQuery.refetch({
-        address: publicKey?.toBase58(),
-        creators: [router.query.creator],
-        auctionHouses: [marketplace.auctionHouse.address],
-      })
+      getWalletCounts()
     }
-  }, [marketplace.auctionHouse.address, publicKey, walletCountsQuery])
+  }, [publicKey, getWalletCounts])
 
   useEffect(() => {
     const subscription = watch(({ attributes, preset }) => {

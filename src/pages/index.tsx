@@ -1,4 +1,4 @@
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery, useLazyQuery } from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import cx from 'classnames'
 import { NextPage, NextPageContext } from 'next'
@@ -280,13 +280,16 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     },
   })
 
-  const walletCountsQuery = useQuery<GetWalletCounts>(GET_WALLET_COUNTS, {
-    variables: {
-      address: publicKey?.toBase58(),
-      creators,
-      auctionHouses: [marketplace.auctionHouse.address],
-    },
-  })
+  const [getWalletCounts, walletCountsQuery] = useLazyQuery<GetWalletCounts>(
+    GET_WALLET_COUNTS,
+    {
+      variables: {
+        address: publicKey?.toBase58(),
+        creators,
+        auctionHouses: [marketplace.auctionHouse.address],
+      },
+    }
+  )
 
   const nftsQuery = useQuery<GetNftsData>(GET_NFTS, {
     fetchPolicy: 'network-only',
@@ -313,13 +316,9 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
 
   useEffect(() => {
     if (publicKey) {
-      walletCountsQuery.refetch({
-        address: publicKey?.toBase58(),
-        creators,
-        auctionHouses: [marketplace.auctionHouse.address],
-      })
+      getWalletCounts()
     }
-  }, [creators, marketplace.auctionHouse.address, publicKey, walletCountsQuery])
+  }, [publicKey, getWalletCounts])
 
   useEffect(() => {
     const subscription = watch(({ preset }) => {

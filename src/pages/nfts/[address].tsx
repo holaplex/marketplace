@@ -120,13 +120,13 @@ const GET_NFT = gql`
       listings {
         address
         auctionHouse
-        # bookkeeper
+        bookkeeper
         seller
         metadata
-        # purchaseReceipt
+        purchaseReceipt
         price
-        # tokenSize
-        # bump
+        tokenSize
+        bump
         tradeState
         tradeStateBump
         createdAt
