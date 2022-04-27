@@ -58,7 +58,7 @@ const WalletPortal = () => {
       <Popover.Content className="bg-gray-800 rounded-lg p-5 text-white">
         {/* <Popover.Arrow className="fill-gray-800" offset={18} /> */}
         <div className="flex items-center mb-6">
-          <div className="w-16 h-16 inline-block rounded-full bg-gray-700 mr-20">
+          <div className="w-16 h-16 inline-block rounded-full bg-gray-700 mr-20 overflow-hidden">
             {not(isLoading) && publicKey && (
               <img
                 src={addressAvatar(publicKey) as string}
@@ -73,7 +73,7 @@ const WalletPortal = () => {
               href={`https://holaplex.com/profiles/${publicKey?.toBase58()}`}
               className="flex text-xl items-center transition-colors hover:text-gray-300"
             >
-              View profile <ChevronRight size="22" className="ml-1.5"/>
+              View profile <ChevronRight size="22" className="ml-1.5" />
             </a>
           )}
         </div>
@@ -88,7 +88,10 @@ const WalletPortal = () => {
           {isLoading ? (
             <div className="inline-block h-6 w-20 bg-gray-700 rounded" />
           ) : (
-            <div className="text-sm pubkey connected-status text-gray-300 cursor-pointer" onClick={handleLabelClick}>
+            <div
+              className="text-sm pubkey connected-status text-gray-300 cursor-pointer"
+              onClick={handleLabelClick}
+            >
               {truncateAddress(publicKey?.toBase58() as string)}
             </div>
           )}
@@ -97,7 +100,7 @@ const WalletPortal = () => {
           <div className="h-8 w-44 rounded-full bg-gray-700" />
         ) : (
           <Button
-            className='focus:outline-none'
+            className="focus:outline-none"
             size={ButtonSize.Small}
             type={ButtonType.Tertiary}
             block

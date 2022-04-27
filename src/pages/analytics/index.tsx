@@ -14,6 +14,8 @@ import {
   partialRight,
   pipe,
 } from 'ramda'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { Link } from 'react-router-dom'
 import { DollarSign, Tag } from 'react-feather'
 import client from '../../client'
 import { truncateAddress } from '../../modules/address'
@@ -21,7 +23,8 @@ import { toSOL } from '../../modules/lamports'
 import { Activity, Marketplace, PriceChart } from 'src/types'
 import { format } from 'timeago.js'
 import cx from 'classnames'
-import Chart from '../../components/Chart'
+import WalletPortal from './../../components/WalletPortal'
+import Chart from './../../components/Chart'
 import { subDays } from 'date-fns'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -110,6 +113,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
           logoUrl
           bannerUrl
           auctionHouse {
+            authority
             address
           }
         }
@@ -161,6 +165,7 @@ const startDate = subDays(new Date(), 6).toISOString()
 const endDate = new Date().toISOString()
 
 const Analytics: NextPage<Props> = ({ marketplace }) => {
+  const { publicKey } = useWallet()
   const marketplaceQuery = useQuery<GetMarketplaceInfo>(GET_MARKETPLACE_INFO, {
     variables: {
       subdomain: marketplace.subdomain,
@@ -203,91 +208,124 @@ const Analytics: NextPage<Props> = ({ marketplace }) => {
         <meta property="og:image" content={marketplace.bannerUrl} />
         <meta property="og:description" content={marketplace.description} />
       </Head>
+      <div className="w-full sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
+        <Link to="/">
+          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
+            <img
+              className="object-cover w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
+              src={marketplace.logoUrl}
+            />
+            <div className="hidden sm:block">{marketplace.name}</div>
+          </button>
+        </Link>
+        <div className="block">
+          <div className="flex items-center justify-end">
+            {equals(
+              publicKey?.toBase58(),
+              marketplace.auctionHouse.authority
+            ) && (
+              <Link
+                to="/admin/marketplace/edit"
+                className="mr-6 text-sm cursor-pointer hover:underline "
+              >
+                Admin Dashboard
+              </Link>
+            )}
+            <WalletPortal />
+          </div>
+        </div>
+      </div>
       <div className="w-full max-w-[1800px] px-8">
         <p className="mt-6 mb-2 max-w-prose">Activity and analytics for</p>
         <h2>{marketplace.name}</h2>
-        <div>
-          <div className="flex flex-wrap gap-12 justify-between pt-14 pr-16">
-            <div className="flex flex-col">
-              <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
-                Floor Price
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 py-12">
+          <div className="flex flex-col">
+            <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
+              Floor Price
+            </span>
+            {loading ? (
+              <div className="block bg-gray-800 w-20 h-10 rounded" />
+            ) : (
+              <span className="sol-amount text-3xl font-bold">
+                {toSOL(
+                  (marketplaceQuery.data?.marketplace.auctionHouse.stats?.floor.toNumber() ||
+                    0) as number
+                )}
               </span>
-              {loading ? (
-                <div className="block bg-gray-800 w-20 h-6 rounded" />
-              ) : (
-                <span className="sol-amount text-3xl font-bold">
-                  {toSOL(
-                    (marketplaceQuery.data?.marketplace.auctionHouse.stats?.floor.toNumber() ||
-                      0) as number
-                  )}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-col">
-              <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
-                Avg Price
+            )}
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
+              Avg Price
+            </span>
+            {loading ? (
+              <div className="block bg-gray-800 w-20 h-10 rounded" />
+            ) : (
+              <span className="sol-amount text-3xl font-bold">
+                {toSOL(
+                  (marketplaceQuery.data?.marketplace.auctionHouse.stats?.average.toNumber() ||
+                    0) as number
+                )}
               </span>
-              {loading ? (
-                <div className="block bg-gray-800 w-20 h-6 rounded" />
-              ) : (
-                <span className="sol-amount text-3xl font-bold">
-                  {toSOL(
-                    (marketplaceQuery.data?.marketplace.auctionHouse.stats?.average.toNumber() ||
-                      0) as number
-                  )}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-col">
-              <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
-                Vol Last 24h
+            )}
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
+              Vol Last 24h
+            </span>
+            {loading ? (
+              <div className="block bg-gray-800 w-20 h-10 rounded" />
+            ) : (
+              <span className="sol-amount text-3xl font-bold">
+                {toSOL(
+                  (marketplaceQuery.data?.marketplace.auctionHouse.stats?.volume24hr.toNumber() ||
+                    0) as number
+                )}
               </span>
-              {loading ? (
-                <div className="block bg-gray-800 w-20 h-6 rounded" />
-              ) : (
-                <span className="sol-amount text-3xl font-bold">
-                  {toSOL(
-                    (marketplaceQuery.data?.marketplace.auctionHouse.stats?.volume24hr.toNumber() ||
-                      0) as number
-                  )}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-col">
-              <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
-                Vol All Time
+            )}
+          </div>
+          <div className="flex flex-col">
+            <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
+              Vol All Time
+            </span>
+            {loading ? (
+              <div className="block bg-gray-800 w-20 h-10 rounded" />
+            ) : (
+              <span className="sol-amount text-3xl font-bold">
+                {toSOL(
+                  (marketplaceQuery.data?.marketplace.auctionHouse.stats?.volumeTotal.toNumber() ||
+                    0) as number
+                )}
               </span>
-              {loading ? (
-                <div className="block bg-gray-800 w-20 h-6 rounded" />
-              ) : (
-                <span className="sol-amount text-3xl font-bold">
-                  {toSOL(
-                    (marketplaceQuery.data?.marketplace.auctionHouse.stats?.volumeTotal.toNumber() ||
-                      0) as number
-                  )}
-                </span>
-              )}
-            </div>
+            )}
           </div>
         </div>
-        <div className="flex flex-wrap md:flex-nowrap w-full gap-12 my-20">
-          <div className="flex flex-col w-full md:w-1/2">
+        <div className="grid grid-cols-1 md:grid-cols-2 w-full gap-12 my-20">
+          <div className="flex flex-col w-full">
             <span className="uppercase text-gray-300 text-xs font-semibold mb-6">
               Floor Price LAST 7 DAYS
             </span>
-            <Chart
-              height={200}
-              chartData={priceChartDataQuery.data?.charts.listingFloor}
-            />
+            {loading ? (
+              <div className="w-full h-[200px] bg-gray-800 rounded-md" />
+            ) : (
+              <Chart
+                height={200}
+                chartData={priceChartDataQuery.data?.charts.listingFloor}
+              />
+            )}
           </div>
-          <div className="flex flex-col w-full md:w-1/2">
+          <div className="flex flex-col w-full">
             <span className="uppercase text-gray-300 text-xs font-semibold mb-6">
               Average Price LAST 7 DAYS
             </span>
-            <Chart
-              height={200}
-              chartData={priceChartDataQuery.data?.charts.salesAverage}
-            />
+            {loading ? (
+              <div className="w-full h-[200px] bg-gray-800 rounded-md" />
+            ) : (
+              <Chart
+                height={200}
+                chartData={priceChartDataQuery.data?.charts.salesAverage}
+              />
+            )}
           </div>
         </div>
         <h2 className="mt-14 mb-12 text-xl md:text-2xl text-bold">Activity</h2>

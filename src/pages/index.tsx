@@ -449,7 +449,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               {marketplace.description}
             </p>
           </div>
-          <div className="col-span-12 lg:col-span-4 grid grid-cols-4 gap-x-1 gap-y-6 lg:-mt-8">
+          <div className="col-span-12 lg:col-span-4 grid grid-cols-3 gap-x-1 gap-y-6 lg:-mt-8">
             <div className="col-span-1">
               <span className="text-gray-300 uppercase font-semibold text-xs block w-full mb-2">
                 Floor
@@ -482,28 +482,31 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
             </div>
             <Link
               to="/analytics"
-              className="col-span-1 lg:col-span-2 justify-self-center"
+              className="col-span-1 lg:col-span-2 flex justify-end"
             >
               <Button
                 size={ButtonSize.Small}
                 type={ButtonType.Secondary}
                 icon={<img src="/images/analytics_icon.svg" className="mr-2" />}
-                className=""
               >
                 Details & Activity
               </Button>
             </Link>
             <div className="col-span-3 lg:col-span-4">
               <div className="flex flex-col w-full">
-                <span className="uppercase text-gray-300 text-xs font-semibold mb-1 place-self-end mr-8">
+                <span className="uppercase text-gray-300 text-xs font-semibold mb-1 place-self-end">
                   Price LAST 7 DAYS
                 </span>
-                <Chart
-                  height={80}
-                  showXAxis={false}
-                  className="w-full"
-                  chartData={priceChartDataQuery.data?.charts.salesAverage}
-                />
+                {loading ? (
+                  <div className="w-full h-[120px] bg-gray-800 rounded" />
+                ) : (
+                  <Chart
+                    height={120}
+                    showXAxis={false}
+                    className="w-full"
+                    chartData={priceChartDataQuery.data?.charts.salesAverage}
+                  />
+                )}
               </div>
             </div>
           </div>
