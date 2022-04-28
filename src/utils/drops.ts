@@ -36,7 +36,8 @@ export const drops: Drop[] = [
     dropType: DropType.AUCTION,
   },
   {
-    url: 'https://drops.skeletoncrew.rip/#/auction/6979Txui2UodrUjvhdYoSquAdCq4cpdMevanNC2fVKST',
+    // url: 'https://drops.skeletoncrew.rip/#/auction/6979Txui2UodrUjvhdYoSquAdCq4cpdMevanNC2fVKST',
+    url: 'https://drops.skeletoncrew.rip/#/auction/H7m3bGpnSqDyyTv2nLMxCCxpDGmJBC7JcMxnD5HVvUYt',
     title: 'Cable Manager',
     artist: 'SIMPLE MONSTER PARTY',
     image:
@@ -48,7 +49,8 @@ export const drops: Drop[] = [
     dropType: DropType.FIXED_PRICE,
   },
   {
-    url: 'https://drops.skeletoncrew.rip/#/auction/7HrbMuUg1J1afD5XVzXtnFjrWDo4RqvXipWrqs5TFgDM',
+    // url: 'https://drops.skeletoncrew.rip/#/auction/7HrbMuUg1J1afD5XVzXtnFjrWDo4RqvXipWrqs5TFgDM',
+    url: 'https://drops.skeletoncrew.rip/#/auction/7PhpJXk4HTiVGJnVo8vxAz2cdichR1bCz12JEkp1WL45',
     title: 'Tiger of Eden',
     artist: 'SIMON KIM',
     image:
