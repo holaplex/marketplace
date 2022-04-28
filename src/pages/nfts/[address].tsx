@@ -639,6 +639,13 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 src={data?.nft.image}
                 className="block w-full h-auto border-none rounded-lg shadow"
               />
+            ) : data?.nft.category === 'html' ? (
+              <iframe
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                sandbox="allow-scripts"
+                frameBorder="0"
+                src={data?.nft.files.at(-1)?.uri}
+              ></iframe>
             ) : (
               <></>
             )}
