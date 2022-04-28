@@ -63,7 +63,11 @@ export const DropCard = ({ drop }: DropCardProps) => {
         {live ? (
           <a href={drop.url}>
             <button className="button tertiary small grow-0 mx-auto">
-              {drop.isSoldOut ? 'SOLD OUT' : 'View'}
+              {drop.isSoldOut
+                ? drop.quantity > 1
+                  ? 'SOLD OUT'
+                  : 'SOLD'
+                : 'View'}
             </button>
           </a>
         ) : drop.startDate ? (
