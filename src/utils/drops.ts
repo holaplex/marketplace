@@ -64,7 +64,7 @@ export const drops: Drop[] = [
     artist: 'SIMON KIM',
     image:
       'https://assets2.holaplex.tools/arweave/cFA3z9QDTbz-8Qc0PRnHwpDpbWFttdAWOiOHyi90JEM?width=400',
-    startDate: new Date('2022-04-29T12:00:00-04:00'),
+    startDate: null, //new Date('2022-04-29T12:00:00-04:00'),
     tokenType: DropToken.SOL,
     quantity: 1,
     dropType: DropType.AUCTION,
