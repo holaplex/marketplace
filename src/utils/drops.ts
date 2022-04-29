@@ -59,17 +59,6 @@ export const drops: Drop[] = [
     dropType: DropType.FIXED_PRICE,
   },
   {
-    url: 'https://drops.skeletoncrew.rip/#/auction/9KvBDmtADcjtfvUeFqSzC1khVPHgqLnHUy1Qnwe2JHZs',
-    title: 'Thulsa Boom',
-    artist: 'SIMPLE MONSTER PARTY',
-    image:
-      'https://assets2.holaplex.tools/arweave/X9LPRXxxEwo-KSDaKGAFDAe13iQiUHonyURIt7mz_kQ?width=400',
-    startDate: new Date('2022-04-28T12:00:00-04:00'),
-    tokenType: DropToken.SOL,
-    quantity: 1,
-    dropType: DropType.AUCTION,
-  },
-  {
     url: '#',
     title: "Lover's Afterlife",
     artist: 'SIMON KIM',
@@ -87,6 +76,18 @@ export const drops: Drop[] = [
     image:
       'https://assets2.holaplex.tools/arweave/cb4qSKUYJsWvlakQwD_lPQmfL_w31N0BUZsAfipDl0c?width=400',
     startDate: new Date('2022-04-27T12:00:00-04:00'),
+    tokenType: DropToken.SOL,
+    quantity: 1,
+    dropType: DropType.AUCTION,
+    isSoldOut: true,
+  },
+  {
+    url: 'https://drops.skeletoncrew.rip/#/auction/9KvBDmtADcjtfvUeFqSzC1khVPHgqLnHUy1Qnwe2JHZs',
+    title: 'Thulsa Boom',
+    artist: 'SIMPLE MONSTER PARTY',
+    image:
+      'https://assets2.holaplex.tools/arweave/X9LPRXxxEwo-KSDaKGAFDAe13iQiUHonyURIt7mz_kQ?width=400',
+    startDate: new Date('2022-04-28T12:00:00-04:00'),
     tokenType: DropToken.SOL,
     quantity: 1,
     dropType: DropType.AUCTION,
