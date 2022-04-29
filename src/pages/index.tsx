@@ -302,7 +302,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     variables: {
       creators,
       offset: 0,
-      limit: 50,
+      limit: 48,
     },
   })
 
