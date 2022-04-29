@@ -59,12 +59,12 @@ export const drops: Drop[] = [
     dropType: DropType.FIXED_PRICE,
   },
   {
-    url: '#',
+    url: 'https://drops.skeletoncrew.rip/#/auction/2uab1CzL7QcZPx8VjA3x7E76c1fCwc8yiksm8V2zuqij',
     title: "Lover's Afterlife",
     artist: 'SIMON KIM',
     image:
       'https://assets2.holaplex.tools/arweave/cFA3z9QDTbz-8Qc0PRnHwpDpbWFttdAWOiOHyi90JEM?width=400',
-    startDate: null, //new Date('2022-04-29T12:00:00-04:00'),
+    startDate: new Date('2022-04-29T12:00:00-04:00'),
     tokenType: DropToken.SOL,
     quantity: 1,
     dropType: DropType.AUCTION,
