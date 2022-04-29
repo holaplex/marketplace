@@ -70,6 +70,72 @@ export const drops: Drop[] = [
     dropType: DropType.AUCTION,
   },
   {
+    url: '#',
+    title: 'OVERWORKED',
+    artist: 'Jason Wolcott',
+    image:
+      'https://assets2.holaplex.tools/arweave/CpbqjqNIW4W0YsTGzmKkzy_Bz4OuEKPvwGrtzBgMAqU?width=400',
+    startDate: new Date('2022-05-03T12:00:00-04:00'),
+    tokenType: DropToken.SOL,
+    quantity: 1,
+    dropType: DropType.AUCTION,
+  },
+  {
+    url: '#',
+    title: 'THORN',
+    artist: 'IISO GHOSTLORD',
+    image:
+      'https://assets2.holaplex.tools/arweave/bnx0rcQlXU5FY7nCAp5V29xYqp-EWEcgKZzSuc_jpPU?width=400',
+    startDate: new Date('2022-05-03T12:00:00-04:00'),
+    tokenType: DropToken.SKULL,
+    quantity: 1,
+    dropType: DropType.RAFFLE,
+  },
+  {
+    url: '#',
+    title: 'Trash Girl',
+    artist: 'YELLOW TRASH CAN',
+    image:
+      'https://assets2.holaplex.tools/arweave/QFNoJ3Xb9dh8uWmdubFQvwk51Tr78YVU5tbmncB1Jw0?width=400',
+    startDate: new Date('2022-05-04T12:00:00-04:00'),
+    tokenType: DropToken.SOL,
+    quantity: 1,
+    dropType: DropType.AUCTION,
+  },
+  {
+    url: '#',
+    title: 'Spirits in the jungle',
+    artist: 'Jason Wolcott',
+    image:
+      'https://assets2.holaplex.tools/arweave/-6rcSAeJlVlLBH35NvdvHiZd2OVu63olmAjO7wJu9Yk?width=400',
+    startDate: new Date('2022-05-04T12:00:00-04:00'),
+    tokenType: DropToken.SKULL,
+    quantity: 1,
+    dropType: DropType.RAFFLE,
+  },
+  {
+    url: '#',
+    title: 'SPIKE',
+    artist: 'IISO GHOSTLORD',
+    image:
+      'https://assets2.holaplex.tools/arweave/yRQJpCbnyhQSjuQ0MKYFzCMLrIJ6o3l7VBGPUbCtVpE?width=400',
+    startDate: new Date('2022-05-05T12:00:00-04:00'),
+    tokenType: DropToken.SOL,
+    quantity: 1,
+    dropType: DropType.AUCTION,
+  },
+  {
+    url: '#',
+    title: 'Skull Thought',
+    artist: 'YELLOW TRASH CAN',
+    image:
+      'https://assets2.holaplex.tools/arweave/ILTwWlCp-xR-kJObe8y_0FYL_1SvyDZYGSQqGrnKJkc?width=400',
+    startDate: new Date('2022-05-05T12:00:00-04:00'),
+    tokenType: DropToken.SKULL,
+    quantity: 1,
+    dropType: DropType.RAFFLE,
+  },
+  {
     url: 'https://drops.skeletoncrew.rip/#/auction/DrpwfNU7TBhfrrcfbD2QZ81T1SMZwkFpqphtZEzDNkeo',
     title: 'Lodger',
     artist: 'ALPERH',

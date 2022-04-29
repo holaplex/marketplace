@@ -10,6 +10,9 @@ interface DropCardProps {
 
 export const DropCard = ({ drop }: DropCardProps) => {
   const live = drop.startDate && drop.startDate < new Date()
+  const timeDiff = drop.startDate
+    ? drop.startDate.getTime() - new Date().getTime()
+    : -1
 
   const typeString = (type: DropType): string => {
     if (type == DropType.AUCTION) {
@@ -72,12 +75,27 @@ export const DropCard = ({ drop }: DropCardProps) => {
           </a>
         ) : drop.startDate ? (
           <button className="button tertiary small grow-0 mx-auto" disabled>
-            <DropCountdown
-              date={drop.startDate}
-              prefix={'Drops in'}
-              status={'View'}
-              onComplete={() => window.location.reload()}
-            />
+            {timeDiff / (12 * 60 * 60 * 1000) < 1 ? (
+              <DropCountdown
+                date={drop.startDate}
+                prefix={'Drops in'}
+                status={'View'}
+                onComplete={() => window.location.reload()}
+              />
+            ) : (
+              <>
+                {drop.startDate.toLocaleDateString('en', {
+                  weekday: 'short',
+                  month: 'numeric',
+                  day: 'numeric',
+                })}{' '}
+                @{' '}
+                {drop.startDate.toLocaleTimeString('en', {
+                  hour: 'numeric',
+                  minute: 'numeric',
+                })}
+              </>
+            )}
           </button>
         ) : (
           <button className="button tertiary small grow-0 mx-auto">
