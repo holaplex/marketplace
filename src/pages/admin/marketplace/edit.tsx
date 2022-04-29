@@ -14,6 +14,7 @@ import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 import { initMarketplaceSDK } from './../../../modules/marketplace'
+import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -239,30 +240,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
           <div className="flex flex-col md:flex-row">
             <div className="flex-col space-y-2 md:mr-10 md:w-80 sm:block">
               <div className="sticky top-0 max-h-screen py-4 overflow-auto">
-                <ul className="flex flex-col flex-grow gap-2">
-                  <li className="flex flex-row items-center p-2 bg-gray-800 rounded">
-                    <ImageIcon color="white" className="mr-1" size="1rem" />{' '}
-                    Marketplace
-                  </li>
-                  <li className="p-2 rounded">
-                    <Link
-                      className="flex flex-row items-center w-full"
-                      to="/admin/creators/edit"
-                    >
-                      <User color="white" className="mr-1" size="1rem" />{' '}
-                      Creators
-                    </Link>
-                  </li>
-                  <li className="block p-2 rounded">
-                    <Link
-                      className="flex flex-row items-center w-full"
-                      to="/admin/financials/edit"
-                    >
-                      <DollarSign color="white" className="mr-1" size="1rem" />{' '}
-                      Financials
-                    </Link>
-                  </li>
-                </ul>
+                <AdminMenu selectedItem={AdminMenuItemType.Marketplace} />
               </div>
             </div>
             <div className="flex flex-col items-center w-full pb-16 grow">

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
+import { Trash2 } from 'react-feather'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
@@ -12,9 +13,9 @@ import { Link } from 'react-router-dom'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
-import { truncateAddress } from '../../../modules/address'
 import { initMarketplaceSDK } from './../../../modules/marketplace'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
+import { SplToken } from '../../../components/SplToken'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -79,7 +80,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
   }
 }
 
-interface AdminEditCreatorsProps extends AppProps {
+interface AdminEditTokensProps extends AppProps {
   marketplace: Marketplace
 }
 
@@ -93,9 +94,11 @@ interface MarketplaceForm {
   transactionFee: number
   creators: { address: string }[]
   creator: string
+  tokens: { address: string }[]
+  token: string
 }
 
-const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
+const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
   const wallet = useWallet()
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
@@ -104,7 +107,6 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
   const [showAdd, setShowAdd] = useState(false)
 
   const {
-    register,
     control,
     handleSubmit,
     formState: { errors, isDirty, isSubmitting },
@@ -121,15 +123,15 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
       })),
       transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,
       creator: '',
+      tokens: [],
+      token: '',
     },
   })
 
-  const { fields, append, prepend, remove, swap, move, insert } = useFieldArray(
-    {
-      control,
-      name: 'creators',
-    }
-  )
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'tokens',
+  })
 
   const onSubmit = async ({
     name,
@@ -138,6 +140,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
     description,
     transactionFee,
     creators,
+    tokens,
   }: MarketplaceForm) => {
     if (!publicKey || !signTransaction || !wallet) {
       toast.error('Wallet not connected')
@@ -173,6 +176,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
       address: {
         auctionHouse: marketplace.auctionHouse.address,
       },
+      // TODO: add tokens array
     }
 
     try {
@@ -226,17 +230,18 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
         <div className="flex flex-col md:flex-row">
           <div className="flex-col space-y-2 md:mr-10 md:w-80 sm:block">
             <div className="sticky top-0 max-h-screen py-4 overflow-auto">
-              <AdminMenu selectedItem={AdminMenuItemType.Creators} />
+              <AdminMenu selectedItem={AdminMenuItemType.Tokens} />
             </div>
           </div>
           <div className="flex flex-col items-center w-full pb-16 grow">
             <div className="w-full max-w-3xl">
               <div className="grid items-start grid-cols-12 mb-10 md:mb-0 md:flex-row md:justify-between">
                 <div className="w-full mb-4 col-span-full md:col-span-8 lg:col-span-10">
-                  <h2>Creators</h2>
+                  <h2>Suppoted tokens</h2>
                   <p className="text-gray-300">
-                    Manage the creators whose work will be available on your
-                    marketplace.
+                    This is a list of all tokens supported by your marketplace.
+                    Users will be able to list NFTs for sale in any of the
+                    tokens supported.
                   </p>
                 </div>
                 <div className="flex justify-end col-span-full md:col-span-4 lg:col-span-2">
@@ -246,19 +251,19 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                     type={showAdd ? ButtonType.Tertiary : ButtonType.Primary}
                     size={ButtonSize.Small}
                   >
-                    {showAdd ? 'Cancel' : 'Add Creators'}
+                    {showAdd ? 'Cancel' : 'Add token'}
                   </Button>
                 </div>
               </div>
               {showAdd && (
                 <Controller
                   control={control}
-                  name="creator"
+                  name="token"
                   render={({ field: { onChange, value } }) => {
                     return (
                       <>
                         <label className="block mb-2 text-lg">
-                          Add creator by wallet address
+                          Add token by mint address
                         </label>
                         <input
                           autoFocus
@@ -266,11 +271,10 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                             if (e.key !== 'Enter') {
                               return
                             }
-
                             append({ address: value })
                             onChange('')
                           }}
-                          placeholder="SOL wallet address"
+                          placeholder="Mint address"
                           className="w-full px-3 py-2 mb-10 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
                           value={value}
                           onChange={onChange}
@@ -281,19 +285,49 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                 />
               )}
               <ul className="flex flex-col max-h-screen gap-6 py-4 mb-10">
+                {/* TODO: DUMMY DATA - Replace with real data */}
+
+                <li className="flex justify-between w-full">
+                  <SplToken mint="So11111111111111111111111111111111111111112" />
+                  <div className="flex gap-4 items-center">
+                    <span className="font-medium text-sm text-gray-500">
+                      Default
+                    </span>
+                    <Trash2
+                      className="rounded-full bg-gray-700 p-1.5 text-white"
+                      size="2rem"
+                    />
+                  </div>
+                </li>
+                <li className="flex justify-between w-full">
+                  <SplToken mint="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" />
+                  <div className="flex gap-4 items-center">
+                    <span className="font-medium text-sm text-gray-100">
+                      Make default
+                    </span>
+                    <Trash2
+                      className="rounded-full bg-gray-700 p-1.5 text-white"
+                      size="2rem"
+                    />
+                  </div>
+                </li>
                 {fields.map((field, index) => {
                   return (
                     <li
                       key={field.address}
                       className="flex justify-between w-full"
                     >
-                      {truncateAddress(field.address)}
-                      <Button
-                        size={ButtonSize.Small}
-                        onClick={() => remove(index)}
-                      >
-                        Remove
-                      </Button>
+                      <SplToken mint={field.address} />
+                      <div className="flex gap-4 items-center">
+                        <span className="font-medium text-gray-100">
+                          Make default
+                        </span>
+                        <Trash2
+                          className="rounded-full bg-gray-700 p-1.5 text-white"
+                          onClick={() => remove(index)}
+                          size="2rem"
+                        />
+                      </div>
                     </li>
                   )
                 })}
@@ -307,7 +341,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                     disabled={isSubmitting}
                     loading={isSubmitting}
                   >
-                    Update creators
+                    Update tokens
                   </Button>
                 )}
               </form>
@@ -319,4 +353,4 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
   )
 }
 
-export default AdminEditCreators
+export default AdminEditTokens

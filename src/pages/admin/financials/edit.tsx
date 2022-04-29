@@ -15,6 +15,7 @@ import { useLogin } from '../../../hooks/login'
 
 import { Transaction, PublicKey } from '@solana/web3.js'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -203,34 +204,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
         <div className="flex flex-col md:flex-row">
           <div className="flex-col space-y-2 md:mr-10 md:w-80 sm:block">
             <div className="sticky top-0 max-h-screen py-4 overflow-auto">
-              <ul className="flex flex-col flex-grow gap-2">
-                <li className="block p-2 rounded">
-                  <Link
-                    className="flex flex-row items-center w-full"
-                    to="/admin/marketplace/edit"
-                  >
-                    <ImageIcon color="white" className="mr-1" size="1rem" />{' '}
-                    Marketplace
-                  </Link>
-                </li>
-                <li className="flex flex-row items-center p-2 rounded">
-                  <Link
-                    className="flex flex-row items-center w-full"
-                    to="/admin/creators/edit"
-                  >
-                    <User color="white" className="mr-1" size="1rem" /> Creators
-                  </Link>
-                </li>
-                <li className="block p-2 bg-gray-800 rounded">
-                  <Link
-                    className="flex flex-row items-center w-full"
-                    to="/admin/financials/edit"
-                  >
-                    <DollarSign color="white" className="mr-1" size="1rem" />{' '}
-                    Financials
-                  </Link>
-                </li>
-              </ul>
+              <AdminMenu selectedItem={AdminMenuItemType.Financials} />
             </div>
           </div>
           <div className="flex flex-col items-center w-full pb-16 grow">
