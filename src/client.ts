@@ -1,7 +1,7 @@
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client'
+import { ApolloClient, gql, InMemoryCache } from '@apollo/client'
 import { offsetLimitPagination } from '@apollo/client/utilities'
-import { ifElse, constructN, isNil } from 'ramda'
 import BN from 'bn.js'
+import { constructN, ifElse, isNil } from 'ramda'
 import { viewerVar } from './cache'
 
 const asBN = ifElse(isNil, () => new BN(0), constructN(1, BN))
@@ -39,10 +39,20 @@ const client = new ApolloClient({
           volume24hr: {
             read: asBN,
           },
+          volumeTotal: {
+            read: asBN,
+          },
           average: {
             read: asBN,
           },
           floor: {
+            read: asBN,
+          },
+        },
+      },
+      PricePoint: {
+        fields: {
+          price: {
             read: asBN,
           },
         },

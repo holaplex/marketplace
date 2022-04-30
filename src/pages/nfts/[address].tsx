@@ -1,65 +1,64 @@
+import { gql, useQuery } from '@apollo/client'
+import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import {
+  PublicKey,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
+  Transaction,
+  TransactionInstruction,
+} from '@solana/web3.js'
+import cx from 'classnames'
 import { NextPage, NextPageContext } from 'next'
 import { AppProps } from 'next/app'
-import { gql } from '@apollo/client'
-import {
-  isNil,
-  pipe,
-  ifElse,
-  or,
-  always,
-  equals,
-  length,
-  find,
-  prop,
-  isEmpty,
-  filter,
-  and,
-  not,
-  concat,
-  all,
-  map,
-  any,
-  gt,
-  intersection,
-  partialRight,
-} from 'ramda'
 import Head from 'next/head'
-import cx from 'classnames'
-import client from '../../client'
 import { useRouter } from 'next/router'
-import { useQuery } from '@apollo/client'
-import { Link } from 'react-router-dom'
-import WalletPortal from '../../components/WalletPortal'
+import {
+  all,
+  always,
+  and,
+  when,
+  any,
+  concat,
+  equals,
+  filter,
+  find,
+  gt,
+  ifElse,
+  intersection,
+  isEmpty,
+  isNil,
+  length,
+  map,
+  not,
+  or,
+  partialRight,
+  pipe,
+  prop,
+} from 'ramda'
+import { DollarSign, Tag } from 'react-feather'
+import { useForm } from 'react-hook-form'
+import { Link, Route, Routes } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { format } from 'timeago.js'
+import client from '../../client'
+import AcceptOfferForm from '../../components/AcceptOfferForm'
+import Avatar from '../../components/Avatar'
 import Button, { ButtonType } from '../../components/Button'
-import { Route, Routes } from 'react-router-dom'
+import CancelOfferForm from '../../components/CancelOfferForm'
 import OfferPage from '../../components/Offer'
 import SellNftPage from '../../components/SellNft'
-import Avatar from '../../components/Avatar'
+import WalletPortal from '../../components/WalletPortal'
 import {
   truncateAddress,
+  addressAvatar,
   collectionNameByAddress,
   howrareisJSONByAddress,
   moonrankJSONByAddress,
 } from '../../modules/address'
-
-import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
-import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
-import { format } from 'timeago.js'
-import {
-  Transaction,
-  PublicKey,
-  SYSVAR_INSTRUCTIONS_PUBKEY,
-  TransactionInstruction,
-} from '@solana/web3.js'
-import { toSOL } from '../../modules/lamports'
-import { toast } from 'react-toastify'
-import { useForm } from 'react-hook-form'
-import CancelOfferForm from '../../components/CancelOfferForm'
-import AcceptOfferForm from '../../components/AcceptOfferForm'
 import { useLogin } from '../../hooks/login'
-import { Marketplace, Nft, Listing, Offer, Activity } from '../../types.d'
-import { DollarSign, Tag } from 'react-feather'
+import { toSOL } from '../../modules/lamports'
+import { Activity, Listing, Marketplace, Nft, Offer } from '../../types.d'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -85,9 +84,20 @@ const GET_NFT = gql`
       sellerFeeBasisPoints
       mintAddress
       description
+      primarySaleHappened
+      category
+      files {
+        fileType
+        uri
+      }
       owner {
         address
         associatedTokenAccountAddress
+        twitterHandle
+        profile {
+          handle
+          profileImageUrl
+        }
       }
       attributes {
         traitType
@@ -95,6 +105,11 @@ const GET_NFT = gql`
       }
       creators {
         address
+        twitterHandle
+        profile {
+          handle
+          profileImageUrl
+        }
       }
       offers {
         address
@@ -558,59 +573,91 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
   }
 
   const rankingsOwnersBlock = (
-    <div className="flex w-full justify-evenly align-middle">
-      <div className="w-1/2">
-        <div className="mt-6 label">OWNED BY</div>
-        <div className="mt-1">
-          <a
-            href={`https://holaplex.com/profiles/${data?.nft.owner.address}`}
-            rel="noreferrer"
-            target="_blank"
-          >
-            <Avatar
-              name={truncateAddress(data?.nft.owner.address || '')}
-              className="font-mono text-sm"
-            />
-          </a>
+    <div className="flex justify-between mt-6 mb-8">
+      <div>
+        <div className="mb-1 label">
+          {loading ? (
+            <div className="h-4 bg-gray-800 rounded w-14" />
+          ) : (
+            <span className="text-sm text-gray-300">OWNED BY</span>
+          )}
+        </div>
+        <div className="flex mt-1">
+          {loading ? (
+            <div className="w-20 h-6 bg-gray-800 rounded -ml-1.5" />
+          ) : (
+            <a
+              href={`https://holaplex.com/profiles/${data?.nft.owner.address}`}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <Avatar
+                name={truncateAddress(data?.nft.owner.address || '')}
+                className="font-mono text-sm"
+              />
+            </a>
+          )}
         </div>
       </div>
-      <div className="w-1/2">
-        <div className="mt-6 label">RANKINGS</div>
-        <div className="flex space-x-2">
-          {moonrank && moonrank[nft.mintAddress] && (
-            <a
-              href={'https://moonrank.app/' + nft.mintAddress}
-              target="_blank"
-              className="flex items-center justify-end space-x-2 sm:space-x-2"
-            >
-              <span className="text-[#6ef600] mb-1 select-none font-extrabold">
-                ⍜
-              </span>
-              <span className="text-sm">{moonrank[nft.mintAddress]}</span>
-            </a>
+      <div>
+        {data?.nft.primarySaleHappened &&
+          ((moonrank && moonrank[nft.mintAddress]) ||
+            (howrareis && howrareis[nft.mintAddress])) && (
+            <>
+              <div className="flex justify-end mb-1 label">
+                {loading ? (
+                  <div className="h-4 bg-gray-800 rounded w-14" />
+                ) : (
+                  <span className="text-sm text-gray-300">RANKINGS</span>
+                )}
+              </div>
+              <div className="flex justify-end">
+                {loading ? (
+                  <div className="w-20 h-6 bg-gray-800 rounded" />
+                ) : (
+                  <div className="flex space-x-2">
+                    {moonrank && moonrank[nft.mintAddress] && (
+                      <a
+                        href={'https://moonrank.app/' + nft.mintAddress}
+                        target="_blank"
+                        className="flex items-center justify-end space-x-2 sm:space-x-2"
+                      >
+                        <span className="text-[#6ef600] mb-1 select-none font-extrabold">
+                          ⍜
+                        </span>
+                        <span className="text-sm">
+                          {moonrank[nft.mintAddress]}
+                        </span>
+                      </a>
+                    )}
+                    {howrareis && howrareis[nft.mintAddress] && (
+                      <a
+                        href={'https://howrare.is/' + nft.mintAddress}
+                        target="_blank"
+                        className="flex items-center justify-end space-x-1"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="22"
+                          viewBox="0 0 44 44"
+                        >
+                          <g transform="translate(0 -3)">
+                            <path
+                              d="M30.611,28.053A6.852,6.852,0,0,0,33.694,25.3a7.762,7.762,0,0,0,1.059-4.013,7.3,7.3,0,0,0-2.117-5.382q-2.118-2.153-6.2-2.153h-4.86V11.52H15.841v2.233H12.48v5.259h3.361v4.92H12.48v5.013h3.361V36.48h5.737V28.945h3.387l3.989,7.535H35.52Zm-2.056-5.32a2.308,2.308,0,0,1-2.393,1.2H21.578v-4.92h4.8a2.074,2.074,0,0,1,2.178,1.153,2.611,2.611,0,0,1,0,2.568"
+                              fill="#6ef600"
+                            ></path>
+                          </g>
+                        </svg>
+                        <span className="text-sm">
+                          {howrareis[nft.mintAddress]}
+                        </span>
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
           )}
-          {howrareis && howrareis[nft.mintAddress] && (
-            <a
-              href={'https://howrare.is/' + nft.mintAddress}
-              target="_blank"
-              className="flex items-center justify-end space-x-1"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="22"
-                viewBox="0 0 44 44"
-              >
-                <g transform="translate(0 -3)">
-                  <path
-                    d="M30.611,28.053A6.852,6.852,0,0,0,33.694,25.3a7.762,7.762,0,0,0,1.059-4.013,7.3,7.3,0,0,0-2.117-5.382q-2.118-2.153-6.2-2.153h-4.86V11.52H15.841v2.233H12.48v5.259h3.361v4.92H12.48v5.013h3.361V36.48h5.737V28.945h3.387l3.989,7.535H35.52Zm-2.056-5.32a2.308,2.308,0,0,1-2.393,1.2H21.578v-4.92h4.8a2.074,2.074,0,0,1,2.178,1.153,2.611,2.611,0,0,1,0,2.568"
-                    fill="#6ef600"
-                  ></path>
-                </g>
-              </svg>
-              <span className="text-sm">{howrareis[nft.mintAddress]}</span>
-            </a>
-          )}
-        </div>
       </div>
     </div>
   )
@@ -658,7 +705,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
         <Link to="/">
           <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
             <img
-              className="object-cover w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
+              className="object-cover w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
               src={marketplace.logoUrl}
             />
             <div className="hidden sm:block">{marketplace.name}</div>
@@ -672,7 +719,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
             ) && (
               <Link
                 to="/admin/marketplace/edit"
-                className="text-sm cursor-pointer mr-6 hover:underline "
+                className="mr-6 text-sm cursor-pointer hover:underline "
               >
                 Admin Dashboard
               </Link>
@@ -698,11 +745,26 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
             </div>
             {loading ? (
               <div className="w-full bg-gray-800 border-none rounded-lg aspect-square" />
-            ) : (
+            ) : data?.nft.category === 'video' ||
+              data?.nft.category === 'audio' ? (
+              <video
+                className=""
+                playsInline={true}
+                autoPlay={true}
+                muted={true}
+                controls={true}
+                controlsList="nodownload"
+                loop={true}
+                poster={data?.nft.image}
+                src={data?.nft.files.at(-1)?.uri}
+              ></video>
+            ) : data?.nft.category === 'image' ? (
               <img
                 src={data?.nft.image}
-                className="block h-auto w-full border-none rounded-lg shadow"
+                className="block w-full h-auto border-none rounded-lg shadow"
               />
+            ) : (
+              <></>
             )}
           </div>
           <div>
@@ -718,7 +780,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 </>
               )}
             </div>
-
             <div
               className={cx('w-full p-6 mt-8 bg-gray-800 rounded-lg', {
                 'h-44': loading,
@@ -907,9 +968,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   </header>
                   {loading ? (
                     <>
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
                     </>
                   ) : (
                     offers.map((o: Offer) => (
@@ -939,7 +1000,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                         </div>
                         <div>{format(o.createdAt, 'en_US')}</div>
                         {(offer || isOwner) && (
-                          <div className="flex w-full gap-2 justify-end">
+                          <div className="flex justify-end w-full gap-2">
                             {equals(
                               o.buyer,
                               publicKey?.toBase58() as string
@@ -969,7 +1030,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               )
             )(offers)}
 
-            <h2 className="mb-4 mt-14 text-xl md:text-2xl text-bold">
+            <h2 className="mb-4 text-xl mt-14 md:text-2xl text-bold">
               Activity
             </h2>
             {ifElse(
@@ -985,7 +1046,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
               ),
               (activities: Activity[]) => (
                 <section className="w-full">
-                  <header className="grid px-4 mb-2 grid-cols-4">
+                  <header className="grid grid-cols-4 px-4 mb-2">
                     <span className="label">EVENT</span>
                     <span className="label">WALLETS</span>
                     <span className="label">PRICE</span>
@@ -993,10 +1054,10 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                   </header>
                   {loading ? (
                     <>
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
-                      <article className="bg-gray-800 mb-4 h-16 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
+                      <article className="h-16 mb-4 bg-gray-800 rounded" />
                     </>
                   ) : (
                     activities.map((a: Activity) => {
@@ -1010,12 +1071,12 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                           <div className="flex self-center">
                             {a.activityType === 'purchase' ? (
                               <DollarSign
-                                className="mr-2 self-center text-gray-300"
+                                className="self-center mr-2 text-gray-300"
                                 size="18"
                               />
                             ) : (
                               <Tag
-                                className="mr-2 self-center text-gray-300"
+                                className="self-center mr-2 text-gray-300"
                                 size="18"
                               />
                             )}
@@ -1033,7 +1094,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                             {hasWallets && (
                               <img
                                 src="/images/uturn.svg"
-                                className="mr-2 text-gray-300 w-4"
+                                className="w-4 mr-2 text-gray-300"
                                 alt="wallets"
                               />
                             )}

@@ -1,11 +1,11 @@
-import { isNil, not, or } from 'ramda'
+import { isNil, not, or, and } from 'ramda'
 import { useQuery, gql } from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import * as Popover from '@radix-ui/react-popover'
 import Button, { ButtonSize, ButtonType } from '../Button'
 import { toSOL } from '../../modules/lamports'
 import { Viewer } from './../../types.d'
-import { truncateAddress } from '../../modules/address'
+import { addressAvatar, truncateAddress } from '../../modules/address'
 import { useLogin } from './../../hooks/login'
 
 const GET_VIEWER = gql`
@@ -26,6 +26,20 @@ const WalletPortal = () => {
   const { loading, data } = useQuery<GetViewerData>(GET_VIEWER)
 
   const isLoading = loading || connecting
+
+  const handleLabelClick = async () => {
+    if (publicKey?.toBase58().length) {
+      await navigator.clipboard.writeText(publicKey.toBase58())
+      toast(
+        <div className="flex items-center justify-between">
+          <div className="flex items-center text-white">
+            <Check color="#32D583" className="mr-2" />
+            <div>Wallet address copied to clipboard.</div>
+          </div>
+        </div>
+      )
+    }
+  }
 
   return or(connected, isLoading) ? (
     <Popover.Root>

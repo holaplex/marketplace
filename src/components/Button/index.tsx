@@ -54,7 +54,7 @@ const Button = ({
           'text-gray-900 bg-white': isPrimary(type),
           'text-white bg-gray-900': isSecondary(type),
           'text-gray-300 bg-gray-700': isTertiary(type),
-          'text-sm p-2': isSmall(size),
+          'text-xs md:text-sm p-2': isSmall(size),
           'p-4': isLarge(size),
           'opacity-75': disabled,
           'hover:scale-105': not(disabled),

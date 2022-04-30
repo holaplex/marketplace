@@ -1,9 +1,11 @@
-import React from 'react'
-import { find, pipe, prop, equals, not } from 'ramda'
-import { Nft, Marketplace, Listing } from './../../types'
-import { Link } from 'react-router-dom'
-import { toSOL } from './../../modules/lamports'
 import { useWallet } from '@solana/wallet-adapter-react'
+import { PublicKey } from '@solana/web3.js'
+import { equals, find, not, pipe, prop, when, isNil, always } from 'ramda'
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { addressAvatar } from 'src/modules/address'
+import { toSOL } from './../../modules/lamports'
+import { Listing, Marketplace, Nft } from './../../types'
 
 interface NftCardProps {
   nft: Nft
