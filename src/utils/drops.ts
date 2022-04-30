@@ -59,17 +59,6 @@ export const drops: Drop[] = [
     dropType: DropType.FIXED_PRICE,
   },
   {
-    url: 'https://drops.skeletoncrew.rip/#/auction/2uab1CzL7QcZPx8VjA3x7E76c1fCwc8yiksm8V2zuqij',
-    title: "Lover's Afterlife",
-    artist: 'SIMON KIM',
-    image:
-      'https://assets2.holaplex.tools/arweave/cFA3z9QDTbz-8Qc0PRnHwpDpbWFttdAWOiOHyi90JEM?width=400',
-    startDate: new Date('2022-04-29T12:00:00-04:00'),
-    tokenType: DropToken.SOL,
-    quantity: 1,
-    dropType: DropType.AUCTION,
-  },
-  {
     url: '#',
     title: 'OVERWORKED',
     artist: 'Jason Wolcott',
@@ -154,6 +143,18 @@ export const drops: Drop[] = [
     image:
       'https://assets2.holaplex.tools/arweave/X9LPRXxxEwo-KSDaKGAFDAe13iQiUHonyURIt7mz_kQ?width=400',
     startDate: new Date('2022-04-28T12:00:00-04:00'),
+    tokenType: DropToken.SOL,
+    quantity: 1,
+    dropType: DropType.AUCTION,
+    isSoldOut: true,
+  },
+  {
+    url: 'https://drops.skeletoncrew.rip/#/auction/2uab1CzL7QcZPx8VjA3x7E76c1fCwc8yiksm8V2zuqij',
+    title: "Lover's Afterlife",
+    artist: 'SIMON KIM',
+    image:
+      'https://assets2.holaplex.tools/arweave/cFA3z9QDTbz-8Qc0PRnHwpDpbWFttdAWOiOHyi90JEM?width=400',
+    startDate: new Date('2022-04-29T12:00:00-04:00'),
     tokenType: DropToken.SOL,
     quantity: 1,
     dropType: DropType.AUCTION,
