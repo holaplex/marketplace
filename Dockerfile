@@ -13,8 +13,7 @@ COPY . .
 
 ARG GRAPHQL_URI
 ENV NEXT_PUBLIC_GRAPHQL_ENDPOINT $GRAPHQL_URI
-#RUN yarn build
-RUN npx next build
+RUN yarn build
 
 
 # Production image, copy all the files and run next
