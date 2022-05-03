@@ -24,12 +24,11 @@ import { Filter } from 'react-feather'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import client from '../client'
-import Button, { ButtonSize, ButtonType } from '../components/Button'
+import Button, { ButtonSize } from '../components/Button'
 import WalletPortal from '../components/WalletPortal'
 import { Slider } from '../components/Slider'
 import { useSidebar } from '../hooks/sidebar'
 import { addressAvatar, truncateAddress } from '../modules/address'
-import { toSOL } from '../modules/lamports'
 import {
   AttributeFilter,
   Creator,
@@ -37,13 +36,13 @@ import {
   Nft,
   NftCount,
   PresetNftFilter,
+  PriceChart,
   Wallet,
 } from '../types.d'
 import { List } from './../components/List'
 import { NftCard } from './../components/NftCard'
-import Chart from './../components/Chart'
-import { GetPriceChartData, GET_PRICE_CHART_DATA } from './analytics'
 import { subDays } from 'date-fns'
+import AnalyticsSummary from '../components/AnalyticsSummary'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -178,6 +177,27 @@ const GET_MARKETPLACE_INFO = gql`
   }
 `
 
+export const GET_PRICE_CHART_DATA = gql`
+  query GetPriceChartData(
+    $auctionHouses: [PublicKey!]!
+    $creators: [PublicKey!]!
+    $startDate: DateTimeUtc!
+    $endDate: DateTimeUtc!
+  ) {
+    charts(
+      auctionHouses: $auctionHouses
+      creators: $creators
+      startDate: $startDate
+      endDate: $endDate
+    ) {
+      salesAverage {
+        price
+        date
+      }
+    }
+  }
+`
+
 export async function getServerSideProps({ req }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'] || SUBDOMAIN
 
@@ -267,6 +287,10 @@ interface NftFilterForm {
   preset: PresetNftFilter
 }
 
+export interface GetPriceChartData {
+  charts: PriceChart
+}
+
 const startDate = subDays(new Date(), 6).toISOString()
 const endDate = new Date().toISOString()
 
@@ -318,6 +342,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
       fetchPolicy: 'network-only',
       variables: {
         auctionHouses: [marketplace.auctionHouse.address],
+        creators: creators,
         startDate: startDate,
         endDate: endDate,
       },
@@ -449,67 +474,12 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               {marketplace.description}
             </p>
           </div>
-          <div className="col-span-12 lg:col-span-4 grid grid-cols-3 gap-x-1 gap-y-6 lg:-mt-8">
-            <div className="col-span-1">
-              <span className="text-gray-300 uppercase font-semibold text-xs block w-full mb-2">
-                Floor
-              </span>
-              {loading ? (
-                <div className="block bg-gray-800 w-20 h-6 rounded" />
-              ) : (
-                <span className="sol-amount text-xl font-semibold">
-                  {toSOL(
-                    (marketplaceQuery.data?.marketplace.auctionHouse.stats?.floor.toNumber() ||
-                      0) as number
-                  )}
-                </span>
-              )}
-            </div>
-            <div className="col-span-1">
-              <span className="text-gray-300 uppercase font-semibold text-xs block w-full mb-2">
-                Vol Last 24h
-              </span>
-              {loading ? (
-                <div className="block bg-gray-800 w-20 h-6 rounded" />
-              ) : (
-                <span className="sol-amount text-xl font-semibold">
-                  {toSOL(
-                    (marketplaceQuery.data?.marketplace.auctionHouse.stats?.volume24hr.toNumber() ||
-                      0) as number
-                  )}
-                </span>
-              )}
-            </div>
-            <Link
-              to="/analytics"
-              className="col-span-1 lg:col-span-2 flex justify-end"
-            >
-              <Button
-                size={ButtonSize.Small}
-                type={ButtonType.Secondary}
-                icon={<img src="/images/analytics_icon.svg" className="mr-2" />}
-              >
-                Details & Activity
-              </Button>
-            </Link>
-            <div className="col-span-3 lg:col-span-4">
-              <div className="flex flex-col w-full">
-                <span className="uppercase text-gray-300 text-xs font-semibold mb-1 place-self-end">
-                  Price LAST 7 DAYS
-                </span>
-                {loading ? (
-                  <div className="w-full h-[120px] bg-gray-800 rounded" />
-                ) : (
-                  <Chart
-                    height={120}
-                    showXAxis={false}
-                    className="w-full"
-                    chartData={priceChartDataQuery.data?.charts.salesAverage}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
+          <AnalyticsSummary
+            loading={loading}
+            stats={marketplaceQuery.data?.marketplace.auctionHouse.stats}
+            charts={priceChartDataQuery.data?.charts}
+            analyticsUrl="/analytics"
+          />
         </div>
         <div className="flex justify-between items-center mb-6">
           <h3>Creators</h3>

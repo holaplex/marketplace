@@ -23,7 +23,6 @@ import {
   equals,
   filter,
   find,
-  gt,
   ifElse,
   intersection,
   isEmpty,
@@ -32,7 +31,6 @@ import {
   map,
   not,
   or,
-  partialRight,
   pipe,
   prop,
 } from 'ramda'
@@ -40,10 +38,10 @@ import { DollarSign, Tag } from 'react-feather'
 import { useForm } from 'react-hook-form'
 import { Link, Route, Routes } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import ActivityWallets from '../../components/ActivityWallets'
 import { format } from 'timeago.js'
 import client from '../../client'
 import AcceptOfferForm from '../../components/AcceptOfferForm'
-import Avatar from '../../components/Avatar'
 import Button, { ButtonType } from '../../components/Button'
 import CancelOfferForm from '../../components/CancelOfferForm'
 import OfferPage from '../../components/Offer'
@@ -66,8 +64,6 @@ const {
 } = AuctionHouseProgram.instructions
 
 const pickAuctionHouse = prop('auctionHouse')
-
-const moreThanOne = pipe(length, partialRight(gt, [1]))
 
 const GET_NFT = gql`
   query GetNft($address: String!) {
@@ -997,8 +993,6 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                     </>
                   ) : (
                     activities.map((a: Activity) => {
-                      const hasWallets = moreThanOne(a.wallets)
-
                       return (
                         <article
                           key={a.address}
@@ -1022,37 +1016,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                                 : 'Listed'}
                             </div>
                           </div>
-                          <div
-                            className={cx('flex items-center self-center ', {
-                              '-ml-6': hasWallets,
-                            })}
-                          >
-                            {hasWallets && (
-                              <img
-                                src="/images/uturn.svg"
-                                className="w-4 mr-2 text-gray-300"
-                                alt="wallets"
-                              />
-                            )}
-                            <div className="flex flex-col">
-                              <a
-                                href={`https://holaplex.com/profiles/${a.wallets[0]}`}
-                                rel="nofollower"
-                                className="text-sm"
-                              >
-                                {truncateAddress(a.wallets[0])}
-                              </a>
-                              {hasWallets && (
-                                <a
-                                  href={`https://holaplex.com/profiles/${a.wallets[1]}`}
-                                  rel="nofollower"
-                                  className="text-sm"
-                                >
-                                  {truncateAddress(a.wallets[1])}
-                                </a>
-                              )}
-                            </div>
-                          </div>
+                          <ActivityWallets activity={a} />
                           <div className="self-center">
                             <span className="sol-amount">
                               {toSOL(a.price.toNumber())}

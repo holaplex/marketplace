@@ -1,6 +1,7 @@
 import { gql, useQuery, useLazyQuery } from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import cx from 'classnames'
+import { subDays } from 'date-fns'
 import { NextPage, NextPageContext } from 'next'
 import { AppProps } from 'next/app'
 import Head from 'next/head'
@@ -29,6 +30,7 @@ import { Filter } from 'react-feather'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import Select from 'react-select'
+import AnalyticsSummary from '../../components/AnalyticsSummary'
 import {
   GetNftCounts,
   GetWalletCounts,
@@ -42,13 +44,13 @@ import { NftCard } from '../../components/NftCard'
 import WalletPortal from '../../components/WalletPortal'
 import { useSidebar } from '../../hooks/sidebar'
 import { truncateAddress } from '../../modules/address'
-import { toSOL } from '../../modules/lamports'
 import {
   AttributeFilter,
   Creator,
   Marketplace,
   Nft,
   PresetNftFilter,
+  PriceChart,
 } from '../../types.d'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -128,6 +130,27 @@ const GET_COLLECTION_INFO = gql`
           name
           count
         }
+      }
+    }
+  }
+`
+
+export const GET_PRICE_CHART_DATA = gql`
+  query GetPriceChartData(
+    $auctionHouses: [PublicKey!]!
+    $creators: [PublicKey!]!
+    $startDate: DateTimeUtc!
+    $endDate: DateTimeUtc!
+  ) {
+    charts(
+      auctionHouses: $auctionHouses
+      creators: $creators
+      startDate: $startDate
+      endDate: $endDate
+    ) {
+      salesAverage {
+        price
+        date
       }
     }
   }
@@ -223,6 +246,13 @@ interface NftFilterForm {
   preset: PresetNftFilter
 }
 
+export interface GetPriceChartData {
+  charts: PriceChart
+}
+
+const startDate = subDays(new Date(), 6).toISOString()
+const endDate = new Date().toISOString()
+
 const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const { publicKey, connected } = useWallet()
   const [hasMore, setHasMore] = useState(true)
@@ -264,6 +294,19 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
         address: publicKey?.toBase58(),
         creators: [router.query.creator],
         auctionHouses: [marketplace.auctionHouse.address],
+      },
+    }
+  )
+
+  const priceChartDataQuery = useQuery<GetPriceChartData>(
+    GET_PRICE_CHART_DATA,
+    {
+      fetchPolicy: 'network-only',
+      variables: {
+        auctionHouses: [marketplace.auctionHouse.address],
+        creators: [router.query.creator],
+        startDate: startDate,
+        endDate: endDate,
       },
     }
   )
@@ -405,68 +448,12 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
               {truncateAddress(router.query?.creator as string)}
             </p>
           </div>
-          <div className="grid grid-cols-2 col-span-12 gap-4 md:col-span-4 md:-mt-8">
-            <div>
-              <span className="block w-full mb-2 text-sm font-semibold text-gray-300 uppercase">
-                Floor
-              </span>
-              {loading ? (
-                <div className="block w-20 h-6 bg-gray-800 rounded" />
-              ) : (
-                <span className="text-xl sol-amount font-semibold">
-                  {toSOL(
-                    ifElse(isEmpty, always(0), (stats) =>
-                      stats[0].floor.toNumber()
-                    )(collectionQuery.data?.creator.stats) as number
-                  )}
-                </span>
-              )}
-            </div>
-            <div>
-              <span className="block w-full mb-2 text-sm font-semibold text-gray-300 uppercase">
-                Vol Last 24 hrs
-              </span>
-              {loading ? (
-                <div className="block w-20 h-6 bg-gray-800 rounded" />
-              ) : (
-                <span className="text-xl sol-amount font-semibold">
-                  {toSOL(
-                    ifElse(isEmpty, always(0), (stats) =>
-                      stats[0].volume24hr.toNumber()
-                    )(collectionQuery.data?.creator.stats) as number
-                  )}
-                </span>
-              )}
-            </div>
-            <div>
-              <span className="block w-full mb-2 text-sm font-semibold text-gray-300 uppercase">
-                Avg Sale Price
-              </span>
-              {loading ? (
-                <div className="block w-16 h-6 bg-gray-800 rounded" />
-              ) : (
-                <span className="text-xl sol-amount font-semibold">
-                  {toSOL(
-                    ifElse(isEmpty, always(0), (stats) =>
-                      stats[0].average.toNumber()
-                    )(collectionQuery.data?.creator.stats) as number
-                  )}
-                </span>
-              )}
-            </div>
-            <div>
-              <span className="block w-full mb-2 text-sm font-semibold text-gray-300 uppercase">
-                NFTs
-              </span>
-              {loading ? (
-                <div className="block w-24 h-6 bg-gray-800 rounded" />
-              ) : (
-                <span className="text-xl font-semibold">
-                  {collectionQuery.data?.creator.counts?.creations || 0}
-                </span>
-              )}
-            </div>
-          </div>
+          <AnalyticsSummary
+            loading={loading}
+            stats={collectionQuery.data?.creator.stats[0]}
+            charts={priceChartDataQuery.data?.charts}
+            analyticsUrl={`/analytics/creators/${router.query.creator}`}
+          />
         </div>
         <div className="flex">
           <div className="relative">
