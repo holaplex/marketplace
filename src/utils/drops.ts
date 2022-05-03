@@ -24,6 +24,28 @@ export enum DropToken {
 
 export const drops: Drop[] = [
   {
+    url: 'https://drops.skeletoncrew.rip/#/auction/Gm6i9BNpp5wbnr1xNPGBgi351dRYQQGDGGwArUTnYQyB',
+    title: 'OVERWORKED',
+    artist: 'Jason Wolcott',
+    image:
+      'https://assets2.holaplex.tools/arweave/CpbqjqNIW4W0YsTGzmKkzy_Bz4OuEKPvwGrtzBgMAqU?width=400',
+    startDate: new Date('2022-05-03T12:00:00-04:00'),
+    tokenType: DropToken.SOL,
+    quantity: 1,
+    dropType: DropType.AUCTION,
+  },
+  {
+    url: 'https://drops.skeletoncrew.rip/#/auction/6cvc4abkHmGHYeeWjoHmJsgqeymeY4ubg9dCNBx82GHm',
+    title: 'THORN',
+    artist: 'IISO GHOSTLORD',
+    image:
+      'https://assets2.holaplex.tools/arweave/bnx0rcQlXU5FY7nCAp5V29xYqp-EWEcgKZzSuc_jpPU?width=400',
+    startDate: new Date('2022-05-03T12:00:00-04:00'),
+    tokenType: DropToken.SKULL,
+    quantity: 1,
+    dropType: DropType.RAFFLE,
+  },
+  {
     // url: 'https://drops.skeletoncrew.rip/#/auction/6979Txui2UodrUjvhdYoSquAdCq4cpdMevanNC2fVKST',
     url: 'https://drops.skeletoncrew.rip/#/auction/H7m3bGpnSqDyyTv2nLMxCCxpDGmJBC7JcMxnD5HVvUYt',
     title: 'Cable Manager',
@@ -57,28 +79,6 @@ export const drops: Drop[] = [
     tokenType: DropToken.SKULL,
     quantity: 33,
     dropType: DropType.FIXED_PRICE,
-  },
-  {
-    url: '#',
-    title: 'OVERWORKED',
-    artist: 'Jason Wolcott',
-    image:
-      'https://assets2.holaplex.tools/arweave/CpbqjqNIW4W0YsTGzmKkzy_Bz4OuEKPvwGrtzBgMAqU?width=400',
-    startDate: new Date('2022-05-03T12:00:00-04:00'),
-    tokenType: DropToken.SOL,
-    quantity: 1,
-    dropType: DropType.AUCTION,
-  },
-  {
-    url: '#',
-    title: 'THORN',
-    artist: 'IISO GHOSTLORD',
-    image:
-      'https://assets2.holaplex.tools/arweave/bnx0rcQlXU5FY7nCAp5V29xYqp-EWEcgKZzSuc_jpPU?width=400',
-    startDate: new Date('2022-05-03T12:00:00-04:00'),
-    tokenType: DropToken.SKULL,
-    quantity: 1,
-    dropType: DropType.RAFFLE,
   },
   {
     url: '#',
