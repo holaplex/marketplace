@@ -24,23 +24,23 @@ export enum DropToken {
 
 export const drops: Drop[] = [
   {
-    url: 'https://drops.skeletoncrew.rip/#/auction/Gm6i9BNpp5wbnr1xNPGBgi351dRYQQGDGGwArUTnYQyB',
-    title: 'OVERWORKED',
-    artist: 'Jason Wolcott',
+    url: 'https://drops.skeletoncrew.rip/#/auction/ECLx5NFYqz3vAcq44Q6Joga5kdqZ915CWFY67vMisAHn',
+    title: 'Trash Girl',
+    artist: 'YELLOW TRASH CAN',
     image:
-      'https://assets2.holaplex.tools/arweave/CpbqjqNIW4W0YsTGzmKkzy_Bz4OuEKPvwGrtzBgMAqU?width=400',
-    startDate: new Date('2022-05-03T12:00:00-04:00'),
+      'https://assets2.holaplex.tools/arweave/QFNoJ3Xb9dh8uWmdubFQvwk51Tr78YVU5tbmncB1Jw0?width=400',
+    startDate: new Date('2022-05-04T12:00:00-04:00'),
     tokenType: DropToken.SOL,
     quantity: 1,
     dropType: DropType.AUCTION,
   },
   {
-    url: 'https://drops.skeletoncrew.rip/#/auction/6cvc4abkHmGHYeeWjoHmJsgqeymeY4ubg9dCNBx82GHm',
-    title: 'THORN',
-    artist: 'IISO GHOSTLORD',
+    url: '#',
+    title: 'Spirits in the jungle',
+    artist: 'Jason Wolcott',
     image:
-      'https://assets2.holaplex.tools/arweave/bnx0rcQlXU5FY7nCAp5V29xYqp-EWEcgKZzSuc_jpPU?width=400',
-    startDate: new Date('2022-05-03T12:00:00-04:00'),
+      'https://assets2.holaplex.tools/arweave/-6rcSAeJlVlLBH35NvdvHiZd2OVu63olmAjO7wJu9Yk?width=400',
+    startDate: new Date('2022-05-04T12:00:00-04:00'),
     tokenType: DropToken.SKULL,
     quantity: 1,
     dropType: DropType.RAFFLE,
@@ -82,28 +82,6 @@ export const drops: Drop[] = [
   },
   {
     url: '#',
-    title: 'Trash Girl',
-    artist: 'YELLOW TRASH CAN',
-    image:
-      'https://assets2.holaplex.tools/arweave/QFNoJ3Xb9dh8uWmdubFQvwk51Tr78YVU5tbmncB1Jw0?width=400',
-    startDate: new Date('2022-05-04T12:00:00-04:00'),
-    tokenType: DropToken.SOL,
-    quantity: 1,
-    dropType: DropType.AUCTION,
-  },
-  {
-    url: '#',
-    title: 'Spirits in the jungle',
-    artist: 'Jason Wolcott',
-    image:
-      'https://assets2.holaplex.tools/arweave/-6rcSAeJlVlLBH35NvdvHiZd2OVu63olmAjO7wJu9Yk?width=400',
-    startDate: new Date('2022-05-04T12:00:00-04:00'),
-    tokenType: DropToken.SKULL,
-    quantity: 1,
-    dropType: DropType.RAFFLE,
-  },
-  {
-    url: '#',
     title: 'SPIKE',
     artist: 'IISO GHOSTLORD',
     image:
@@ -125,12 +103,36 @@ export const drops: Drop[] = [
     dropType: DropType.RAFFLE,
   },
   {
-    url: 'https://drops.skeletoncrew.rip/#/auction/DrpwfNU7TBhfrrcfbD2QZ81T1SMZwkFpqphtZEzDNkeo',
-    title: 'Lodger',
-    artist: 'ALPERH',
+    url: 'https://drops.skeletoncrew.rip/#/auction/Gm6i9BNpp5wbnr1xNPGBgi351dRYQQGDGGwArUTnYQyB',
+    title: 'OVERWORKED',
+    artist: 'Jason Wolcott',
     image:
-      'https://assets2.holaplex.tools/arweave/cb4qSKUYJsWvlakQwD_lPQmfL_w31N0BUZsAfipDl0c?width=400',
-    startDate: new Date('2022-04-27T12:00:00-04:00'),
+      'https://assets2.holaplex.tools/arweave/CpbqjqNIW4W0YsTGzmKkzy_Bz4OuEKPvwGrtzBgMAqU?width=400',
+    startDate: new Date('2022-05-03T12:00:00-04:00'),
+    tokenType: DropToken.SOL,
+    quantity: 1,
+    dropType: DropType.AUCTION,
+    isSoldOut: true,
+  },
+  {
+    url: 'https://drops.skeletoncrew.rip/#/auction/6cvc4abkHmGHYeeWjoHmJsgqeymeY4ubg9dCNBx82GHm',
+    title: 'THORN',
+    artist: 'IISO GHOSTLORD',
+    image:
+      'https://assets2.holaplex.tools/arweave/bnx0rcQlXU5FY7nCAp5V29xYqp-EWEcgKZzSuc_jpPU?width=400',
+    startDate: new Date('2022-05-03T12:00:00-04:00'),
+    tokenType: DropToken.SKULL,
+    quantity: 1,
+    dropType: DropType.RAFFLE,
+    isSoldOut: true,
+  },
+  {
+    url: 'https://drops.skeletoncrew.rip/#/auction/2uab1CzL7QcZPx8VjA3x7E76c1fCwc8yiksm8V2zuqij',
+    title: "Lover's Afterlife",
+    artist: 'SIMON KIM',
+    image:
+      'https://assets2.holaplex.tools/arweave/cFA3z9QDTbz-8Qc0PRnHwpDpbWFttdAWOiOHyi90JEM?width=400',
+    startDate: new Date('2022-04-29T12:00:00-04:00'),
     tokenType: DropToken.SOL,
     quantity: 1,
     dropType: DropType.AUCTION,
@@ -149,12 +151,12 @@ export const drops: Drop[] = [
     isSoldOut: true,
   },
   {
-    url: 'https://drops.skeletoncrew.rip/#/auction/2uab1CzL7QcZPx8VjA3x7E76c1fCwc8yiksm8V2zuqij',
-    title: "Lover's Afterlife",
-    artist: 'SIMON KIM',
+    url: 'https://drops.skeletoncrew.rip/#/auction/DrpwfNU7TBhfrrcfbD2QZ81T1SMZwkFpqphtZEzDNkeo',
+    title: 'Lodger',
+    artist: 'ALPERH',
     image:
-      'https://assets2.holaplex.tools/arweave/cFA3z9QDTbz-8Qc0PRnHwpDpbWFttdAWOiOHyi90JEM?width=400',
-    startDate: new Date('2022-04-29T12:00:00-04:00'),
+      'https://assets2.holaplex.tools/arweave/cb4qSKUYJsWvlakQwD_lPQmfL_w31N0BUZsAfipDl0c?width=400',
+    startDate: new Date('2022-04-27T12:00:00-04:00'),
     tokenType: DropToken.SOL,
     quantity: 1,
     dropType: DropType.AUCTION,
