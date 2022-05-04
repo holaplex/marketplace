@@ -35,7 +35,7 @@ export const drops: Drop[] = [
     dropType: DropType.AUCTION,
   },
   {
-    url: '#',
+    url: 'https://raffles.skeletoncrew.rip/raffles/9RZGj3imfhtBKh6bVzd8oAfZ8xx5pMkM1YKxXW7Fi8ab',
     title: 'Spirits in the jungle',
     artist: 'Jason Wolcott',
     image:
