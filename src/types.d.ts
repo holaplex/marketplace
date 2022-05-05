@@ -193,7 +193,7 @@ export interface Activity {
   auctionHouse: string
   price: BN
   createdAt: string
-  wallets: string[]
+  wallets: Wallet[]
   activityType: string
   nft: Nft
 }
