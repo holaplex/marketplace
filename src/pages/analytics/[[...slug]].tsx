@@ -63,7 +63,7 @@ const GET_CREATOR_INFO = gql`
 const GET_PRICE_CHART_DATA = gql`
   query GetPriceChartData(
     $auctionHouses: [PublicKey!]!
-    $creators: [PublicKey!]!
+    $creators: [PublicKey!]
     $startDate: DateTimeUtc!
     $endDate: DateTimeUtc!
   ) {
@@ -90,8 +90,8 @@ const GET_PRICE_CHART_DATA = gql`
 `
 
 const GET_ACTIVITIES = gql`
-  query GetActivities($auctionHouses: [PublicKey!]!) {
-    activities(auctionHouses: $auctionHouses) {
+  query GetActivities($auctionHouses: [PublicKey!]!, $creators: [PublicKey!]) {
+    activities(auctionHouses: $auctionHouses, creators: $creators) {
       address
       metadata
       auctionHouse
@@ -240,7 +240,7 @@ const Analytics: NextPage<Props> = ({
       fetchPolicy: 'network-only',
       variables: {
         auctionHouses: [marketplace.auctionHouse.address],
-        creators: creators,
+        creators: isCreatorAnalytics ? creators : null,
         startDate: startDate, // '2022-04-19T21:46:28Z',
         endDate: endDate, //'2022-04-25T14:49:13.130Z',
       },
@@ -250,6 +250,7 @@ const Analytics: NextPage<Props> = ({
   const activitiesQuery = useQuery<GetActivities>(GET_ACTIVITIES, {
     variables: {
       auctionHouses: [marketplace.auctionHouse.address],
+      creators: isCreatorAnalytics ? creators : null,
     },
   })
 
