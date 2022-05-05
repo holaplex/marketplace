@@ -24,7 +24,7 @@ export enum DropToken {
 
 export const drops: Drop[] = [
   {
-    url: '#',
+    url: 'https://drops.skeletoncrew.rip/#/auction/FRkQzNy6iaYNv63zebvX8uqCCHgqeYufcbSthfbQZ2UL',
     title: 'SPIKE',
     artist: 'IISO GHOSTLORD',
     image:
@@ -35,7 +35,7 @@ export const drops: Drop[] = [
     dropType: DropType.AUCTION,
   },
   {
-    url: '#',
+    url: 'https://raffles.skeletoncrew.rip/raffles/8W3MC8RRPf5ePVepULHVNBY898e7yhrFTwsKX5GsvyW1',
     title: 'Skull Thought',
     artist: 'YELLOW TRASH CAN',
     image:
