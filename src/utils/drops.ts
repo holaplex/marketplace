@@ -24,6 +24,28 @@ export enum DropToken {
 
 export const drops: Drop[] = [
   {
+    url: '#',
+    title: 'SPIKE',
+    artist: 'IISO GHOSTLORD',
+    image:
+      'https://assets2.holaplex.tools/arweave/yRQJpCbnyhQSjuQ0MKYFzCMLrIJ6o3l7VBGPUbCtVpE?width=400',
+    startDate: new Date('2022-05-05T12:00:00-04:00'),
+    tokenType: DropToken.SOL,
+    quantity: 1,
+    dropType: DropType.AUCTION,
+  },
+  {
+    url: '#',
+    title: 'Skull Thought',
+    artist: 'YELLOW TRASH CAN',
+    image:
+      'https://assets2.holaplex.tools/arweave/ILTwWlCp-xR-kJObe8y_0FYL_1SvyDZYGSQqGrnKJkc?width=400',
+    startDate: new Date('2022-05-05T12:00:00-04:00'),
+    tokenType: DropToken.SKULL,
+    quantity: 1,
+    dropType: DropType.RAFFLE,
+  },
+  {
     // url: 'https://drops.skeletoncrew.rip/#/auction/6979Txui2UodrUjvhdYoSquAdCq4cpdMevanNC2fVKST',
     url: 'https://drops.skeletoncrew.rip/#/auction/H7m3bGpnSqDyyTv2nLMxCCxpDGmJBC7JcMxnD5HVvUYt',
     title: 'Cable Manager',
@@ -57,28 +79,6 @@ export const drops: Drop[] = [
     tokenType: DropToken.SKULL,
     quantity: 33,
     dropType: DropType.FIXED_PRICE,
-  },
-  {
-    url: '#',
-    title: 'SPIKE',
-    artist: 'IISO GHOSTLORD',
-    image:
-      'https://assets2.holaplex.tools/arweave/yRQJpCbnyhQSjuQ0MKYFzCMLrIJ6o3l7VBGPUbCtVpE?width=400',
-    startDate: new Date('2022-05-05T12:00:00-04:00'),
-    tokenType: DropToken.SOL,
-    quantity: 1,
-    dropType: DropType.AUCTION,
-  },
-  {
-    url: '#',
-    title: 'Skull Thought',
-    artist: 'YELLOW TRASH CAN',
-    image:
-      'https://assets2.holaplex.tools/arweave/ILTwWlCp-xR-kJObe8y_0FYL_1SvyDZYGSQqGrnKJkc?width=400',
-    startDate: new Date('2022-05-05T12:00:00-04:00'),
-    tokenType: DropToken.SKULL,
-    quantity: 1,
-    dropType: DropType.RAFFLE,
   },
   {
     url: 'https://drops.skeletoncrew.rip/#/auction/ECLx5NFYqz3vAcq44Q6Joga5kdqZ915CWFY67vMisAHn',
