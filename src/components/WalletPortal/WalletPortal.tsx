@@ -58,7 +58,7 @@ const WalletPortal = () => {
       <Popover.Content className="bg-gray-800 rounded-lg p-5 text-white">
         {/* <Popover.Arrow className="fill-gray-800" offset={18} /> */}
         <div className="flex items-center mb-6">
-          <div className="w-16 h-16 inline-block rounded-full bg-gray-700 mr-20">
+          <div className="w-16 h-16 inline-block rounded-full bg-gray-700 mr-20 overflow-hidden">
             {not(isLoading) && publicKey && (
               <img
                 src={addressAvatar(publicKey) as string}

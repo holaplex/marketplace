@@ -1,4 +1,4 @@
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery, useLazyQuery } from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import cx from 'classnames'
 import { NextPage, NextPageContext } from 'next'
@@ -19,12 +19,12 @@ import {
   prop,
   when,
 } from 'ramda'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Filter } from 'react-feather'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import client from '../client'
-import Button, { ButtonSize } from '../components/Button'
+import Button, { ButtonSize, ButtonType } from '../components/Button'
 import WalletPortal from '../components/WalletPortal'
 import { Slider } from '../components/Slider'
 import { useSidebar } from '../hooks/sidebar'
@@ -41,6 +41,9 @@ import {
 } from '../types.d'
 import { List } from './../components/List'
 import { NftCard } from './../components/NftCard'
+import Chart from './../components/Chart'
+import { GetPriceChartData, GET_PRICE_CHART_DATA } from './analytics'
+import { subDays } from 'date-fns'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -53,7 +56,8 @@ const GET_NFTS = gql`
   query GetNfts(
     $creators: [PublicKey!]!
     $owners: [PublicKey!]
-    $listed: [PublicKey!]
+    $auctionHouses: [PublicKey!]
+    $listed: Boolean
     $offerers: [PublicKey!]
     $limit: Int!
     $offset: Int!
@@ -61,6 +65,7 @@ const GET_NFTS = gql`
     nfts(
       creators: $creators
       owners: $owners
+      auctionHouses: $auctionHouses
       listed: $listed
       offerers: $offerers
       limit: $limit
@@ -264,6 +269,9 @@ interface NftFilterForm {
   preset: PresetNftFilter
 }
 
+const startDate = subDays(new Date(), 6).toISOString()
+const endDate = new Date().toISOString()
+
 const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const { publicKey, connected } = useWallet()
   const creators = map(prop('creatorAddress'))(marketplace.creators)
@@ -280,20 +288,24 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     },
   })
 
-  const walletCountsQuery = useQuery<GetWalletCounts>(GET_WALLET_COUNTS, {
-    variables: {
-      address: publicKey?.toBase58(),
-      creators,
-      auctionHouses: [marketplace.auctionHouse.address],
-    },
-  })
+  const [getWalletCounts, walletCountsQuery] = useLazyQuery<GetWalletCounts>(
+    GET_WALLET_COUNTS,
+    {
+      variables: {
+        address: publicKey?.toBase58(),
+        creators,
+        auctionHouses: [marketplace.auctionHouse.address],
+      },
+    }
+  )
 
   const nftsQuery = useQuery<GetNftsData>(GET_NFTS, {
     fetchPolicy: 'network-only',
     variables: {
       creators,
+      auctionHouses: [marketplace.auctionHouse.address],
       offset: 0,
-      limit: 50,
+      limit: 24,
     },
   })
 
@@ -302,6 +314,18 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
       subdomain: marketplace.subdomain,
     },
   })
+
+  const priceChartDataQuery = useQuery<GetPriceChartData>(
+    GET_PRICE_CHART_DATA,
+    {
+      fetchPolicy: 'network-only',
+      variables: {
+        auctionHouses: [marketplace.auctionHouse.address],
+        startDate: startDate,
+        endDate: endDate,
+      },
+    }
+  )
 
   const { sidebarOpen, toggleSidebar } = useSidebar()
 
@@ -313,13 +337,9 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
 
   useEffect(() => {
     if (publicKey) {
-      walletCountsQuery.refetch({
-        address: publicKey?.toBase58(),
-        creators,
-        auctionHouses: [marketplace.auctionHouse.address],
-      })
+      getWalletCounts()
     }
-  }, [creators, marketplace.auctionHouse.address, publicKey, walletCountsQuery])
+  }, [publicKey, getWalletCounts])
 
   useEffect(() => {
     const subscription = watch(({ preset }) => {
@@ -339,13 +359,14 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
 
       const listed = ifElse(
         equals(PresetNftFilter.Listed),
-        always([marketplace.auctionHouse.address]),
-        always(null)
+        always(true),
+        always(false)
       )(preset as PresetNftFilter)
 
       nftsQuery
         .refetch({
           creators,
+          auctionHouses: [marketplace.auctionHouse.address],
           owners,
           offerers,
           listed,
@@ -373,7 +394,8 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     marketplaceQuery.loading ||
     nftsQuery.loading ||
     nftCountsQuery.loading ||
-    walletCountsQuery.loading
+    walletCountsQuery.loading ||
+    priceChartDataQuery.loading
 
   return (
     <div className="flex flex-col items-center text-white bg-gray-900">
@@ -431,9 +453,9 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               {marketplace.description}
             </p>
           </div>
-          <div className="col-span-12 md:col-span-4 grid grid-cols-2 gap-4 md:-mt-8">
-            <div>
-              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
+          <div className="col-span-12 lg:col-span-4 grid grid-cols-3 gap-x-1 gap-y-6 lg:-mt-8">
+            <div className="col-span-1">
+              <span className="text-gray-300 uppercase font-semibold text-xs block w-full mb-2">
                 Floor
               </span>
               {loading ? (
@@ -447,9 +469,9 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 </span>
               )}
             </div>
-            <div>
-              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
-                Vol Last 24 hrs
+            <div className="col-span-1">
+              <span className="text-gray-300 uppercase font-semibold text-xs block w-full mb-2">
+                Vol Last 24h
               </span>
               {loading ? (
                 <div className="block bg-gray-800 w-20 h-6 rounded" />
@@ -462,32 +484,34 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                 </span>
               )}
             </div>
-            <div>
-              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
-                Avg Sale Price
-              </span>
-              {loading ? (
-                <div className="block bg-gray-800 w-16 h-6 rounded" />
-              ) : (
-                <span className="sol-amount text-xl font-semibold">
-                  {toSOL(
-                    (marketplaceQuery.data?.marketplace.auctionHouse.stats?.average.toNumber() ||
-                      0) as number
-                  )}
+            <Link
+              to="/analytics"
+              className="col-span-1 lg:col-span-2 flex justify-end"
+            >
+              <Button
+                size={ButtonSize.Small}
+                type={ButtonType.Secondary}
+                icon={<img src="/images/analytics_icon.svg" className="mr-2" />}
+              >
+                Details & Activity
+              </Button>
+            </Link>
+            <div className="col-span-3 lg:col-span-4">
+              <div className="flex flex-col w-full">
+                <span className="uppercase text-gray-300 text-xs font-semibold mb-1 place-self-end">
+                  Price LAST 7 DAYS
                 </span>
-              )}
-            </div>
-            <div>
-              <span className="text-gray-300 uppercase font-semibold text-sm block w-full mb-2">
-                NFTs
-              </span>
-              {loading ? (
-                <div className="block bg-gray-800 w-24 h-6 rounded" />
-              ) : (
-                <span className="text-xl font-semibold">
-                  {marketplaceQuery.data?.marketplace.stats?.nfts || 0}
-                </span>
-              )}
+                {loading ? (
+                  <div className="w-full h-[120px] bg-gray-800 rounded" />
+                ) : (
+                  <Chart
+                    height={120}
+                    showXAxis={false}
+                    className="w-full"
+                    chartData={priceChartDataQuery.data?.charts.salesAverage}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>

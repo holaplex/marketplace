@@ -69,6 +69,7 @@ export interface AttributeGroup {
 
 export interface MintStats {
   volume24hr: BN
+  volumeTotal: BN
   average: BN
   floor: BN
   mint: string
@@ -153,8 +154,13 @@ export interface Nft extends KeyType {
   purchases: Purchase[]
   offers: Offer[]
   activities: Activity[]
+  files: NftFile[]
 }
 
+export interface NftFile {
+  fileType: String
+  uri: String
+}
 export interface AttributeFilter {
   traitType: string
   values: string[]
@@ -189,6 +195,7 @@ export interface Activity {
   createdAt: string
   wallets: string[]
   activityType: string
+  nft: Nft
 }
 
 export interface NftCount {
@@ -217,4 +224,15 @@ export interface WalletNftCount {
 export interface ConnectionCounts {
   fromCount: number
   toCount: number
+}
+
+export interface PricePoint {
+  price: BN
+  date: string
+}
+
+export interface PriceChart {
+  listingFloor: PricePoint[]
+  salesAverage: PricePoint[]
+  totalVolume: PricePoint[]
 }

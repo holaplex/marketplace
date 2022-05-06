@@ -1,4 +1,4 @@
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery, useLazyQuery } from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import cx from 'classnames'
 import { NextPage, NextPageContext } from 'next'
@@ -65,7 +65,8 @@ const GET_NFTS = gql`
   query GetNfts(
     $creators: [PublicKey!]!
     $owners: [PublicKey!]
-    $listed: [PublicKey!]
+    $listed: Boolean
+    $auctionHouses: [PublicKey!]
     $offerers: [PublicKey!]
     $limit: Int!
     $offset: Int!
@@ -75,6 +76,7 @@ const GET_NFTS = gql`
       creators: $creators
       owners: $owners
       listed: $listed
+      auctionHouses: $auctionHouses
       offerers: $offerers
       limit: $limit
       offset: $offset
@@ -115,7 +117,6 @@ const GET_COLLECTION_INFO = gql`
     creator(address: $creator) {
       address
       stats(auctionHouses: $auctionHouses) {
-        mint
         auctionHouse
         volume24hr
         average
@@ -240,6 +241,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     fetchPolicy: 'network-only',
     variables: {
       creators: [router.query.creator],
+      auctionHouses: [marketplace.auctionHouse.address],
       offset: 0,
       limit: 24,
     },
@@ -260,13 +262,16 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     },
   })
 
-  const walletCountsQuery = useQuery<GetWalletCounts>(GET_WALLET_COUNTS, {
-    variables: {
-      address: publicKey?.toBase58(),
-      creators: [router.query.creator],
-      auctionHouses: [marketplace.auctionHouse.address],
-    },
-  })
+  const [getWalletCounts, walletCountsQuery] = useLazyQuery<GetWalletCounts>(
+    GET_WALLET_COUNTS,
+    {
+      variables: {
+        address: publicKey?.toBase58(),
+        creators: [router.query.creator],
+        auctionHouses: [marketplace.auctionHouse.address],
+      },
+    }
+  )
 
   const { sidebarOpen, toggleSidebar } = useSidebar()
 
@@ -282,13 +287,9 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
 
   useEffect(() => {
     if (publicKey) {
-      walletCountsQuery.refetch({
-        address: publicKey?.toBase58(),
-        creators: [router.query.creator],
-        auctionHouses: [marketplace.auctionHouse.address],
-      })
+      getWalletCounts()
     }
-  }, [marketplace.auctionHouse.address, publicKey, walletCountsQuery])
+  }, [publicKey, getWalletCounts])
 
   useEffect(() => {
     const subscription = watch(({ attributes, preset }) => {
@@ -312,8 +313,8 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
 
       const listed = ifElse(
         equals(PresetNftFilter.Listed),
-        always([marketplace.auctionHouse.address]),
-        always(null)
+        always(true),
+        always(false)
       )(preset as PresetNftFilter)
 
       refetch({

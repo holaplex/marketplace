@@ -44,7 +44,7 @@ export function List<D extends KeyType>({
       ) : (
         <ul className={gridClassName}>
           {(data || []).map((d, i) => {
-            return <li key={d[dataKey]}>{itemRender(d, i)}</li>
+            return <li key={`${i}-${d[dataKey]}`}>{itemRender(d, i)}</li>
           })}
           {hasMore && (
             <>

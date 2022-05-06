@@ -35,6 +35,8 @@ spec:
     kind: Deployment
   - group: 'apps'
     kind: StatefulSet
+  - group: networking.k8s.io
+    kind: Ingress
   roles:
   # A role which provides read-only access to all applications in the project
   - name: read-only

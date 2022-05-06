@@ -1,16 +1,16 @@
 import { gql, useQuery } from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { NextPage, NextPageContext } from 'next'
+import { PublicKey } from '@solana/web3.js'
 import { AppProps } from 'next/app'
 import Head from 'next/head'
-import { equals, isNil, length, map, pipe, prop } from 'ramda'
-import { useState } from 'react'
+import { equals, length, map, pipe, prop, when, isNil, always } from 'ramda'
 import { Link } from 'react-router-dom'
 import client from '../../client'
 import cx from 'classnames'
 import WalletPortal from '../../components/WalletPortal'
-import { truncateAddress } from '../../modules/address'
-import { AttributeFilter, Marketplace, PresetNftFilter } from '../../types.d'
+import { truncateAddress, addressAvatar } from '../../modules/address'
+import { Marketplace } from '../../types.d'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -208,7 +208,16 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
                   <div className="flex flex-col">
                     <div className="flex items-center mb-7">
                       <img
-                        src={creator.profile?.profileImageUrl}
+                        src={
+                          when(
+                            isNil,
+                            always(
+                              addressAvatar(
+                                new PublicKey(creator.creatorAddress)
+                              )
+                            )
+                          )(creator.profile?.profileImageUrl) as string
+                        }
                         className="object-cover bg-gray-900 rounded-full w-16 h-16 user-avatar"
                       />
                       <div className="flex flex-col ml-3 gap-2">

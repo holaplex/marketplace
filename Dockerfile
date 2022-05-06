@@ -24,7 +24,7 @@ ENV NODE_ENV production
 
 # Uncomment the following line in case you want to disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED 1
-RUN yarn add next
+RUN yarn add next@12.0.7
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -44,4 +44,4 @@ EXPOSE 3000
 
 ENV PORT 3000
 
-CMD ["npx", "next", "start"]
+CMD ["yarn", "start"]
