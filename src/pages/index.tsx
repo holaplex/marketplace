@@ -56,7 +56,8 @@ const GET_NFTS = gql`
   query GetNfts(
     $creators: [PublicKey!]!
     $owners: [PublicKey!]
-    $listed: [PublicKey!]
+    $auctionHouses: [PublicKey!]
+    $listed: Boolean
     $offerers: [PublicKey!]
     $limit: Int!
     $offset: Int!
@@ -64,6 +65,7 @@ const GET_NFTS = gql`
     nfts(
       creators: $creators
       owners: $owners
+      auctionHouses: $auctionHouses
       listed: $listed
       offerers: $offerers
       limit: $limit
@@ -301,8 +303,9 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     fetchPolicy: 'network-only',
     variables: {
       creators,
+      auctionHouses: [marketplace.auctionHouse.address],
       offset: 0,
-      limit: 50,
+      limit: 24,
     },
   })
 
@@ -356,13 +359,14 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
 
       const listed = ifElse(
         equals(PresetNftFilter.Listed),
-        always([marketplace.auctionHouse.address]),
-        always(null)
+        always(true),
+        always(false)
       )(preset as PresetNftFilter)
 
       nftsQuery
         .refetch({
           creators,
+          auctionHouses: [marketplace.auctionHouse.address],
           owners,
           offerers,
           listed,

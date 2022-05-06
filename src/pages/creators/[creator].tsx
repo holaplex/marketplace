@@ -64,7 +64,8 @@ const GET_NFTS = gql`
   query GetNfts(
     $creators: [PublicKey!]!
     $owners: [PublicKey!]
-    $listed: [PublicKey!]
+    $listed: Boolean
+    $auctionHouses: [PublicKey!]
     $offerers: [PublicKey!]
     $limit: Int!
     $offset: Int!
@@ -74,6 +75,7 @@ const GET_NFTS = gql`
       creators: $creators
       owners: $owners
       listed: $listed
+      auctionHouses: $auctionHouses
       offerers: $offerers
       limit: $limit
       offset: $offset
@@ -237,6 +239,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     fetchPolicy: 'network-only',
     variables: {
       creators: [router.query.creator],
+      auctionHouses: [marketplace.auctionHouse.address],
       offset: 0,
       limit: 24,
     },
@@ -308,8 +311,8 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
 
       const listed = ifElse(
         equals(PresetNftFilter.Listed),
-        always([marketplace.auctionHouse.address]),
-        always(null)
+        always(true),
+        always(false)
       )(preset as PresetNftFilter)
 
       refetch({

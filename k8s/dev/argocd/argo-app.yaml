@@ -1,6 +1,12 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  annotations:
+    notifications.argoproj.io/subscribe.on-deployed.slack: cicd-monitoring
+    notifications.argoproj.io/subscribe.on-health-degraded.slack: cicd-monitoring
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: cicd-monitoring
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.slack: cicd-monitoring
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: cicd-monitoring
   name: stage-marketplace
   namespace: argocd
 spec:
