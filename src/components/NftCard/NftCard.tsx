@@ -78,19 +78,17 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
                 <Link to={`/nfts/${nft.address}`}>
                   <button className="button small grow-0">Buy Now</button>
                 </Link>
-                <Link to={`/nfts/${nft.address}`}>
-                  <CrossmintPayButton
-                    collectionTitle={marketplace.name} // e.g. "Degods #1234"
-                    collectionDescription={marketplace.description} // e.g. "A collection of degenerates, punks, and misfits. Gods of the metaverse & masters of our own universe. DeGods can be converted to DeadGods with DUST."
-                    collectionPhoto={nft.image} // e.g. "https://i.imgur.com/fO3tI1t.png"
-                    clientId="fec98fec-8281-4c5e-9348-4905ae1d150f"
-                    mintArgs={{
-                      mintHash: nft.mintAddress,
-                      sellerWallet: nft.owner.address,
-                      buyPrice: listing.price.toNumber(),
-                    }}
-                  />
-                </Link>
+                <CrossmintPayButton
+                  collectionTitle={marketplace.name} // e.g. "Degods #1234"
+                  collectionDescription={marketplace.description} // e.g. "A collection of degenerates, punks, and misfits. Gods of the metaverse & masters of our own universe. DeGods can be converted to DeadGods with DUST."
+                  collectionPhoto={nft.image} // e.g. "https://i.imgur.com/fO3tI1t.png"
+                  clientId="fec98fec-8281-4c5e-9348-4905ae1d150f"
+                  mintArgs={{
+                    mintHash: nft.mintAddress,
+                    sellerWallet: nft.owner.address,
+                    buyPrice: listing.price.toNumber(),
+                  }}
+                />
               </>
             )}
           </>
