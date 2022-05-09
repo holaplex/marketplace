@@ -16,13 +16,13 @@ import {
   ifElse,
   isNil,
   length,
+  gt,
   not,
   pipe,
   prop,
 } from 'ramda'
 import { PublicKey } from '@solana/web3.js'
 import { DollarSign, Tag } from 'react-feather'
-import ActivityWallets from '../../components/ActivityWallets'
 import { format } from 'timeago.js'
 import AcceptOfferForm from '../../components/AcceptOfferForm'
 import CancelOfferForm from '../../components/CancelOfferForm'
@@ -32,6 +32,7 @@ import { truncateAddress, addressAvatar } from '../../modules/address'
 import { toSOL } from '../../modules/lamports'
 import { Activity, Listing, Marketplace, Nft, Offer } from '../../types'
 
+const moreThanOne = pipe(length, (len) => gt(len, 1))
 const pickAuctionHouse = prop('auctionHouse')
 
 const GET_NFT = gql`
@@ -88,6 +89,7 @@ const GET_NFT = gql`
           address
           profile {
             handle
+            profileImageUrl
           }
         }
         activityType
@@ -482,30 +484,97 @@ export const NftLayout = ({ marketplace, nft, children }: NftLayoutProps) => {
                     </>
                   ) : (
                     activities.map((a: Activity) => {
+                      const hasWallets = moreThanOne(a.wallets)
                       return (
                         <article
                           key={a.address}
                           className="grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded"
                         >
-                          <div className="flex self-center">
-                            {a.activityType === 'purchase' ? (
-                              <DollarSign
-                                className="self-center mr-2 text-gray-300"
-                                size="18"
-                              />
-                            ) : (
-                              <Tag
-                                className="self-center mr-2 text-gray-300"
-                                size="18"
-                              />
-                            )}
-                            <div>
-                              {a.activityType === 'purchase'
-                                ? 'Sold'
-                                : 'Listed'}
+                          <div className="flex flex-col justify-center flex-start gap-1">
+                            <div className="flex">
+                              {a.activityType === 'purchase' ? (
+                                <DollarSign
+                                  className="mr-2 self-center text-gray-300"
+                                  size="16"
+                                />
+                              ) : (
+                                <Tag
+                                  className="mr-2 self-center text-gray-300"
+                                  size="16"
+                                />
+                              )}
+                              <div className="text-xs -ml-1">
+                                {a.activityType === 'purchase'
+                                  ? 'Sold'
+                                  : 'Listed'}
+                              </div>
                             </div>
                           </div>
-                          <ActivityWallets activity={a} />
+                          <div
+                            className={cx('flex items-center self-center ', {
+                              '-ml-6': hasWallets,
+                            })}
+                          >
+                            {hasWallets && (
+                              <img
+                                src="/images/uturn.svg"
+                                className="mr-2 text-gray-300 w-4"
+                                alt="wallets"
+                              />
+                            )}
+                            <div className="flex flex-col">
+                              <a
+                                href={`https://holaplex.com/profiles/${a.wallets[0].address}`}
+                                rel="nofollower"
+                                className="text-sm flex items-center gap-1"
+                              >
+                                <img
+                                  className="rounded-full h-5 w-5 object-cover border-2 border-gray-900 "
+                                  src={
+                                    when(
+                                      isNil,
+                                      always(
+                                        addressAvatar(
+                                          new PublicKey(a.wallets[0].address)
+                                        )
+                                      )
+                                    )(
+                                      a.wallets[0].profile?.profileImageUrl
+                                    ) as string
+                                  }
+                                />
+                                {a.wallets[0].profile?.handle
+                                  ? `@${a.wallets[0].profile?.handle}`
+                                  : truncateAddress(a.wallets[0].address)}
+                              </a>
+                              {hasWallets && (
+                                <a
+                                  href={`https://holaplex.com/profiles/${a.wallets[1].address}`}
+                                  rel="nofollower"
+                                  className="text-sm flex items-center gap-1"
+                                >
+                                  <img
+                                    className="rounded-full h-5 w-5 object-cover border-2 border-gray-900 "
+                                    src={
+                                      when(
+                                        isNil,
+                                        always(
+                                          addressAvatar(
+                                            new PublicKey(a.wallets[1].address)
+                                          )
+                                        )
+                                      )(
+                                        a.wallets[1].profile?.profileImageUrl
+                                      ) as string
+                                    }
+                                  />
+                                  {a.wallets[1].profile?.handle
+                                    ? `@${a.wallets[1].profile?.handle}`
+                                    : truncateAddress(a.wallets[1].address)}
+                                </a>
+                              )}
+                            </div>
+                          </div>
                           <div className="self-center">
                             <span className="sol-amount">
                               {toSOL(a.price.toNumber())}

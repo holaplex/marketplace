@@ -23,7 +23,18 @@ export const BannerLayout = ({ marketplace, children }: BannerLayoutProps) => {
       })}
     >
       <div className="relative w-full">
-        <div className="absolute flex justify-end right-6 top-[28px]">
+        <div className="absolute flex justify-between top-0 left-0 right-0 py-6 px-6 md:px-12">
+          <Link href="/" passHref>
+            <a>
+              <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
+                <img
+                  className="object-cover w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
+                  src={marketplace.logoUrl}
+                />
+                <div className="hidden sm:block">{marketplace.name}</div>
+              </button>
+            </a>
+          </Link>
           <div className="flex items-center justify-end">
             {equals(
               publicKey?.toBase58(),

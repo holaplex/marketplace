@@ -236,3 +236,11 @@ export interface PriceChart {
   salesAverage: PricePoint[]
   totalVolume: PricePoint[]
 }
+
+export interface GetPriceChartData {
+  charts: PriceChart
+}
+
+export interface GetActivities {
+  activities: Activity[]
+}
