@@ -5,12 +5,13 @@ import { PublicKey } from '@solana/web3.js'
 import { AppProps } from 'next/app'
 import Head from 'next/head'
 import { equals, length, map, pipe, prop, when, isNil, always } from 'ramda'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import client from '../../client'
 import cx from 'classnames'
-import WalletPortal from '../../components/WalletPortal'
+import { BasicLayout } from './../../layouts/Basic'
 import { truncateAddress, addressAvatar } from '../../modules/address'
-import { Marketplace } from '../../types.d'
+import { Marketplace } from '../../types'
+import { ReactElement } from 'react'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -126,36 +127,6 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
         <meta property="og:image" content={marketplace.bannerUrl} />
         <meta property="og:description" content={marketplace.description} />
       </Head>
-      <div className="sticky w-full top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
-        <Link to="/">
-          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
-            <img
-              className="object-cover w-12 h-12 md:w-8 md:h-8 rounded-full aspect-square"
-              src={marketplace.logoUrl}
-            />
-            <div className="hidden sm:block">{marketplace.name}</div>
-          </button>
-        </Link>
-        <div className="block">
-          <div className="flex items-center justify-end">
-            <div className="text-sm cursor-pointer mr-6 hover:underline underline">
-              Creators
-            </div>
-            {equals(
-              publicKey?.toBase58(),
-              marketplace.auctionHouse.authority
-            ) && (
-              <Link
-                to="/admin/marketplace/edit"
-                className="text-sm cursor-pointer mr-6 hover:underline "
-              >
-                Admin Dashboard
-              </Link>
-            )}
-            <WalletPortal />
-          </div>
-        </div>
-      </div>
       <div className="w-full max-w-[1800px] px-6 md:px-12">
         <div className="mt-20 mb-20">
           <h2>{`${marketplace.name} Creators`}</h2>
@@ -201,11 +172,11 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
             creatorsQuery.data?.marketplace.creators.map((creator) => {
               return (
                 <Link
-                  className="transition-transform hover:scale-[1.02]"
                   key={creator.creatorAddress}
-                  to={`/creators/${creator.creatorAddress}`}
+                  href={`/creators/${creator.creatorAddress}`}
+                  passHref
                 >
-                  <div className="flex flex-col">
+                  <a className="transition-transform hover:scale-[1.02] flex flex-col">
                     <div className="flex items-center mb-7">
                       <img
                         src={
@@ -256,7 +227,7 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
                         )
                       })}
                     </div>
-                  </div>
+                  </a>
                 </Link>
               )
             })
@@ -265,6 +236,10 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
       </div>
     </div>
   )
+}
+
+Creators.getLayout = (page: ReactElement) => {
+  return <BasicLayout marketplace={page.props.marketplace}>{page}</BasicLayout>
 }
 
 export default Creators

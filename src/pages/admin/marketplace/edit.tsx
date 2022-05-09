@@ -9,7 +9,7 @@ import { useForm, Controller } from 'react-hook-form'
 import client from './../../../client'
 import UploadFile from './../../../../src/components/UploadFile'
 import WalletPortal from './../../../../src/components/WalletPortal'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
@@ -182,7 +182,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="flex flex-col items-center text-white bg-gray-900">
         <div className="fixed top-0 z-10 flex items-center justify-between w-full p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
-          <Link to="/">
+          <Link href="/">
             <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition duration-100 transform hover:scale-[1.02]">
               <img
                 className="object-cover w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
@@ -247,7 +247,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
                   <li className="p-2 rounded">
                     <Link
                       className="flex flex-row items-center w-full"
-                      to="/admin/creators/edit"
+                      href="/admin/creators/edit"
                     >
                       <User color="white" className="mr-1" size="1rem" />{' '}
                       Creators
@@ -256,7 +256,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
                   <li className="block p-2 rounded">
                     <Link
                       className="flex flex-row items-center w-full"
-                      to="/admin/financials/edit"
+                      href="/admin/financials/edit"
                     >
                       <DollarSign color="white" className="mr-1" size="1rem" />{' '}
                       Financials
@@ -272,7 +272,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
                     Edit marketplace
                   </h2>
                   <div className="grid justify-end w-full grid-cols-2 gap-2 col-span-full md:col-span-6 lg:col-span-5">
-                    <Link to="/">
+                    <Link href="/">
                       <Button
                         block
                         size={ButtonSize.Small}

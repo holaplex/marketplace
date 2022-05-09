@@ -9,7 +9,7 @@ import { AppProps } from 'next/app'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import client from './../../../client'
 import WalletPortal from './../../../../src/components/WalletPortal'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
@@ -193,7 +193,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
   return (
     <div className="flex flex-col items-center text-white bg-gray-900">
       <div className="fixed top-0 z-10 flex items-center justify-between w-full p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
-        <Link to="/">
+        <Link href="/">
           <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition duration-100 transform hover:scale-[1.02]">
             <img
               className="w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
@@ -230,7 +230,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                 <li className="block p-2 rounded">
                   <Link
                     className="flex flex-row items-center w-full"
-                    to="/admin/marketplace/edit"
+                    href="/admin/marketplace/edit"
                   >
                     <ImageIcon color="white" className="mr-1" size="1rem" />{' '}
                     Marketplace
@@ -242,7 +242,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                 <li className="block p-2 rounded">
                   <Link
                     className="flex flex-row items-center w-full"
-                    to="/admin/financials/edit"
+                    href="/admin/financials/edit"
                   >
                     <DollarSign color="white" className="mr-1" size="1rem" />{' '}
                     Financials

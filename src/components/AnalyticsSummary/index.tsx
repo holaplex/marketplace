@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { toSOL } from 'src/modules/lamports'
 import { MintStats, PriceChart } from '../../types'
 import Button, { ButtonSize, ButtonType } from '../Button'
@@ -39,7 +39,7 @@ const AnalyticsSummary = ({ loading, stats, charts, analyticsUrl }: Props) => {
         )}
       </div>
       <Link
-        to={analyticsUrl}
+        href={analyticsUrl}
         className="col-span-1 lg:col-span-2 flex justify-end"
       >
         <Button

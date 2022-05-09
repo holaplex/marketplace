@@ -4,7 +4,7 @@ import { AppProps } from 'next/app'
 import Head from 'next/head'
 import { always, and, equals, ifElse, isNil, length, not, pipe } from 'ramda'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { DollarSign, Tag } from 'react-feather'
 import client from '../../client'
 import { toSOL } from '../../modules/lamports'
@@ -274,7 +274,7 @@ const Analytics: NextPage<Props> = ({
         <meta property="og:description" content={marketplace.description} />
       </Head>
       <div className="w-full sticky top-0 z-10 flex items-center justify-between p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
-        <Link to="/">
+        <Link href="/">
           <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition-transform hover:scale-[1.02]">
             <img
               className="object-cover w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
@@ -290,7 +290,7 @@ const Analytics: NextPage<Props> = ({
               marketplace.auctionHouse.authority
             ) && (
               <Link
-                to="/admin/marketplace/edit"
+                href="/admin/marketplace/edit"
                 className="mr-6 text-sm cursor-pointer hover:underline "
               >
                 Admin Dashboard
@@ -430,7 +430,7 @@ const Analytics: NextPage<Props> = ({
                           />
                           <div className="flex flex-col gap-1">
                             <Link
-                              to={`/nfts/${a.nft.address}`}
+                              href={`/nfts/${a.nft.address}`}
                               className="font-medium hover:underline"
                             >
                               {a.nft.name}
