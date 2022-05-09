@@ -52,6 +52,7 @@ import WalletPortal from '../../components/WalletPortal'
 import { useLogin } from '../../hooks/login'
 import { truncateAddress, addressAvatar } from '../../modules/address'
 import { toSOL } from '../../modules/lamports'
+import { CrossmintPayButton } from '@crossmint/client-sdk-react-ui'
 import { Activity, Listing, Marketplace, Nft, Offer } from '../../types.d'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -447,7 +448,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
 
     try {
       signed = await signTransaction(txt)
-    } catch (e: any) {
+    } catch (e) {
       toast.error(e.message)
       return
     }
@@ -464,7 +465,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
       await refetch()
 
       toast.success('The transaction was confirmed.')
-    } catch (e: any) {
+    } catch (e) {
       toast.error(e.message)
     }
   }
@@ -540,7 +541,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
 
     try {
       signed = await signTransaction(txt)
-    } catch (e: any) {
+    } catch (e) {
       toast.error(e.message)
       return
     }
@@ -557,7 +558,7 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
       await refetch()
 
       toast.success('The transaction was confirmed.')
-    } catch (e: any) {
+    } catch (e) {
       toast.error(e.message)
     }
   }
@@ -800,6 +801,17 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                             >
                               Buy Now
                             </Button>
+                            <CrossmintPayButton
+                              collectionTitle={marketplace.name} // e.g. "Degods #1234"
+                              collectionDescription={marketplace.description} // e.g. "A collection of degenerates, punks, and misfits. Gods of the metaverse & masters of our own universe. DeGods can be converted to DeadGods with DUST."
+                              collectionPhoto={nft.image} // e.g. "https://i.imgur.com/fO3tI1t.png"
+                              clientId="fec98fec-8281-4c5e-9348-4905ae1d150f"
+                              mintArgs={{
+                                mintHash: data?.nft.mintAddress,
+                                sellerWallet: data?.nft.owner.address,
+                                buyPrice: listing.price.toNumber(),
+                              }}
+                            />
                           </form>
                         )}
                         {listing && isOwner && (
