@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import { addressAvatar } from 'src/modules/address'
 import { toSOL } from './../../modules/lamports'
 import { Listing, Marketplace, Nft } from './../../types'
+import { CrossmintPayButton } from '@crossmint/client-sdk-react-ui'
 
 interface NftCardProps {
   nft: Nft
@@ -22,21 +23,21 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
 
   return (
     <article className="overflow-hidden rounded-lg transition duration-100 transform cursor-pointer bg-gray-900 shadow-card	hover:scale-[1.02]">
-      <div className="block relative">
+      <div className="relative block">
         <img
           alt="Placeholder"
-          className="w-full aspect-square object-cover"
+          className="object-cover w-full aspect-square"
           src={nft.image as string}
         />
         {nft.offers.length > 0 && (
-          <div className="absolute top-3 left-3 text-xs rounded-full py-1 px-2 bg-black bg-opacity-60">
+          <div className="absolute px-2 py-1 text-xs bg-black rounded-full top-3 left-3 bg-opacity-60">
             {nft.offers.length} {nft.offers.length == 1 ? 'Offer' : 'Offers'}
           </div>
         )}
       </div>
       <header className="p-4">
-        <h4 className="text-sm lg:text-base mb-2 truncate">{nft.name}</h4>
-        <div className="flex gap-1 items-center">
+        <h4 className="mb-2 text-sm truncate lg:text-base">{nft.name}</h4>
+        <div className="flex items-center gap-1">
           <div className="flex items-center ml-1.5">
             {nft.creators.map((creator) => {
               return (
@@ -46,7 +47,7 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
                 >
                   <img
                     alt={creator.profile?.handle}
-                    className="rounded-full h-5 w-5 object-cover border-2 border-gray-900 "
+                    className="object-cover w-5 h-5 border-2 border-gray-900 rounded-full "
                     src={
                       when(
                         isNil,
@@ -63,7 +64,7 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
           )}
         </div>
       </header>
-      <footer className="flex justify-end items-center gap-2 px-4 h-20 border-t-gray-800 border-t-2">
+      <footer className="flex items-center justify-end h-20 gap-2 px-4 border-t-2 border-t-gray-800">
         {listing ? (
           <>
             <div className="flex-1 mr-auto">
@@ -73,9 +74,24 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
               </p>
             </div>
             {not(isOwner) && (
-              <Link to={`/nfts/${nft.address}`}>
-                <button className="button small grow-0">Buy Now</button>
-              </Link>
+              <>
+                <Link to={`/nfts/${nft.address}`}>
+                  <button className="button small grow-0">Buy Now</button>
+                </Link>
+                <Link to={`/nfts/${nft.address}`}>
+                  <CrossmintPayButton
+                    collectionTitle={marketplace.name} // e.g. "Degods #1234"
+                    collectionDescription={marketplace.description} // e.g. "A collection of degenerates, punks, and misfits. Gods of the metaverse & masters of our own universe. DeGods can be converted to DeadGods with DUST."
+                    collectionPhoto={nft.image} // e.g. "https://i.imgur.com/fO3tI1t.png"
+                    clientId="fec98fec-8281-4c5e-9348-4905ae1d150f"
+                    mintArgs={{
+                      mintHash: nft.mintAddress,
+                      sellerWallet: nft.owner.address,
+                      buyPrice: listing.price.toNumber(),
+                    }}
+                  />
+                </Link>
+              </>
             )}
           </>
         ) : (
@@ -94,13 +110,13 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
 
 const Skeleton = () => {
   return (
-    <article className="overflow-hidden rounded-lg transition duration-100 transform cursor-pointer bg-gray-900 shadow-card">
-      <div className="aspect-square w-full bg-gray-800"></div>
-      <header className="p-4 w-full">
-        <div className="bg-gray-800 h-12"></div>
+    <article className="overflow-hidden transition duration-100 transform bg-gray-900 rounded-lg cursor-pointer shadow-card">
+      <div className="w-full bg-gray-800 aspect-square"></div>
+      <header className="w-full p-4">
+        <div className="h-12 bg-gray-800"></div>
       </header>
-      <footer className="flex items-center h-20 gap-2 px-4 justify-end border-t-gray-800">
-        <div className="button small grow-0 w-24 bg-gray-800"></div>
+      <footer className="flex items-center justify-end h-20 gap-2 px-4 border-t-gray-800">
+        <div className="w-24 bg-gray-800 button small grow-0"></div>
       </footer>
     </article>
   )
