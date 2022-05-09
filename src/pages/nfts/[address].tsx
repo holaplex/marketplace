@@ -42,6 +42,7 @@ import { Link, Route, Routes } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { format } from 'timeago.js'
 import client from '../../client'
+import DialectNotificationsButton from '../../components/DialectNotificationsButton'
 import AcceptOfferForm from '../../components/AcceptOfferForm'
 import Avatar from '../../components/Avatar'
 import Button, { ButtonType } from '../../components/Button'
@@ -602,6 +603,9 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                 Admin Dashboard
               </Link>
             )}
+            <div className="mr-2">
+              <DialectNotificationsButton />
+            </div>
             <WalletPortal />
           </div>
         </div>
