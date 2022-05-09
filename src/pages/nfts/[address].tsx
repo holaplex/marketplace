@@ -807,8 +807,8 @@ const NftShow: NextPage<NftPageProps> = ({ marketplace, nft }) => {
                               collectionPhoto={nft.image} // e.g. "https://i.imgur.com/fO3tI1t.png"
                               clientId="fec98fec-8281-4c5e-9348-4905ae1d150f"
                               mintArgs={{
-                                mintHash: nft.mintAddress,
-                                sellerWallet: nft.owner.address,
+                                mintHash: data?.nft.mintAddress,
+                                sellerWallet: data?.nft.owner.address,
                                 buyPrice: listing.price.toNumber(),
                               }}
                             />
