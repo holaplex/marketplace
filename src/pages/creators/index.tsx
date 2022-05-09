@@ -8,7 +8,7 @@ import { equals, length, map, pipe, prop, when, isNil, always } from 'ramda'
 import Link from 'next/link'
 import client from '../../client'
 import cx from 'classnames'
-import { BasicLayout } from './../../layouts/Basic'
+import { BasicLayout, NavigationLink } from './../../layouts/Basic'
 import { truncateAddress, addressAvatar } from '../../modules/address'
 import { Marketplace } from '../../types'
 import { ReactElement } from 'react'
@@ -117,7 +117,7 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
   const loading = creatorsQuery.loading
 
   return (
-    <div className="flex flex-col items-center text-white bg-gray-900">
+    <>
       <Head>
         <title>{`${marketplace.name} Creators`}</title>
         <link rel="icon" href={marketplace.logoUrl} />
@@ -127,119 +127,121 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
         <meta property="og:image" content={marketplace.bannerUrl} />
         <meta property="og:description" content={marketplace.description} />
       </Head>
-      <div className="w-full max-w-[1800px] px-6 md:px-12">
-        <div className="mt-20 mb-20">
-          <h2>{`${marketplace.name} Creators`}</h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-8 md:gap-10 lg:gap-14 gap-y-14 mb-20">
-          {loading ? (
-            <>
-              <div className="flex flex-col">
-                <div className="bg-gray-800 rounded-full w-16 h-16 mb-7" />
-                <div className="flex flex-grid mb-2 gap-4">
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                </div>
+      <div className="mt-20 mb-20">
+        <h2>{`${marketplace.name} Creators`}</h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-8 md:gap-10 lg:gap-14 gap-y-14 mb-20">
+        {loading ? (
+          <>
+            <div className="flex flex-col">
+              <div className="bg-gray-800 rounded-full w-16 h-16 mb-7" />
+              <div className="flex flex-grid mb-2 gap-4">
+                <div className="bg-gray-800 w-1/3 aspect-square" />
+                <div className="bg-gray-800 w-1/3 aspect-square" />
+                <div className="bg-gray-800 w-1/3 aspect-square" />
               </div>
-              <div className="flex flex-col">
-                <div className="bg-gray-800 rounded-full w-16 h-16 mb-7" />
-                <div className="flex flex-grid mb-2 gap-4">
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                </div>
+            </div>
+            <div className="flex flex-col">
+              <div className="bg-gray-800 rounded-full w-16 h-16 mb-7" />
+              <div className="flex flex-grid mb-2 gap-4">
+                <div className="bg-gray-800 w-1/3 aspect-square" />
+                <div className="bg-gray-800 w-1/3 aspect-square" />
+                <div className="bg-gray-800 w-1/3 aspect-square" />
               </div>
-              <div className="flex flex-col">
-                <div className="bg-gray-800 rounded-full w-16 h-16 mb-7" />
-                <div className="flex flex-grid mb-2 gap-4">
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                </div>
+            </div>
+            <div className="flex flex-col">
+              <div className="bg-gray-800 rounded-full w-16 h-16 mb-7" />
+              <div className="flex flex-grid mb-2 gap-4">
+                <div className="bg-gray-800 w-1/3 aspect-square" />
+                <div className="bg-gray-800 w-1/3 aspect-square" />
+                <div className="bg-gray-800 w-1/3 aspect-square" />
               </div>
-              <div className="flex flex-col">
-                <div className="bg-gray-800 rounded-full w-16 h-16 mb-7" />
-                <div className="flex flex-grid mb-2 gap-4">
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                  <div className="bg-gray-800 w-1/3 aspect-square" />
-                </div>
+            </div>
+            <div className="flex flex-col">
+              <div className="bg-gray-800 rounded-full w-16 h-16 mb-7" />
+              <div className="flex flex-grid mb-2 gap-4">
+                <div className="bg-gray-800 w-1/3 aspect-square" />
+                <div className="bg-gray-800 w-1/3 aspect-square" />
+                <div className="bg-gray-800 w-1/3 aspect-square" />
               </div>
-            </>
-          ) : (
-            creatorsQuery.data?.marketplace.creators.map((creator) => {
-              return (
-                <Link
-                  key={creator.creatorAddress}
-                  href={`/creators/${creator.creatorAddress}`}
-                  passHref
-                >
-                  <a className="transition-transform hover:scale-[1.02] flex flex-col">
-                    <div className="flex items-center mb-7">
-                      <img
-                        src={
-                          when(
-                            isNil,
-                            always(
-                              addressAvatar(
-                                new PublicKey(creator.creatorAddress)
-                              )
-                            )
-                          )(creator.profile?.profileImageUrl) as string
-                        }
-                        className="object-cover bg-gray-900 rounded-full w-16 h-16 user-avatar"
-                      />
-                      <div className="flex flex-col ml-3 gap-2">
-                        <div>
-                          {creator.twitterHandle ? (
-                            <span className="font-medium">{`@${creator.twitterHandle}`}</span>
-                          ) : (
-                            <span className="pubkey">
-                              {truncateAddress(creator.creatorAddress)}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-gray-300 text-sm">NFTs</span>
-                          <span className="text-sm">{creator.nftCount}</span>
-                        </div>
+            </div>
+          </>
+        ) : (
+          creatorsQuery.data?.marketplace.creators.map((creator) => {
+            return (
+              <Link
+                key={creator.creatorAddress}
+                href={`/creators/${creator.creatorAddress}`}
+                passHref
+              >
+                <a className="transition-transform hover:scale-[1.02] flex flex-col">
+                  <div className="flex items-center mb-7">
+                    <img
+                      src={
+                        when(
+                          isNil,
+                          always(
+                            addressAvatar(new PublicKey(creator.creatorAddress))
+                          )
+                        )(creator.profile?.profileImageUrl) as string
+                      }
+                      className="object-cover bg-gray-900 rounded-full w-16 h-16 user-avatar"
+                    />
+                    <div className="flex flex-col ml-3 gap-2">
+                      <div>
+                        {creator.twitterHandle ? (
+                          <span className="font-medium">{`@${creator.twitterHandle}`}</span>
+                        ) : (
+                          <span className="pubkey">
+                            {truncateAddress(creator.creatorAddress)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-300 text-sm">NFTs</span>
+                        <span className="text-sm">{creator.nftCount}</span>
                       </div>
                     </div>
+                  </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 mb-2 gap-4 overflow-hidden">
-                      {creator.preview.map((nft, index) => {
-                        return (
-                          <div className="w-full" key={nft.address}>
-                            <img
-                              className={cx(
-                                'w-full object-cover aspect-square rounded-md',
-                                {
-                                  'hidden md:block':
-                                    index === creator.preview.length - 1,
-                                }
-                              )}
-                              src={nft.image}
-                              alt={nft.name}
-                            />
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </a>
-                </Link>
-              )
-            })
-          )}
-        </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 mb-2 gap-4 overflow-hidden">
+                    {creator.preview.map((nft, index) => {
+                      return (
+                        <div className="w-full" key={nft.address}>
+                          <img
+                            className={cx(
+                              'w-full object-cover aspect-square rounded-md',
+                              {
+                                'hidden md:block':
+                                  index === creator.preview.length - 1,
+                              }
+                            )}
+                            src={nft.image}
+                            alt={nft.name}
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+                </a>
+              </Link>
+            )
+          })
+        )}
       </div>
-    </div>
+    </>
   )
 }
 
 Creators.getLayout = (page: ReactElement) => {
-  return <BasicLayout marketplace={page.props.marketplace}>{page}</BasicLayout>
+  return (
+    <BasicLayout
+      active={NavigationLink.Creators}
+      marketplace={page.props.marketplace}
+    >
+      {page}
+    </BasicLayout>
+  )
 }
 
 export default Creators

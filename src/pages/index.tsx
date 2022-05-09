@@ -19,12 +19,13 @@ import {
   prop,
   when,
 } from 'ramda'
-import { ReactElement, useEffect, useState } from 'react'
+import React, { ReactElement, useEffect, useState } from 'react'
+import { toSOL } from './../modules/lamports'
 import { Filter } from 'react-feather'
 import { Controller, useForm } from 'react-hook-form'
 import Link from 'next/link'
 import client from '../client'
-import Button, { ButtonSize } from '../components/Button'
+import Button, { ButtonSize, ButtonType } from '../components/Button'
 import { BannerLayout } from '../layouts/Banner'
 import { Slider } from '../components/Slider'
 import { useSidebar } from '../hooks/sidebar'
@@ -42,7 +43,7 @@ import {
 import { List } from './../components/List'
 import { NftCard } from './../components/NftCard'
 import { subDays } from 'date-fns'
-import AnalyticsSummary from '../components/AnalyticsSummary'
+import Chart from './../components/Chart'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -447,20 +448,71 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
             {marketplace.description}
           </p>
         </div>
-        <AnalyticsSummary
-          loading={loading}
-          stats={marketplaceQuery.data?.marketplace.auctionHouse.stats}
-          charts={priceChartDataQuery.data?.charts}
-          analyticsUrl="/analytics"
-        />
+        <div className="col-span-12 lg:col-span-4 grid grid-cols-3 gap-x-1 gap-y-6 lg:-mt-8">
+          <div className="col-span-1">
+            <span className="text-gray-300 uppercase font-semibold text-xs block w-full mb-2">
+              Floor
+            </span>
+            {loading ? (
+              <div className="block bg-gray-800 w-20 h-6 rounded" />
+            ) : (
+              <span className="sol-amount text-xl font-semibold">
+                {toSOL(
+                  (marketplaceQuery.data?.marketplace.auctionHouse.stats?.floor.toNumber() ||
+                    0) as number
+                )}
+              </span>
+            )}
+          </div>
+          <div className="col-span-1">
+            <span className="text-gray-300 uppercase font-semibold text-xs block w-full mb-2">
+              Vol Last 24h
+            </span>
+            {loading ? (
+              <div className="block bg-gray-800 w-20 h-6 rounded" />
+            ) : (
+              <span className="sol-amount text-xl font-semibold">
+                {toSOL(
+                  (marketplaceQuery.data?.marketplace.auctionHouse.stats?.volume24hr.toNumber() ||
+                    0) as number
+                )}
+              </span>
+            )}
+          </div>
+          <Link href="/analytics" passHref>
+            <a className="col-span-1 lg:col-span-2 flex justify-end">
+              <Button
+                size={ButtonSize.Small}
+                type={ButtonType.Secondary}
+                icon={<img src="/images/analytics_icon.svg" className="mr-2" />}
+              >
+                Details & Activity
+              </Button>
+            </a>
+          </Link>
+          <div className="col-span-3 lg:col-span-4">
+            <div className="flex flex-col w-full">
+              <span className="uppercase text-gray-300 text-xs font-semibold mb-1 place-self-end">
+                Price LAST 7 DAYS
+              </span>
+              {loading ? (
+                <div className="w-full h-[120px] bg-gray-800 rounded" />
+              ) : (
+                <Chart
+                  height={120}
+                  showXAxis={false}
+                  className="w-full"
+                  chartData={priceChartDataQuery.data?.charts?.salesAverage}
+                />
+              )}
+            </div>
+          </div>
+        </div>
       </div>
       <div className="flex justify-between items-center mb-6">
         <h3>Creators</h3>
-        <Link
-          href="/creators"
-          className="text-sm text-gray-300 hover:underline"
-        >
-          See all
+        <Link href="/creators" passHref>
+          <a className="text-sm text-gray-300 hover:underline">See all</a>
         </Link>
       </div>
       {loading ? (

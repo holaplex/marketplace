@@ -30,8 +30,8 @@ import { Filter } from 'react-feather'
 import { Controller, useForm } from 'react-hook-form'
 import Link from 'next/link'
 import Select from 'react-select'
+import { toSOL } from './../../modules/lamports'
 import { BannerLayout } from './../../layouts/Banner'
-import AnalyticsSummary from '../../components/AnalyticsSummary'
 import {
   GetNftCounts,
   GetWalletCounts,
@@ -39,12 +39,12 @@ import {
   GET_WALLET_COUNTS,
 } from '..'
 import client from '../../client'
-import Button, { ButtonSize } from '../../components/Button'
+import Button, { ButtonSize, ButtonType } from '../../components/Button'
 import { List } from '../../components/List'
 import { NftCard } from '../../components/NftCard'
-import WalletPortal from '../../components/WalletPortal'
 import { useSidebar } from '../../hooks/sidebar'
 import { truncateAddress } from '../../modules/address'
+import Chart from './../../components/Chart'
 import {
   AttributeFilter,
   Creator,
@@ -52,7 +52,7 @@ import {
   Nft,
   PresetNftFilter,
   PriceChart,
-} from '../../types.d'
+} from './../../types.d'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -409,16 +409,70 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
             className="absolute object-cover bg-gray-900 border-4 border-gray-900 rounded-full w-28 h-28 -top-32"
           />
           <p className="text-lg text-gray-300 mb-2">Created by</p>
-          <p className="mb-4 text-3xl pubkey">
+          <h1 className="mb-4 text-3xl pubkey">
             {truncateAddress(router.query?.creator as string)}
-          </p>
+          </h1>
         </div>
-        <AnalyticsSummary
-          loading={loading}
-          stats={collectionQuery.data?.creator.stats[0]}
-          charts={priceChartDataQuery.data?.charts}
-          analyticsUrl={`/analytics/creators/${router.query.creator}`}
-        />
+        <div className="col-span-12 lg:col-span-4 grid grid-cols-3 gap-x-1 gap-y-6 lg:-mt-8">
+          <div className="col-span-1">
+            <span className="text-gray-300 uppercase font-semibold text-xs block w-full mb-2">
+              Floor
+            </span>
+            {loading ? (
+              <div className="block bg-gray-800 w-20 h-6 rounded" />
+            ) : (
+              <span className="sol-amount text-xl font-semibold">
+                {toSOL(
+                  (collectionQuery.data?.creator.stats[0]?.floor.toNumber() ||
+                    0) as number
+                )}
+              </span>
+            )}
+          </div>
+          <div className="col-span-1">
+            <span className="text-gray-300 uppercase font-semibold text-xs block w-full mb-2">
+              Vol Last 24h
+            </span>
+            {loading ? (
+              <div className="block bg-gray-800 w-20 h-6 rounded" />
+            ) : (
+              <span className="sol-amount text-xl font-semibold">
+                {toSOL(
+                  (collectionQuery.data?.creator.stats[0]?.volume24hr.toNumber() ||
+                    0) as number
+                )}
+              </span>
+            )}
+          </div>
+          <Link href={`/creators/${router.query.creator}/analytics`} passHref>
+            <a className="col-span-1 lg:col-span-2 flex justify-end">
+              <Button
+                size={ButtonSize.Small}
+                type={ButtonType.Secondary}
+                icon={<img src="/images/analytics_icon.svg" className="mr-2" />}
+              >
+                Details & Activity
+              </Button>
+            </a>
+          </Link>
+          <div className="col-span-3 lg:col-span-4">
+            <div className="flex flex-col w-full">
+              <span className="uppercase text-gray-300 text-xs font-semibold mb-1 place-self-end">
+                Price LAST 7 DAYS
+              </span>
+              {loading ? (
+                <div className="w-full h-[120px] bg-gray-800 rounded" />
+              ) : (
+                <Chart
+                  height={120}
+                  showXAxis={false}
+                  className="w-full"
+                  chartData={priceChartDataQuery.data?.charts?.salesAverage}
+                />
+              )}
+            </div>
+          </div>
+        </div>
       </div>
       <div className="flex">
         <div className="relative">
@@ -464,7 +518,6 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                           id="preset-all"
                           checked={value === PresetNftFilter.All}
                         />
-
                         {loading ? (
                           <div className="h-6 w-full" />
                         ) : (
@@ -702,8 +755,10 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
             }
             itemRender={(nft) => {
               return (
-                <Link href={`/nfts/${nft.address}`} key={nft.address}>
-                  <NftCard nft={nft} marketplace={marketplace} />
+                <Link href={`/nfts/${nft.address}`} key={nft.address} passHref>
+                  <a>
+                    <NftCard nft={nft} marketplace={marketplace} />
+                  </a>
                 </Link>
               )
             }}
