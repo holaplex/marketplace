@@ -21,6 +21,7 @@ export interface Marketplace {
   logoUrl: string
   bannerUrl: string
   auctionHouse: AuctionHouse
+  auctionHouses: AuctionHouse[]
   ownerAddress: string
   creators: MarketplaceCreator[]
   stats: MarketplaceStats

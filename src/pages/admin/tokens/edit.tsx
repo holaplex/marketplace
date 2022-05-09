@@ -43,7 +43,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             address
             treasuryMint
             auctionHouseTreasury
@@ -93,7 +93,6 @@ interface MarketplaceForm {
   description: string
   transactionFee: number
   creators: { address: string }[]
-  creator: string
   tokens: { address: string }[]
   token: string
 }
@@ -105,6 +104,10 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
   const login = useLogin()
 
   const [showAdd, setShowAdd] = useState(false)
+
+  const originalTokens = marketplace.auctionHouses.map(({ treasuryMint }) => ({
+    address: treasuryMint,
+  }))
 
   const {
     control,
@@ -122,8 +125,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
         address: creatorAddress,
       })),
       transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,
-      creator: '',
-      tokens: [],
+      tokens: originalTokens,
       token: '',
     },
   })
@@ -154,6 +156,25 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
 
     toast('Saving changes...')
 
+    // Remove auction houses corresponding to deleted tokens
+    const auctionHouses = marketplace.auctionHouses
+      .filter((ah) => tokens.some((token) => token.address === ah.treasuryMint))
+      .map(({ address }) => ({
+        address,
+      }))
+
+    // Add auction houses corresponding to new tokens
+    const newTokens = tokens.filter(
+      (token) => !originalTokens.some((ot) => ot.address === token.address)
+    )
+    if (newTokens.length > 0) {
+      const newAuctionHouses = await client.createAuctionHouses(
+        newTokens,
+        transactionFee
+      )
+      auctionHouses.push(...newAuctionHouses)
+    }
+
     const settings = {
       meta: {
         name,
@@ -173,10 +194,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
       },
       creators,
       subdomain: marketplace.subdomain,
-      address: {
-        auctionHouse: marketplace.auctionHouse.address,
-      },
-      // TODO: add tokens array
+      auctionHouses: auctionHouses,
     }
 
     try {
@@ -285,9 +303,8 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
                 />
               )}
               <ul className="flex flex-col max-h-screen gap-6 py-4 mb-10">
-                {/* TODO: DUMMY DATA - Replace with real data */}
-
-                <li className="flex justify-between w-full">
+                {/* DUMMY DATA: */}
+                {/* <li className="flex justify-between w-full">
                   <SplToken mint="So11111111111111111111111111111111111111112" />
                   <div className="flex gap-4 items-center">
                     <span className="font-medium text-sm text-gray-500">
@@ -310,7 +327,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
                       size="2rem"
                     />
                   </div>
-                </li>
+                </li> */}
                 {fields.map((field, index) => {
                   return (
                     <li

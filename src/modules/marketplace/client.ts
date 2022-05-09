@@ -4,10 +4,15 @@ import {
   Connection,
   PublicKey,
   Transaction,
+  PublicKeyInitData,
+  TransactionInstructionCtorFields,
 } from '@solana/web3.js'
 import { programs, Wallet } from '@metaplex/js'
 import { updateAuctionHouse } from './../auction-house'
 import ipfsSDK from './../ipfs/client'
+import { NATIVE_MINT } from '@solana/spl-token'
+import { AuctionHouseProgram } from '@holaplex/mpl-auction-house'
+import { createCreateAuctionHouseInstruction } from '@holaplex/mpl-auction-house/dist/src/generated/instructions'
 
 const {
   metaplex: { Store, SetStoreV2, StoreConfig },
@@ -33,9 +38,14 @@ interface MarketplaceCreatorPayload {
   address: string
 }
 
+interface MarketplaceAuctionHousePayload {
+  address: string
+}
+
 interface MarketplaceAddressPayload {
   owner?: string
-  auctionHouse: string
+  /** @deprecated: Instead use auctionHouses in Settings Payload */
+  auctionHouse?: string
   store?: string
   storeConfig?: string
 }
@@ -44,12 +54,23 @@ interface MarktplaceSettingsPayload {
   theme: MarketplaceThemePayload
   creators: MarketplaceCreatorPayload[]
   subdomain: string
-  address: MarketplaceAddressPayload
+  auctionHouses: MarketplaceAuctionHousePayload[]
+  address?: MarketplaceAddressPayload
 }
 
 interface MarketplaceClientParams {
   connection: Connection
   wallet: WalletContextState
+}
+
+interface CreateAuctionHouseParams {
+  wallet: Wallet
+  sellerFeeBasisPoints: number
+  canChangeSalePrice?: boolean
+  requiresSignOff?: boolean
+  treasuryWithdrawalDestination?: PublicKeyInitData
+  feeWithdrawalDestination?: PublicKeyInitData
+  treasuryMint?: PublicKeyInitData
 }
 
 class MarketplaceClient {
@@ -117,6 +138,102 @@ class MarketplaceClient {
     )
 
     if (txtId) await connection.confirmTransaction(txtId, 'confirmed')
+  }
+
+  async createAuctionHouses(
+    tokens: { address: string }[],
+    sellerFeeBasisPoints: number
+  ): Promise<{ address: string }[]> {
+    const wallet = this.wallet as Wallet
+    const publicKey = wallet.publicKey as PublicKey
+    const connection = this.connection
+
+    const auctionHouses: { address: string }[] = []
+    const instructions: TransactionInstruction[] = []
+
+    tokens.forEach(async (token) => {
+      const canChangeSalePrice = false
+      const requiresSignOff = false
+      const treasuryWithdrawalDestination = undefined
+      const feeWithdrawalDestination = undefined
+      const treasuryMint = token.address
+
+      const twdKey = treasuryWithdrawalDestination
+        ? new PublicKey(treasuryWithdrawalDestination)
+        : wallet.publicKey
+
+      const fwdKey = feeWithdrawalDestination
+        ? new PublicKey(feeWithdrawalDestination)
+        : wallet.publicKey
+
+      const tMintKey = treasuryMint ? new PublicKey(treasuryMint) : NATIVE_MINT
+
+      const twdAta = tMintKey.equals(NATIVE_MINT)
+        ? twdKey
+        : (
+            await AuctionHouseProgram.findAssociatedTokenAccountAddress(
+              tMintKey,
+              twdKey
+            )
+          )[0]
+
+      const [auctionHouse, bump] =
+        await AuctionHouseProgram.findAuctionHouseAddress(
+          wallet.publicKey,
+          tMintKey
+        )
+
+      auctionHouses.push({ address: auctionHouse.toBase58() })
+
+      const [feeAccount, feePayerBump] =
+        await AuctionHouseProgram.findAuctionHouseFeeAddress(auctionHouse)
+
+      const [treasuryAccount, treasuryBump] =
+        await AuctionHouseProgram.findAuctionHouseTreasuryAddress(auctionHouse)
+
+      const auctionHouseCreateInstruction = createCreateAuctionHouseInstruction(
+        {
+          treasuryMint: tMintKey,
+          payer: wallet.publicKey,
+          authority: wallet.publicKey,
+          feeWithdrawalDestination: fwdKey,
+          treasuryWithdrawalDestination: twdAta,
+          treasuryWithdrawalDestinationOwner: twdKey,
+          auctionHouse,
+          auctionHouseFeeAccount: feeAccount,
+          auctionHouseTreasury: treasuryAccount,
+        },
+        {
+          bump,
+          feePayerBump,
+          treasuryBump,
+          sellerFeeBasisPoints,
+          requiresSignOff,
+          canChangeSalePrice,
+        }
+      )
+      instructions.push(auctionHouseCreateInstruction)
+    })
+
+    const transaction = new Transaction()
+
+    instructions.forEach((instruction: TransactionInstruction) => {
+      transaction.add(instruction)
+    })
+
+    transaction.feePayer = publicKey
+    transaction.recentBlockhash = (
+      await connection.getRecentBlockhash()
+    ).blockhash
+
+    const signedTransaction = await this.wallet.signTransaction!(transaction)
+    const txtId = await connection.sendRawTransaction(
+      signedTransaction.serialize()
+    )
+
+    if (txtId) await connection.confirmTransaction(txtId, 'confirmed')
+
+    return auctionHouses
   }
 }
 
