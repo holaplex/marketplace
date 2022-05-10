@@ -29,6 +29,7 @@ import { Filter } from 'react-feather'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import Select from 'react-select'
+import DialectNotificationsButton from 'src/components/DialectNotificationsButton'
 import {
   GetNftCounts,
   GetWalletCounts,
@@ -226,7 +227,8 @@ interface NftFilterForm {
 }
 
 const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
-  const { publicKey, connected } = useWallet()
+  const wallet = useWallet()
+  const { publicKey, connected } = wallet
   const [hasMore, setHasMore] = useState(true)
   const router = useRouter()
   const {
@@ -386,6 +388,9 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                 Admin Dashboard
               </Link>
             )}
+            <div className="mr-2">
+              <DialectNotificationsButton />
+            </div>
             <WalletPortal />
           </div>
         </div>
