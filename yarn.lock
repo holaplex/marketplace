@@ -415,10 +415,10 @@
     "@solana/spl-token" "^0.1.8"
     typescript "^4.5.4"
 
-"@dialectlabs/react-ui@^0.8.4":
-  version "0.8.4"
-  resolved "https://registry.yarnpkg.com/@dialectlabs/react-ui/-/react-ui-0.8.4.tgz#119fa59a7d8505e2a88c658081e7669796689c35"
-  integrity sha512-scHDcfyN/kOtIJwlHval0jTVHEw+rdzXptQ6ds2UBl0V9bVYaJf5DBzBe1TEiVZPCW/tbUMk7Jj/w8NxVhIxlw==
+"@dialectlabs/react-ui@^0.8.6":
+  version "0.8.6"
+  resolved "https://registry.yarnpkg.com/@dialectlabs/react-ui/-/react-ui-0.8.6.tgz#86fcedf073a6adc629fde712480af6995421a4f1"
+  integrity sha512-WHoo48HbMetahbKPTUT6T9m5t8jrdjHL3m6WJ/+y5K7ylB90jyM0uEOwDTiaAVRrQ9MKmi3UrcxiGwEQ9UVtog==
   dependencies:
     "@cardinal/namespaces-components" "2.5.0"
     "@dialectlabs/web3" "^0.3.1"
@@ -430,10 +430,10 @@
     react-media-hook "^0.4.9"
     swr "^0.5.6"
 
-"@dialectlabs/react@^0.5.2":
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/@dialectlabs/react/-/react-0.5.2.tgz#d4401a82e57db56c7b8c47745a3bacd093555ea6"
-  integrity sha512-V3Uwz1SNoSlWnLz2SMaLrNy8yHG24rZPpZqFi2osQGxQj7v7nyF0RjaGuq/YG9ufKw+L2XPAw73WisQMMLbM3g==
+"@dialectlabs/react@^0.5.4":
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/@dialectlabs/react/-/react-0.5.4.tgz#9a4af2c44b7222b8cef86e2da777c36ad02f1755"
+  integrity sha512-JJtXVYCHoaqnuWNjw9aCBKjpgy4c+FKaRMYYJrmiQYB4cG8SHpDXdrDO4oCPaOxeEFrYFYIiclnu00Tc2nhqhw==
   dependencies:
     "@dialectlabs/web3" "^0.3.1"
     "@project-serum/anchor" "^0.23.0"
