@@ -415,10 +415,10 @@
     "@solana/spl-token" "^0.1.8"
     typescript "^4.5.4"
 
-"@dialectlabs/react-ui@^0.7.3":
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/@dialectlabs/react-ui/-/react-ui-0.7.3.tgz#6d7200bbfbe0787e202426c599d08dc33ee30a04"
-  integrity sha512-mTPrdv5RQe9mew5u5/cD7bFngBixLVUz5wRj+tW+WwYMEQ7ZuPsuviygyiHpu+ke9zscEO+yUjoajmErb/GpBg==
+"@dialectlabs/react-ui@^0.8.4":
+  version "0.8.4"
+  resolved "https://registry.yarnpkg.com/@dialectlabs/react-ui/-/react-ui-0.8.4.tgz#119fa59a7d8505e2a88c658081e7669796689c35"
+  integrity sha512-scHDcfyN/kOtIJwlHval0jTVHEw+rdzXptQ6ds2UBl0V9bVYaJf5DBzBe1TEiVZPCW/tbUMk7Jj/w8NxVhIxlw==
   dependencies:
     "@cardinal/namespaces-components" "2.5.0"
     "@dialectlabs/web3" "^0.3.1"
@@ -430,14 +430,13 @@
     react-media-hook "^0.4.9"
     swr "^0.5.6"
 
-"@dialectlabs/react@^0.4.11":
-  version "0.4.11"
-  resolved "https://registry.yarnpkg.com/@dialectlabs/react/-/react-0.4.11.tgz#9a60025cf764ae6a613d56f0d45dec64937bdfbb"
-  integrity sha512-8pqDGytQ/9GYbtV2/FekwyX7Z0kEp03+TbDmdGS9LlDWcli3Gtb/0wnlPcGDgslKbV/MWyk0P7UTezZhBV8HGA==
+"@dialectlabs/react@^0.5.2":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@dialectlabs/react/-/react-0.5.2.tgz#d4401a82e57db56c7b8c47745a3bacd093555ea6"
+  integrity sha512-V3Uwz1SNoSlWnLz2SMaLrNy8yHG24rZPpZqFi2osQGxQj7v7nyF0RjaGuq/YG9ufKw+L2XPAw73WisQMMLbM3g==
   dependencies:
     "@dialectlabs/web3" "^0.3.1"
     "@project-serum/anchor" "^0.23.0"
-    "@solana/web3.js" "1.38.0"
     object-hash "^3.0.0"
     swr "^0.5.6"
     unfetch "^4.2.0"
@@ -1741,26 +1740,6 @@
     "@solana/wallet-adapter-solong" "^0.9.1"
     "@solana/wallet-adapter-tokenpocket" "^0.4.1"
     "@solana/wallet-adapter-torus" "^0.11.2"
-
-"@solana/web3.js@1.38.0":
-  version "1.38.0"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.38.0.tgz#5752409fae912ca2dc470ef45636f4fd3a0e1956"
-  integrity sha512-Crpls2cG7m2fot83ahgTpc7VrPKSMcKOlq12+nYDexKV+uasV25Ylk8SMLHoUp02TyMugKOYHsangUhsrF5ptw==
-  dependencies:
-    "@babel/runtime" "^7.12.5"
-    "@ethersproject/sha2" "^5.5.0"
-    "@solana/buffer-layout" "^4.0.0"
-    bn.js "^5.0.0"
-    borsh "^0.7.0"
-    bs58 "^4.0.1"
-    buffer "6.0.1"
-    cross-fetch "^3.1.4"
-    jayson "^3.4.4"
-    js-sha3 "^0.8.0"
-    rpc-websockets "^7.4.2"
-    secp256k1 "^4.0.2"
-    superstruct "^0.14.2"
-    tweetnacl "^1.0.0"
 
 "@solana/web3.js@^1.17.0", "@solana/web3.js@^1.22.0", "@solana/web3.js@^1.36.0":
   version "1.39.1"
