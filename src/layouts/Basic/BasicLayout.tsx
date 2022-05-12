@@ -5,6 +5,7 @@ import { equals } from 'ramda'
 import cx from 'classnames'
 import WalletPortal from '../../components/WalletPortal'
 import { useWallet } from '@solana/wallet-adapter-react'
+import DialectNotificationsButton from '../../components/DialectNotificationsButton'
 
 interface BasicLayoutProps {
   marketplace: Marketplace
@@ -63,6 +64,9 @@ export const BasicLayout = ({
                 </a>
               </Link>
             )}
+            <div className="mr-2">
+              <DialectNotificationsButton />
+            </div>
             <WalletPortal />
           </div>
         </div>

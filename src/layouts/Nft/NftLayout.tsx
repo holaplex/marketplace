@@ -200,6 +200,14 @@ export const NftLayout = ({ marketplace, nft, children }: NftLayoutProps) => {
                 src={data?.nft.image}
                 className="block w-full h-auto border-none rounded-lg shadow"
               />
+            ) : data?.nft.category === 'html' ? (
+              <iframe
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                sandbox=""
+                referrerPolicy="no-referrer"
+                frameBorder="0"
+                src={data?.nft.files.at(-1)?.uri}
+              ></iframe>
             ) : (
               <></>
             )}

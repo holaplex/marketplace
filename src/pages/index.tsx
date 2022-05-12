@@ -330,7 +330,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
       creators,
       auctionHouses: [marketplace.auctionHouse.address],
       offset: 0,
-      limit: 48,
+      limit: 24,
     },
   })
 

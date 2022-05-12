@@ -1,3 +1,4 @@
+import '@dialectlabs/react-ui/index.css'
 import '../styles/globals.css'
 import '@fontsource/inter/300.css'
 import '@fontsource/inter/600.css'

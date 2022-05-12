@@ -67,8 +67,8 @@ const GET_NFTS = gql`
   query GetNfts(
     $creators: [PublicKey!]!
     $owners: [PublicKey!]
-    $auctionHouses: [PublicKey!]
     $listed: Boolean
+    $auctionHouses: [PublicKey!]
     $offerers: [PublicKey!]
     $limit: Int!
     $offset: Int!
@@ -79,6 +79,7 @@ const GET_NFTS = gql`
       owners: $owners
       auctionHouses: $auctionHouses
       listed: $listed
+      auctionHouses: $auctionHouses
       offerers: $offerers
       limit: $limit
       offset: $offset
@@ -257,7 +258,8 @@ const startDate = subDays(new Date(), 6).toISOString()
 const endDate = new Date().toISOString()
 
 const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
-  const { publicKey, connected } = useWallet()
+  const wallet = useWallet()
+  const { publicKey, connected } = wallet
   const [hasMore, setHasMore] = useState(true)
   const { sidebarOpen, toggleSidebar } = useSidebar()
   const router = useRouter()
@@ -400,7 +402,6 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
         <meta property="og:image" content={marketplace.bannerUrl} />
         <meta property="og:description" content={marketplace.description} />
       </Head>
-
       <div className="relative grid justify-between w-full grid-cols-12 gap-4 mt-20 mb-20">
         <div className="col-span-12 mb-6 md:col-span-8">
           <img
