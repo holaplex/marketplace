@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
-import { Image as ImageIcon, DollarSign, User } from 'react-feather'
+import { Image as ImageIcon, DollarSign, User, Plus } from 'react-feather'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
@@ -246,6 +246,15 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
                   >
                     <DollarSign color="white" className="mr-1" size="1rem" />{' '}
                     Financials
+                  </Link>
+                </li>
+                <li className="block p-2 rounded">
+                  <Link
+                    className="flex flex-row items-center w-full"
+                    to="/admin/integrations/edit"
+                  >
+                    <Plus color="white" className="mr-1" size="1rem" />{' '}
+                    Integrations
                   </Link>
                 </li>
               </ul>
