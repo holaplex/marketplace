@@ -357,7 +357,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
       const listed = ifElse(
         equals(PresetNftFilter.Listed),
         always(true),
-        always(false)
+        always(null)
       )(preset as PresetNftFilter)
 
       refetch({
