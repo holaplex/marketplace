@@ -24,6 +24,42 @@ interface GetMarketplace {
   marketplace: Marketplace | null
 }
 
+interface Integration {
+  name: string
+  id: string
+  icon: string
+  description: string
+}
+
+const availiableIntegrations: Integration[] = [
+  {
+    name: 'Crossmint',
+    id: 'crossmint',
+    description: 'Buy NFTs with a credit card!',
+    icon: '/images/logos/crossmint_logo.png',
+  },
+  {
+    name: 'Sharky.fi',
+    id: 'sharky',
+    description: 'Borrow & Lend Against Your NFTs, Instantly!',
+    icon: '/images/logos/sharky_logo.svg',
+  },
+  {
+    name: 'Bridgesplit',
+    id: 'bridgesplit',
+    description:
+      'Earn yield and get liquidity for non-fungible tokens via lending, indexes, fractionalization, derivatives and more',
+    icon: '/images/logos/bridgesplit_logo.png',
+  },
+  {
+    name: 'Dispatch',
+    id: 'dispatch',
+    description:
+      'The Dispatch Protocol on Solana helps dapps communicate with their users in a fast, reliable and secure manner.',
+    icon: '/images/logos/crossmint_logo.png',
+  },
+]
+
 export async function getServerSideProps({ req }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain']
 
@@ -81,91 +117,16 @@ export async function getServerSideProps({ req }: NextPageContext) {
   }
 }
 
-interface AdminEditFinancialsProps extends AppProps {
+interface AdminEditIntegrationsProps extends AppProps {
   marketplace: Marketplace
 }
 
-const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
+const AdminEditIntegrations = ({ marketplace }: AdminEditIntegrationsProps) => {
   const wallet = useWallet()
   const { connection } = useConnection()
   const { publicKey, signTransaction } = wallet
 
   const login = useLogin()
-
-  const [withdrawlLoading, setWithdrawlLoading] = useState(false)
-
-  const payoutFunds = async () => {
-    if (!publicKey || !signTransaction || !wallet) {
-      toast.error('Wallet not connected')
-
-      login()
-
-      return
-    }
-
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
-    const authority = new PublicKey(marketplace.auctionHouse.authority)
-    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
-    const auctionHouseTreasury = new PublicKey(
-      marketplace.auctionHouse.auctionHouseTreasury
-    )
-
-    const treasuryWithdrawalDestination = new PublicKey(
-      marketplace.auctionHouse.treasuryWithdrawalDestination
-    )
-
-    const auctionHouseTreasuryBalance = await connection.getBalance(
-      auctionHouseTreasury
-    )
-
-    const withdrawFromTreasuryInstructionAccounts = {
-      treasuryMint,
-      authority,
-      treasuryWithdrawalDestination,
-      auctionHouseTreasury,
-      auctionHouse,
-    }
-    const withdrawFromTreasuryInstructionArgs = {
-      amount: auctionHouseTreasuryBalance,
-    }
-
-    const withdrawFromTreasuryInstruction =
-      createWithdrawFromTreasuryInstruction(
-        withdrawFromTreasuryInstructionAccounts,
-        withdrawFromTreasuryInstructionArgs
-      )
-
-    const txt = new Transaction()
-
-    txt.add(withdrawFromTreasuryInstruction)
-
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
-    txt.feePayer = publicKey
-
-    let signed: Transaction | undefined = undefined
-
-    try {
-      signed = await signTransaction(txt)
-    } catch (e: any) {
-      toast.error(e.message)
-      return
-    }
-
-    let signature: string | undefined = undefined
-
-    try {
-      toast('Sending the transaction to Solana.')
-      setWithdrawlLoading(true)
-      signature = await connection.sendRawTransaction(signed.serialize())
-
-      await connection.confirmTransaction(signature, 'confirmed')
-
-      toast.success('The transaction was confirmed.')
-    } catch (e) {
-      toast.error(e.message)
-    }
-    setWithdrawlLoading(false)
-  }
 
   return (
     <div className="flex flex-col items-center text-white bg-gray-900">
@@ -221,7 +182,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
                     <User color="white" className="mr-1" size="1rem" /> Creators
                   </Link>
                 </li>
-                <li className="block p-2 bg-gray-800 rounded">
+                <li className="block p-2 rounded">
                   <Link
                     className="flex flex-row items-center w-full"
                     to="/admin/financials/edit"
@@ -230,7 +191,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
                     Financials
                   </Link>
                 </li>
-                <li className="block p-2 rounded">
+                <li className="block p-2 bg-gray-800 rounded">
                   <Link
                     className="flex flex-row items-center w-full"
                     to="/admin/integrations/edit"
@@ -246,23 +207,24 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
             <div className="w-full max-w-3xl">
               <div className="grid items-start grid-cols-12 mb-10 md:mb-0 md:flex-row md:justify-between">
                 <div className="w-full mb-4 col-span-full md:col-span-6 lg:col-span-8">
-                  <h2>Financials</h2>
+                  <h2>Integrations</h2>
                   <p className="text-gray-300">
-                    Manage the finances of this marketplace.
+                    Manage the integrations of this marketplace.
                   </p>
                 </div>
-                <div className="flex justify-end col-span-full md:col-span-6 lg:col-span-4">
-                  <Button
-                    block
-                    onClick={payoutFunds}
-                    type={ButtonType.Primary}
-                    size={ButtonSize.Small}
-                    loading={withdrawlLoading}
-                  >
-                    Claim Funds
-                  </Button>
-                  &nbsp;&nbsp;
-                </div>
+              </div>
+              <div className="grid grid-cols-4 gap-4 my-2">
+                {availiableIntegrations.map((ai) => (
+                  <div className="px-2 py-2 border border-white rounded-lg">
+                    <input type="checkbox" />
+                    <img src={ai.icon} width="32px" />
+                    <p>{ai.name}</p>
+                    <p>{ai.description}</p>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <Button type={ButtonType.Primary}>Save settings</Button>
               </div>
             </div>
           </div>
@@ -272,4 +234,4 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
   )
 }
 
-export default AdminEditFinancials
+export default AdminEditIntegrations
