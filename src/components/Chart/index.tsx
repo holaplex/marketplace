@@ -1,4 +1,3 @@
-import cx from 'classnames'
 import { format, parseISO } from 'date-fns'
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { toSOL } from '../../modules/lamports'
@@ -29,7 +28,16 @@ const Chart = ({
   if (actualData.length == 0) return null
   return (
     <ResponsiveContainer width="100%" height={height} className={className}>
-      <AreaChart data={actualData}>
+      <AreaChart
+        data={actualData}
+        height={height}
+        margin={{
+          top: 10,
+          right: 0,
+          left: -30,
+          bottom: 0,
+        }}
+      >
         <Area
           dataKey="price"
           stroke="#525252"

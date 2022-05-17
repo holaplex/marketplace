@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, ReactElement } from 'react'
+import { any, map, intersection, or, isEmpty, isNil, pipe, prop } from 'ramda'
+import { NextPageContext } from 'next'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/router'
+import Link from 'next/link'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
-import { OperationVariables, ApolloQueryResult } from '@apollo/client'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
+import { gql, useQuery } from '@apollo/client'
 import {
   Transaction,
   PublicKey,
@@ -12,15 +15,184 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
 } from '@solana/web3.js'
 import { toast } from 'react-toastify'
-import { Nft, Marketplace } from './../../types'
-import Button, { ButtonType } from './../Button'
-import { useLogin } from '../../hooks/login'
+import { NftLayout } from './../../../../layouts/Nft'
+import client from './../../../../client'
+import { Nft, Marketplace, GetNftData } from './../../../../types'
+import Button, { ButtonType } from './../../../../components/Button'
+import { useLogin } from '../../../../hooks/login'
+
+const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
+
+const GET_NFT = gql`
+  query GetNft($address: String!) {
+    nft(address: $address) {
+      name
+      address
+      image(width: 1400)
+      sellerFeeBasisPoints
+      mintAddress
+      description
+      primarySaleHappened
+      category
+      files {
+        fileType
+        uri
+      }
+      owner {
+        address
+        associatedTokenAccountAddress
+        twitterHandle
+        profile {
+          handle
+          profileImageUrl
+        }
+      }
+      attributes {
+        traitType
+        value
+      }
+      creators {
+        address
+        twitterHandle
+        profile {
+          handle
+          profileImageUrl
+        }
+      }
+      offers {
+        address
+        tradeState
+        price
+        buyer
+        createdAt
+        auctionHouse
+      }
+      activities {
+        address
+        metadata
+        auctionHouse
+        price
+        createdAt
+        wallets {
+          address
+          profile {
+            handle
+            profileImageUrl
+          }
+        }
+        activityType
+      }
+      listings {
+        address
+        auctionHouse
+        bookkeeper
+        seller
+        metadata
+        purchaseReceipt
+        price
+        tokenSize
+        bump
+        tradeState
+        tradeStateBump
+        createdAt
+        canceledAt
+      }
+    }
+  }
+`
+
+interface GetNftPage {
+  marketplace: Marketplace | null
+  nft: Nft | null
+}
+
+export async function getServerSideProps({ req, query }: NextPageContext) {
+  const subdomain = req?.headers['x-holaplex-subdomain']
+
+  const {
+    data: { marketplace, nft },
+  } = await client.query<GetNftPage>({
+    fetchPolicy: 'no-cache',
+    query: gql`
+      query GetNftPage($subdomain: String!, $address: String!) {
+        marketplace(subdomain: $subdomain) {
+          subdomain
+          name
+          description
+          logoUrl
+          bannerUrl
+          ownerAddress
+          creators {
+            creatorAddress
+            storeConfigAddress
+          }
+          auctionHouse {
+            address
+            treasuryMint
+            auctionHouseTreasury
+            treasuryWithdrawalDestination
+            feeWithdrawalDestination
+            authority
+            creator
+            auctionHouseFeeAccount
+            bump
+            treasuryBump
+            feePayerBump
+            sellerFeeBasisPoints
+            requiresSignOff
+            canChangeSalePrice
+          }
+        }
+        nft(address: $address) {
+          address
+          image
+          name
+          description
+          mintAddress
+          owner {
+            associatedTokenAccountAddress
+          }
+          creators {
+            address
+          }
+        }
+      }
+    `,
+    variables: {
+      subdomain: subdomain || SUBDOMAIN,
+      address: query?.address,
+    },
+  })
+
+  const nftCreatorAddresses = map(prop('address'))(nft?.creators || [])
+  const marketplaceCreatorAddresses = map(prop('creatorAddress'))(
+    marketplace?.creators || []
+  )
+  const notAllowed = pipe(
+    intersection(marketplaceCreatorAddresses),
+    isEmpty
+  )(nftCreatorAddresses)
+
+  if (or(any(isNil)([marketplace, nft]), notAllowed)) {
+    return {
+      notFound: true,
+    }
+  }
+
+  return {
+    props: {
+      marketplace,
+      nft,
+    },
+  }
+}
 
 const {
   createPublicBuyInstruction,
   createPrintBidReceiptInstruction,
   createDepositInstruction,
 } = AuctionHouseProgram.instructions
+
 interface OfferForm {
   amount: string
 }
@@ -28,12 +200,9 @@ interface OfferForm {
 interface OfferProps {
   nft?: Nft
   marketplace: Marketplace
-  refetch: (
-    variables?: Partial<OperationVariables> | undefined
-  ) => Promise<ApolloQueryResult<_>>
 }
 
-const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
+const OfferNew = ({ nft, marketplace }: OfferProps) => {
   const {
     handleSubmit,
     register,
@@ -41,7 +210,7 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
   } = useForm<OfferForm>({})
   const { publicKey, signTransaction } = useWallet()
   const { connection } = useConnection()
-  const navigate = useNavigate()
+  const router = useRouter()
   const login = useLogin()
 
   const placeOfferTransaction = async ({ amount }: OfferForm) => {
@@ -166,13 +335,11 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
 
       await connection.confirmTransaction(signature, 'confirmed')
 
-      await refetch()
-
       toast.success('The transaction was confirmed.')
     } catch (e: any) {
       toast.error(e.message)
     } finally {
-      navigate(`/nfts/${nft.address}`)
+      router.push(`/nfts/${nft.address}`)
     }
   }
 
@@ -182,10 +349,10 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
     }
 
     if (nft.owner.address === publicKey.toBase58()) {
-      navigate(`/nfts/${nft.address}`)
+      router.push(`/nfts/${nft.address}`)
       return
     }
-  }, [publicKey, nft, navigate])
+  }, [publicKey, nft, router])
 
   return (
     <form
@@ -202,7 +369,7 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <Link to={`/nfts/${nft?.address}`}>
+        <Link href={`/nfts/${nft?.address}`} passHref>
           <Button type={ButtonType.Secondary} block>
             Cancel
           </Button>
@@ -215,4 +382,31 @@ const Offer = ({ nft, marketplace, refetch }: OfferProps) => {
   )
 }
 
-export default Offer
+interface NftShowLayoutProps {
+  marketplace: Marketplace
+  nft: Nft
+  children: ReactElement
+}
+
+OfferNew.getLayout = function NftShowLayout({
+  marketplace,
+  nft,
+  children,
+}: NftShowLayoutProps) {
+  const router = useRouter()
+
+  const nftQuery = useQuery<GetNftData>(GET_NFT, {
+    client,
+    variables: {
+      address: router.query?.address,
+    },
+  })
+
+  return (
+    <NftLayout marketplace={marketplace} nft={nft} nftQuery={nftQuery}>
+      {children}
+    </NftLayout>
+  )
+}
+
+export default OfferNew
