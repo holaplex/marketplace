@@ -1,20 +1,19 @@
-import { useState } from 'react'
+import { ReactElement, useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
-import { Image as ImageIcon, DollarSign, User } from 'react-feather'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
 import client from './../../../client'
-import WalletPortal from './../../../../src/components/WalletPortal'
-import { Link } from 'react-router-dom'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 
 import { Transaction, PublicKey } from '@solana/web3.js'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
+import { AdminLayout } from '../../../layouts/Admin'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -168,25 +167,8 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
   }
 
   return (
-    <div className="flex flex-col items-center text-white bg-gray-900">
-      <div className="fixed top-0 z-10 flex items-center justify-between w-full p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
-        <Link to="/">
-          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition duration-100 transform hover:scale-[1.02]">
-            <img
-              className="w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
-              src={marketplace.logoUrl}
-            />
-            <div className="hidden sm:block">{marketplace.name}</div>
-          </button>
-        </Link>
-        <div className="flex items-center gap-6">
-          <div className="text-sm underline cursor-pointer">
-            Admin Dashboard
-          </div>
-          <WalletPortal />
-        </div>
-      </div>
-      <div className="relative w-full">
+    <div className="w-full">
+      <div>
         <img
           src={marketplace.bannerUrl}
           alt={marketplace.name}
@@ -197,40 +179,13 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
         <div className="relative w-full mt-20 mb-1">
           <img
             src={marketplace.logoUrl}
-            className="absolute object-cover w-16 h-16 border-4 border-gray-900 rounded-full -top-28 md:w-28 md:h-28 md:-top-32"
+            className="absolute object-cover w-16 h-16 border-4 bg-gray-900 border-gray-900 rounded-full -top-28 md:w-28 md:h-28 md:-top-32"
           />
         </div>
         <div className="flex flex-col md:flex-row">
           <div className="flex-col space-y-2 md:mr-10 md:w-80 sm:block">
             <div className="sticky top-0 max-h-screen py-4 overflow-auto">
-              <ul className="flex flex-col flex-grow gap-2">
-                <li className="block p-2 rounded">
-                  <Link
-                    className="flex flex-row items-center w-full"
-                    to="/admin/marketplace/edit"
-                  >
-                    <ImageIcon color="white" className="mr-1" size="1rem" />{' '}
-                    Marketplace
-                  </Link>
-                </li>
-                <li className="flex flex-row items-center p-2 rounded">
-                  <Link
-                    className="flex flex-row items-center w-full"
-                    to="/admin/creators/edit"
-                  >
-                    <User color="white" className="mr-1" size="1rem" /> Creators
-                  </Link>
-                </li>
-                <li className="block p-2 bg-gray-800 rounded">
-                  <Link
-                    className="flex flex-row items-center w-full"
-                    to="/admin/financials/edit"
-                  >
-                    <DollarSign color="white" className="mr-1" size="1rem" />{' '}
-                    Financials
-                  </Link>
-                </li>
-              </ul>
+              <AdminMenu selectedItem={AdminMenuItemType.Financials} />
             </div>
           </div>
           <div className="flex flex-col items-center w-full pb-16 grow">
@@ -261,6 +216,18 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
       </div>
     </div>
   )
+}
+
+interface AdminFinancialsLayoutProps {
+  marketplace: Marketplace
+  children: ReactElement
+}
+
+AdminEditFinancials.getLayout = function GetLayout({
+  marketplace,
+  children,
+}: AdminFinancialsLayoutProps): ReactElement {
+  return <AdminLayout marketplace={marketplace}>{children}</AdminLayout>
 }
 
 export default AdminEditFinancials

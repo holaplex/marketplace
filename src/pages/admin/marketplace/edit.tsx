@@ -2,18 +2,19 @@ import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil, not, or } from 'ramda'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { Image as ImageIcon, DollarSign, User } from 'react-feather'
 import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
 import { useForm, Controller } from 'react-hook-form'
 import client from './../../../client'
 import UploadFile from './../../../../src/components/UploadFile'
-import WalletPortal from './../../../../src/components/WalletPortal'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 import { initMarketplaceSDK } from './../../../modules/marketplace'
+import { ReactElement } from 'react'
+import { AdminLayout } from 'src/layouts/Admin'
+import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -179,163 +180,122 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="flex flex-col items-center text-white bg-gray-900">
-        <div className="fixed top-0 z-10 flex items-center justify-between w-full p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
-          <Link to="/">
-            <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition duration-100 transform hover:scale-[1.02]">
+    <form className="w-full">
+      <div className="relative w-full">
+        <Controller
+          control={control}
+          name="banner"
+          render={({ field: { onChange, name, value } }) => (
+            <>
               <img
-                className="object-cover w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
-                src={marketplace.logoUrl}
+                src={value.uri}
+                alt={marketplace.name}
+                className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
               />
-              <div className="hidden sm:block">{marketplace.name}</div>
-            </button>
-          </Link>
-          <div className="flex items-center">
-            <div className="mr-6 text-sm underline cursor-pointer">
-              Admin Dashboard
-            </div>
-            <WalletPortal />
-          </div>
-        </div>
-        <div className="relative w-full">
+              <div className="absolute z-10 transform -translate-x-1/2 -bottom-5 left-1/2">
+                <UploadFile onChange={onChange} name={name} />
+              </div>
+            </>
+          )}
+        />
+      </div>
+      <div className="w-full max-w-[1800px] px-6 md:px-12">
+        <div className="relative w-full mt-20 mb-1">
           <Controller
             control={control}
-            name="banner"
-            render={({ field: { onChange, name, value } }) => (
-              <>
-                <img
-                  src={value.uri}
-                  alt={marketplace.name}
-                  className="object-cover w-full h-44 md:h-60 lg:h-80 xl:h-[20rem] 2xl:h-[28rem]"
-                />
-                <div className="absolute z-10 transform -translate-x-1/2 -bottom-5 left-1/2">
-                  <UploadFile onChange={onChange} name={name} />
-                </div>
-              </>
-            )}
+            name="logo"
+            render={({ field: { onChange, name, value } }) => {
+              return (
+                <>
+                  <img
+                    src={value.uri}
+                    className="absolute object-cover w-16 h-16 bg-gray-900 border-4 border-gray-900 rounded-full -top-28 md:w-28 md:h-28 md:-top-32"
+                  />
+                  <div className="absolute transform -translate-x-1/2 -top-16 left-8 md:-top-12 md:left-14">
+                    <UploadFile onChange={onChange} name={name} />
+                  </div>
+                </>
+              )
+            }}
           />
         </div>
-        <div className="w-full max-w-[1800px] px-6 md:px-12">
-          <div className="relative w-full mt-20 mb-1">
-            <Controller
-              control={control}
-              name="logo"
-              render={({ field: { onChange, name, value } }) => {
-                return (
-                  <>
-                    <img
-                      src={value.uri}
-                      className="absolute object-cover w-16 h-16 border-4 border-gray-900 rounded-full -top-28 md:w-28 md:h-28 md:-top-32"
-                    />
-                    <div className="absolute transform -translate-x-1/2 -top-16 left-8 md:-top-12 md:left-14">
-                      <UploadFile onChange={onChange} name={name} />
-                    </div>
-                  </>
-                )
-              }}
-            />
-          </div>
-          <div className="flex flex-col md:flex-row">
-            <div className="flex-col space-y-2 md:mr-10 md:w-80 sm:block">
-              <div className="sticky top-0 max-h-screen py-4 overflow-auto">
-                <ul className="flex flex-col flex-grow gap-2">
-                  <li className="flex flex-row items-center p-2 bg-gray-800 rounded">
-                    <ImageIcon color="white" className="mr-1" size="1rem" />{' '}
-                    Marketplace
-                  </li>
-                  <li className="p-2 rounded">
-                    <Link
-                      className="flex flex-row items-center w-full"
-                      to="/admin/creators/edit"
-                    >
-                      <User color="white" className="mr-1" size="1rem" />{' '}
-                      Creators
-                    </Link>
-                  </li>
-                  <li className="block p-2 rounded">
-                    <Link
-                      className="flex flex-row items-center w-full"
-                      to="/admin/financials/edit"
-                    >
-                      <DollarSign color="white" className="mr-1" size="1rem" />{' '}
-                      Financials
-                    </Link>
-                  </li>
-                </ul>
-              </div>
+        <div className="flex flex-col md:flex-row">
+          <div className="flex-col space-y-2 md:mr-10 md:w-80 sm:block">
+            <div className="sticky top-0 max-h-screen py-4 overflow-auto">
+              <AdminMenu selectedItem={AdminMenuItemType.Marketplace} />
             </div>
-            <div className="flex flex-col items-center w-full pb-16 grow">
-              <div className="w-full max-w-3xl">
-                <div className="grid items-start grid-cols-12 md:flex-row md:justify-between">
-                  <h2 className="w-full mb-4 col-span-full md:col-span-6 lg:col-span-7">
-                    Edit marketplace
-                  </h2>
-                  <div className="grid justify-end w-full grid-cols-2 gap-2 col-span-full md:col-span-6 lg:col-span-5">
-                    <Link to="/">
-                      <Button
-                        block
-                        size={ButtonSize.Small}
-                        type={ButtonType.Tertiary}
-                        disabled={or(not(isDirty), isSubmitting)}
-                      >
-                        Cancel
-                      </Button>
-                    </Link>
+          </div>
+          <div className="flex flex-col items-center w-full pb-16 grow">
+            <div className="w-full max-w-3xl">
+              <div className="grid items-start grid-cols-12 md:flex-row md:justify-between">
+                <h2 className="w-full mb-4 col-span-full md:col-span-6 lg:col-span-7">
+                  Edit marketplace
+                </h2>
+                <div className="grid justify-end w-full grid-cols-2 gap-2 col-span-full md:col-span-6 lg:col-span-5">
+                  <Link href="/">
                     <Button
                       block
-                      htmlType="submit"
                       size={ButtonSize.Small}
-                      loading={isSubmitting}
+                      type={ButtonType.Tertiary}
                       disabled={or(not(isDirty), isSubmitting)}
                     >
-                      Save changes
+                      Cancel
                     </Button>
-                  </div>
+                  </Link>
+                  <Button
+                    block
+                    htmlType="submit"
+                    onClick={handleSubmit(onSubmit)}
+                    size={ButtonSize.Small}
+                    loading={isSubmitting}
+                    disabled={or(not(isDirty), isSubmitting)}
+                  >
+                    Save changes
+                  </Button>
                 </div>
-                <div className="flex flex-col max-h-screen py-4 overflow-auto">
-                  <label className="text-lg mt-9">Domain</label>
-                  <span className="mb-2 text-sm text-gray-300">
-                    Your domain is managed by Holaplex. If you need to change
-                    it, please{' '}
-                    <a
-                      href="mailto:hola@holaplex.com?subject=Change Subdomain"
-                      className="underline"
-                    >
-                      contact us.
-                    </a>
-                  </span>
-                  <input
-                    className="w-full px-3 py-2 text-base text-right text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
-                    {...register('domain', { disabled: true })}
-                  />
-                  {errors.domain && <span>This field is required</span>}
+              </div>
+              <div className="flex flex-col max-h-screen py-4 overflow-auto">
+                <label className="text-lg mt-9">Domain</label>
+                <span className="mb-2 text-sm text-gray-300">
+                  Your domain is managed by Holaplex. If you need to change it,
+                  please{' '}
+                  <a
+                    href="mailto:hola@holaplex.com?subject=Change Subdomain"
+                    className="underline"
+                  >
+                    contact us.
+                  </a>
+                </span>
+                <input
+                  className="w-full px-3 py-2 text-base text-right text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
+                  {...register('domain', { disabled: true })}
+                />
+                {errors.domain && <span>This field is required</span>}
 
-                  <label className="mb-2 text-lg mt-9">Market Name</label>
-                  <input
-                    className="w-full px-3 py-2 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
-                    {...register('name', { required: true })}
-                  />
-                  {errors.name && <span>This field is required</span>}
+                <label className="mb-2 text-lg mt-9">Market Name</label>
+                <input
+                  className="w-full px-3 py-2 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
+                  {...register('name', { required: true })}
+                />
+                {errors.name && <span>This field is required</span>}
 
-                  <label className="mb-2 text-lg mt-9">Description</label>
-                  <textarea
-                    className="w-full px-3 py-2 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
-                    {...register('description', { required: true })}
-                  />
-                  {errors.description && <span>This field is required</span>}
-                  <label className="text-lg mt-9">Transaction fee</label>
-                  <span className="mb-2 text-sm text-gray-300">
-                    This is a fee added to all sales. Funds go to the auction
-                    house wallet. 1% is equal to 100 basis points.
-                  </span>
-                  <input
-                    type="number"
-                    className="w-full px-3 py-2 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
-                    {...register('transactionFee')}
-                  />
-                  {errors.transactionFee && <span>This field is required</span>}
-                </div>
+                <label className="mb-2 text-lg mt-9">Description</label>
+                <textarea
+                  className="w-full px-3 py-2 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
+                  {...register('description', { required: true })}
+                />
+                {errors.description && <span>This field is required</span>}
+                <label className="text-lg mt-9">Transaction fee</label>
+                <span className="mb-2 text-sm text-gray-300">
+                  This is a fee added to all sales. Funds go to the auction
+                  house wallet. 1% is equal to 100 basis points.
+                </span>
+                <input
+                  type="number"
+                  className="w-full px-3 py-2 text-base text-gray-100 bg-gray-900 border border-gray-700 rounded-sm focus:outline-none"
+                  {...register('transactionFee')}
+                />
+                {errors.transactionFee && <span>This field is required</span>}
               </div>
             </div>
           </div>
@@ -343,6 +303,18 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
       </div>
     </form>
   )
+}
+
+interface AdminEditMarketplaceLayoutProps {
+  marketplace: Marketplace
+  children: ReactElement
+}
+
+AdminEditMarketplace.getLayout = function GetLayout({
+  marketplace,
+  children,
+}: AdminEditMarketplaceLayoutProps): ReactElement {
+  return <AdminLayout marketplace={marketplace}>{children}</AdminLayout>
 }
 
 export default AdminEditMarketplace

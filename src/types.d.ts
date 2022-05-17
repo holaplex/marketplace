@@ -193,7 +193,7 @@ export interface Activity {
   auctionHouse: string
   price: BN
   createdAt: string
-  wallets: string[]
+  wallets: Wallet[]
   activityType: string
   nft: Nft
 }
@@ -235,4 +235,16 @@ export interface PriceChart {
   listingFloor: PricePoint[]
   salesAverage: PricePoint[]
   totalVolume: PricePoint[]
+}
+
+export interface GetPriceChartData {
+  charts: PriceChart
+}
+
+export interface GetActivities {
+  activities: Activity[]
+}
+
+export interface GetNftData {
+  nft: Nft
 }

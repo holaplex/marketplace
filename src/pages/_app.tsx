@@ -7,7 +7,7 @@ import '@fontsource/material-icons'
 import 'react-multi-carousel/lib/styles.css'
 import type { AppProps } from 'next/app'
 import { ApolloProvider } from '@apollo/client'
-import React, { useMemo, useEffect } from 'react'
+import React, { ReactNode, useMemo } from 'react'
 import {
   ConnectionProvider,
   WalletProvider,
@@ -22,17 +22,14 @@ import {
   SolletWalletAdapter,
   TorusWalletAdapter,
 } from '@solana/wallet-adapter-wallets'
-import { useRouter } from 'next/router'
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import '@solana/wallet-adapter-react-ui/styles.css'
-import { useLocation } from 'react-router-dom'
+import { NextPage } from 'next'
 import { Cluster } from '@solana/web3.js'
 import client from '../client'
-import withReactRouter from '../react-router'
 import { ToastContainer } from 'react-toastify'
 import { ViewerProvider } from './../providers/Viewer'
 import 'react-toastify/dist/ReactToastify.css'
-import { equals } from 'ramda'
 
 const network = WalletAdapterNetwork.Mainnet
 
@@ -40,9 +37,15 @@ const CLUSTER_API_URL = 'https://holaplex.rpcpool.com' //'http://api.devnet.sola
 
 const clusterApiUrl = (cluster: Cluster): string => CLUSTER_API_URL
 
-function App({ Component, pageProps }: AppProps) {
-  const { replace, asPath } = useRouter()
-  const location = useLocation()
+type NextPageWithLayout = NextPage & {
+  getLayout?: ({ children: ReactNode }) => ReactNode
+}
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout
+}
+
+function App({ Component, pageProps }: AppPropsWithLayout) {
   const endpoint = useMemo(() => clusterApiUrl(network), [])
   const wallets = useMemo(
     () => [
@@ -57,13 +60,7 @@ function App({ Component, pageProps }: AppProps) {
     []
   )
 
-  useEffect(() => {
-    if (equals(location.pathname, asPath)) {
-      return
-    }
-
-    replace(location.pathname, undefined, { scroll: false })
-  }, [location])
+  const Layout = Component.getLayout ?? (({ children }) => children)
 
   return (
     <ApolloProvider client={client}>
@@ -81,7 +78,9 @@ function App({ Component, pageProps }: AppProps) {
                 className="w-full max-w-full font-sans text-sm text-white bottom-4 sm:right-4 sm:left-auto sm:w-96 sm:translate-x-0"
                 toastClassName="bg-gray-900 bg-opacity-80 rounded-lg items-center"
               />
-              <Component {...pageProps} />
+              <Layout {...pageProps}>
+                <Component {...pageProps} />
+              </Layout>
             </ViewerProvider>
           </WalletModalProvider>
         </WalletProvider>
@@ -90,4 +89,4 @@ function App({ Component, pageProps }: AppProps) {
   )
 }
 
-export default withReactRouter(App)
+export default App

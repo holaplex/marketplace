@@ -2,7 +2,7 @@
   "name": "marketplace",
   "private": true,
   "scripts": {
-    "dev": "PORT=3000 next dev",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -46,8 +46,6 @@
     "react-intersection-observer": "^8.33.1",
     "react-loader-spinner": "^6.0.0-0",
     "react-multi-carousel": "^2.8.0",
-    "react-router": "^6.2.1",
-    "react-router-dom": "^6.2.1",
     "react-select": "^5.2.2",
     "react-toastify": "^8.2.0",
     "recharts": "^2.1.9",
