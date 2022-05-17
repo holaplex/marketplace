@@ -79,7 +79,6 @@ const GET_NFTS = gql`
       owners: $owners
       auctionHouses: $auctionHouses
       listed: $listed
-      auctionHouses: $auctionHouses
       offerers: $offerers
       limit: $limit
       offset: $offset
@@ -778,10 +777,17 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   )
 }
 
-CreatorShow.getLayout = function GetLayout(page: ReactElement): ReactElement {
-  return (
-    <BannerLayout marketplace={page.props.marketplace}>{page}</BannerLayout>
-  )
+interface CreatorShowLayoutProps {
+  marketplace: Marketplace
+  children: ReactElement
+}
+
+CreatorShow.getLayout = function GetLayout({
+  marketplace,
+  nft,
+  children,
+}: CreatorShowLayoutProps): ReactElement {
+  return <BannerLayout marketplace={marketplace}>{children}</BannerLayout>
 }
 
 export default CreatorShow

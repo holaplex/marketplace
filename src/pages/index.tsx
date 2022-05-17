@@ -896,10 +896,16 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   )
 }
 
-Home.getLayout = function GetHomeLayout(page: ReactElement) {
-  return (
-    <BannerLayout marketplace={page.props.marketplace}>{page}</BannerLayout>
-  )
+interface HomeLayoutProps {
+  marketplace: Marketplace
+  children: ReactElement
+}
+
+Home.getLayout = function GetHomeLayout({
+  marketplace,
+  children,
+}: HomeLayoutProps) {
+  return <BannerLayout marketplace={marketplace}>{children}</BannerLayout>
 }
 
 export default Home

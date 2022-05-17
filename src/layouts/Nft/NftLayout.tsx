@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react'
-import { gql, useQuery } from '@apollo/client'
-import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { OperationVariables, QueryResult } from '@apollo/client'
+import { useWallet } from '@solana/wallet-adapter-react'
 import cx from 'classnames'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -8,6 +8,7 @@ import {
   all,
   always,
   and,
+  or,
   when,
   any,
   equals,
@@ -27,116 +28,41 @@ import { format } from 'timeago.js'
 import AcceptOfferForm from '../../components/AcceptOfferForm'
 import CancelOfferForm from '../../components/CancelOfferForm'
 import { BasicLayout } from '../Basic'
-import { useLogin } from '../../hooks/login'
 import { truncateAddress, addressAvatar } from '../../modules/address'
 import { toSOL } from '../../modules/lamports'
-import { Activity, Listing, Marketplace, Nft, Offer } from '../../types'
+import {
+  Activity,
+  GetNftData,
+  Listing,
+  Marketplace,
+  Nft,
+  Offer,
+} from '../../types'
+import { identity } from 'lodash'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
 const pickAuctionHouse = prop('auctionHouse')
-
-const GET_NFT = gql`
-  query GetNft($address: String!) {
-    nft(address: $address) {
-      name
-      address
-      image(width: 1400)
-      sellerFeeBasisPoints
-      mintAddress
-      description
-      primarySaleHappened
-      category
-      files {
-        fileType
-        uri
-      }
-      owner {
-        address
-        associatedTokenAccountAddress
-        twitterHandle
-        profile {
-          handle
-          profileImageUrl
-        }
-      }
-      attributes {
-        traitType
-        value
-      }
-      creators {
-        address
-        twitterHandle
-        profile {
-          handle
-          profileImageUrl
-        }
-      }
-      offers {
-        address
-        tradeState
-        price
-        buyer
-        createdAt
-        auctionHouse
-      }
-      activities {
-        address
-        metadata
-        auctionHouse
-        price
-        createdAt
-        wallets {
-          address
-          profile {
-            handle
-            profileImageUrl
-          }
-        }
-        activityType
-      }
-      listings {
-        address
-        auctionHouse
-        bookkeeper
-        seller
-        metadata
-        purchaseReceipt
-        price
-        tokenSize
-        bump
-        tradeState
-        tradeStateBump
-        createdAt
-        canceledAt
-      }
-    }
-  }
-`
 
 interface NftLayoutProps {
   marketplace: Marketplace
   nft: Nft
   children: ReactElement
+  nftQuery: QueryResult<GetNftData, OperationVariables>
 }
 
-interface GetNftData {
-  nft: Nft
-}
-
-export const NftLayout = ({ marketplace, nft, children }: NftLayoutProps) => {
-  const { publicKey, signTransaction } = useWallet()
-  const { connection } = useConnection()
+export const NftLayout = ({
+  marketplace,
+  nft,
+  children,
+  nftQuery,
+}: NftLayoutProps) => {
+  const { publicKey } = useWallet()
   const router = useRouter()
 
-  const { data, loading, refetch } = useQuery<GetNftData>(GET_NFT, {
-    variables: {
-      address: router.query?.address,
-    },
-  })
+  const { data, loading, refetch } = nftQuery
 
   const isMarketplaceAuctionHouse = equals(marketplace.auctionHouse.address)
   const isOwner = equals(data?.nft.owner.address, publicKey?.toBase58()) || null
-  const login = useLogin()
   const listing = find<Listing>(
     pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
   )(data?.nft.listings || [])
@@ -167,7 +93,7 @@ export const NftLayout = ({ marketplace, nft, children }: NftLayoutProps) => {
         <meta property="og:image" content={nft.image} />
         <meta property="og:description" content={nft.description} />
       </Head>
-      <div className="container px-4 pb-10 mx-auto text-white">
+      <div className="pb-10 mx-auto text-white">
         <div className="grid items-start grid-cols-1 gap-6 mt-12 mb-10 lg:grid-cols-2">
           <div className="block mb-4 lg:mb-0 lg:flex lg:items-center lg:justify-center ">
             <div className="block mb-6 lg:hidden">
@@ -310,36 +236,38 @@ export const NftLayout = ({ marketplace, nft, children }: NftLayoutProps) => {
                 )}
               </div>
             </div>
-            <div
-              className={cx('w-full p-6 mt-8 bg-gray-800 rounded-lg', {
-                'h-44': loading,
-              })}
-            >
+            {any(identity)([isOwner, listing, not(offer)]) && (
               <div
-                className={cx('flex', {
-                  hidden: loading,
+                className={cx('w-full p-6 mt-8 bg-gray-800 rounded-lg', {
+                  'h-44': loading,
                 })}
               >
-                {listing && (
-                  <div className="flex-1 mb-6">
-                    <div className="label">PRICE</div>
-                    <p className="text-base md:text-xl lg:text-3xl">
-                      <b className="sol-amount">
-                        {toSOL(listing.price.toNumber())}
-                      </b>
-                    </p>
-                  </div>
-                )}
+                <div
+                  className={cx('flex', {
+                    hidden: loading,
+                  })}
+                >
+                  {listing && (
+                    <div className="flex-1 mb-6">
+                      <div className="label">PRICE</div>
+                      <p className="text-base md:text-xl lg:text-3xl">
+                        <b className="sol-amount">
+                          {toSOL(listing.price.toNumber())}
+                        </b>
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div className={cx('flex gap-4', { hidden: loading })}>
+                  {React.cloneElement(children, {
+                    ...children.props,
+                    isOwner,
+                    listing,
+                    offer,
+                  })}
+                </div>
               </div>
-              <div className={cx('flex gap-4', { hidden: loading })}>
-                {React.cloneElement(children, {
-                  ...children.props,
-                  isOwner,
-                  listing,
-                  offer,
-                })}
-              </div>
-            </div>
+            )}
             <div className="grid grid-cols-2 gap-6 mt-8">
               {loading ? (
                 <>

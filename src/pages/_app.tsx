@@ -7,7 +7,7 @@ import '@fontsource/material-icons'
 import 'react-multi-carousel/lib/styles.css'
 import type { AppProps } from 'next/app'
 import { ApolloProvider } from '@apollo/client'
-import React, { useMemo } from 'react'
+import React, { ReactNode, useMemo } from 'react'
 import {
   ConnectionProvider,
   WalletProvider,
@@ -25,7 +25,6 @@ import {
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import '@solana/wallet-adapter-react-ui/styles.css'
 import { NextPage } from 'next'
-import { ReactElement, ReactNode } from 'react'
 import { Cluster } from '@solana/web3.js'
 import client from '../client'
 import { ToastContainer } from 'react-toastify'
@@ -39,7 +38,7 @@ const CLUSTER_API_URL = 'https://holaplex.rpcpool.com' //'http://api.devnet.sola
 const clusterApiUrl = (cluster: Cluster): string => CLUSTER_API_URL
 
 type NextPageWithLayout = NextPage & {
-  getLayout?: (page: ReactElement) => ReactNode
+  getLayout?: ({ children: ReactNode }) => ReactNode
 }
 
 type AppPropsWithLayout = AppProps & {
@@ -61,7 +60,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
     []
   )
 
-  const getLayout = Component.getLayout ?? ((page) => page)
+  const Layout = Component.getLayout ?? (({ children }) => children)
 
   return (
     <ApolloProvider client={client}>
@@ -79,7 +78,9 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
                 className="w-full max-w-full font-sans text-sm text-white bottom-4 sm:right-4 sm:left-auto sm:w-96 sm:translate-x-0"
                 toastClassName="bg-gray-900 bg-opacity-80 rounded-lg items-center"
               />
-              {getLayout(<Component {...pageProps} />)}
+              <Layout {...pageProps}>
+                <Component {...pageProps} />
+              </Layout>
             </ViewerProvider>
           </WalletModalProvider>
         </WalletProvider>

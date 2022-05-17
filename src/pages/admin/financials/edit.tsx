@@ -218,10 +218,16 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
   )
 }
 
-AdminEditFinancials.getLayout = function GetLayout(
-  page: ReactElement
-): ReactElement {
-  return <AdminLayout marketplace={page.props.marketplace}>{page}</AdminLayout>
+interface AdminFinancialsLayoutProps {
+  marketplace: Marketplace
+  children: ReactElement
+}
+
+AdminEditFinancials.getLayout = function GetLayout({
+  marketplace,
+  children,
+}: AdminFinancialsLayoutProps): ReactElement {
+  return <AdminLayout marketplace={marketplace}>{children}</AdminLayout>
 }
 
 export default AdminEditFinancials

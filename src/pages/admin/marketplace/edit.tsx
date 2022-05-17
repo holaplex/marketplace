@@ -305,10 +305,16 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
   )
 }
 
-AdminEditMarketplace.getLayout = function GetLayout(
-  page: ReactElement
-): ReactElement {
-  return <AdminLayout marketplace={page.props.marketplace}>{page}</AdminLayout>
+interface AdminEditMarketplaceLayoutProps {
+  marketplace: Marketplace
+  children: ReactElement
+}
+
+AdminEditMarketplace.getLayout = function GetLayout({
+  marketplace,
+  children,
+}: AdminEditMarketplaceLayoutProps): ReactElement {
+  return <AdminLayout marketplace={marketplace}>{children}</AdminLayout>
 }
 
 export default AdminEditMarketplace

@@ -1,3 +1,4 @@
+import { ReactElement } from 'react'
 import { gql, useQuery } from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { NextPage, NextPageContext } from 'next'
@@ -11,7 +12,6 @@ import cx from 'classnames'
 import { BasicLayout, NavigationLink } from './../../layouts/Basic'
 import { truncateAddress, addressAvatar } from '../../modules/address'
 import { Marketplace } from '../../types'
-import { ReactElement } from 'react'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -233,13 +233,15 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
   )
 }
 
-Creators.getLayout = (page: ReactElement) => {
+interface CreatorsLayoutProps {
+  marketplace: Marketplace
+  children: ReactElement
+}
+
+Creators.getLayout = ({ marketplace, children }: CreatorsLayoutProps) => {
   return (
-    <BasicLayout
-      active={NavigationLink.Creators}
-      marketplace={page.props.marketplace}
-    >
-      {page}
+    <BasicLayout active={NavigationLink.Creators} marketplace={marketplace}>
+      {children}
     </BasicLayout>
   )
 }

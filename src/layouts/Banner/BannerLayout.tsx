@@ -6,6 +6,7 @@ import { Marketplace } from '../../types'
 import { useSidebar } from '../../hooks/sidebar'
 import Link from 'next/link'
 import WalletPortal from '../../components/WalletPortal'
+import DialectNotificationsButton from '../../components/DialectNotificationsButton'
 
 interface BannerLayoutProps {
   marketplace: Marketplace
@@ -51,6 +52,9 @@ export const BannerLayout = ({ marketplace, children }: BannerLayoutProps) => {
                 Creators
               </a>
             </Link>
+            <div className="mr-2">
+              <DialectNotificationsButton />
+            </div>
             <WalletPortal />
           </div>
         </div>

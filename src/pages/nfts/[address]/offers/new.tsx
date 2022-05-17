@@ -7,7 +7,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
-import { gql } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import {
   Transaction,
   PublicKey,
@@ -17,11 +17,89 @@ import {
 import { toast } from 'react-toastify'
 import { NftLayout } from './../../../../layouts/Nft'
 import client from './../../../../client'
-import { Nft, Marketplace } from './../../../../types'
+import { Nft, Marketplace, GetNftData } from './../../../../types'
 import Button, { ButtonType } from './../../../../components/Button'
 import { useLogin } from '../../../../hooks/login'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
+
+const GET_NFT = gql`
+  query GetNft($address: String!) {
+    nft(address: $address) {
+      name
+      address
+      image(width: 1400)
+      sellerFeeBasisPoints
+      mintAddress
+      description
+      primarySaleHappened
+      category
+      files {
+        fileType
+        uri
+      }
+      owner {
+        address
+        associatedTokenAccountAddress
+        twitterHandle
+        profile {
+          handle
+          profileImageUrl
+        }
+      }
+      attributes {
+        traitType
+        value
+      }
+      creators {
+        address
+        twitterHandle
+        profile {
+          handle
+          profileImageUrl
+        }
+      }
+      offers {
+        address
+        tradeState
+        price
+        buyer
+        createdAt
+        auctionHouse
+      }
+      activities {
+        address
+        metadata
+        auctionHouse
+        price
+        createdAt
+        wallets {
+          address
+          profile {
+            handle
+            profileImageUrl
+          }
+        }
+        activityType
+      }
+      listings {
+        address
+        auctionHouse
+        bookkeeper
+        seller
+        metadata
+        purchaseReceipt
+        price
+        tokenSize
+        bump
+        tradeState
+        tradeStateBump
+        createdAt
+        canceledAt
+      }
+    }
+  }
+`
 
 interface GetNftPage {
   marketplace: Marketplace | null
@@ -70,6 +148,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           image
           name
           description
+          mintAddress
           owner {
             associatedTokenAccountAddress
           }
@@ -303,10 +382,29 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
   )
 }
 
-OfferNew.getLayout = function NftShowLayout(page: ReactElement) {
+interface NftShowLayoutProps {
+  marketplace: Marketplace
+  nft: Nft
+  children: ReactElement
+}
+
+OfferNew.getLayout = function NftShowLayout({
+  marketplace,
+  nft,
+  children,
+}: NftShowLayoutProps) {
+  const router = useRouter()
+
+  const nftQuery = useQuery<GetNftData>(GET_NFT, {
+    client,
+    variables: {
+      address: router.query?.address,
+    },
+  })
+
   return (
-    <NftLayout marketplace={page.props.marketplace} nft={page.props.nft}>
-      {page}
+    <NftLayout marketplace={marketplace} nft={nft} nftQuery={nftQuery}>
+      {children}
     </NftLayout>
   )
 }

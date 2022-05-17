@@ -244,3 +244,7 @@ export interface GetPriceChartData {
 export interface GetActivities {
   activities: Activity[]
 }
+
+export interface GetNftData {
+  nft: Nft
+}

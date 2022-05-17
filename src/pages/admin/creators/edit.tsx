@@ -301,10 +301,16 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
   )
 }
 
-AdminEditCreators.getLayout = function GetLayout(
-  page: ReactElement
-): ReactElement {
-  return <AdminLayout marketplace={page.props.marketplace}>{page}</AdminLayout>
+interface AdminEditCreatorsLayoutProps {
+  marketplace: Marketplace
+  children: ReactElement
+}
+
+AdminEditCreators.getLayout = function GetLayout({
+  marketplace,
+  children,
+}: AdminEditCreatorsLayoutProps): ReactElement {
+  return <AdminLayout marketplace={marketplace}>{children}</AdminLayout>
 }
 
 export default AdminEditCreators
