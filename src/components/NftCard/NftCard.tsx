@@ -2,7 +2,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { PublicKey } from '@solana/web3.js'
 import { equals, find, not, pipe, prop, when, isNil, always } from 'ramda'
 import React from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { addressAvatar } from 'src/modules/address'
 import { toSOL } from './../../modules/lamports'
 import { Listing, Marketplace, Nft } from './../../types'
@@ -73,17 +73,21 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
               </p>
             </div>
             {not(isOwner) && (
-              <Link to={`/nfts/${nft.address}`}>
-                <button className="button small grow-0">Buy Now</button>
+              <Link href={`/nfts/${nft.address}`} passHref>
+                <a>
+                  <button className="button small grow-0">Buy Now</button>
+                </a>
               </Link>
             )}
           </>
         ) : (
           not(isOwner) && (
-            <Link to={`/nfts/${nft.address}/offers/new`}>
-              <button className="button tertiary small grow-0">
-                Make Offer
-              </button>
+            <Link href={`/nfts/${nft.address}/offers/new`} passHref>
+              <a>
+                <button className="button tertiary small grow-0">
+                  Make Offer
+                </button>
+              </a>
             </Link>
           )
         )}

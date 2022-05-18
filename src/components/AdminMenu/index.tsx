@@ -1,6 +1,7 @@
 import { DollarSign, User, Image as ImageIcon, Circle } from 'react-feather'
-import { Link } from 'react-router-dom'
+
 import cx from 'classnames'
+import Link from 'next/link'
 
 export enum AdminMenuItemType {
   Marketplace,
@@ -57,9 +58,11 @@ const AdminMenu = ({ selectedItem }: Props) => (
             'bg-gray-800': selectedItem === item.type,
           })}
         >
-          <Link className="flex flex-row items-center w-full" to={item.url}>
-            <div className="mr-2">{item.icon}</div>
-            {item.name}
+          <Link href={item.url}>
+            <a className="flex flex-row items-center w-full">
+              <div className="mr-2">{item.icon}</div>
+              {item.name}
+            </a>
           </Link>
         </li>
       ))}

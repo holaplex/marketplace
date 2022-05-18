@@ -27,6 +27,7 @@ module.exports = {
         800: 'var(--success-800)',
         900: 'var(--success-900)',
       },
+      transparent: 'transparent',
     },
     fontFamily: {
       sans: ['Inter', 'sans-serif'],

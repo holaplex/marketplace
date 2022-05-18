@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { ReactElement, useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
@@ -7,13 +7,12 @@ import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import client from './../../../client'
-import WalletPortal from './../../../../src/components/WalletPortal'
-import { Link } from 'react-router-dom'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 import { truncateAddress } from '../../../modules/address'
 import { initMarketplaceSDK } from './../../../modules/marketplace'
+import { AdminLayout } from '../../../layouts/Admin'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -191,25 +190,8 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
   }
 
   return (
-    <div className="flex flex-col items-center text-white bg-gray-900">
-      <div className="fixed top-0 z-10 flex items-center justify-between w-full p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
-        <Link to="/">
-          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition duration-100 transform hover:scale-[1.02]">
-            <img
-              className="w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
-              src={marketplace.logoUrl}
-            />
-            <div className="hidden sm:block">{marketplace.name}</div>
-          </button>
-        </Link>
-        <div className="flex items-center gap-6">
-          <div className="text-sm underline cursor-pointer">
-            Admin Dashboard
-          </div>
-          <WalletPortal />
-        </div>
-      </div>
-      <div className="relative w-full">
+    <div className="w-full">
+      <div>
         <img
           src={marketplace.bannerUrl}
           alt={marketplace.name}
@@ -220,7 +202,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
         <div className="relative w-full mt-20 mb-1">
           <img
             src={marketplace.logoUrl}
-            className="absolute object-cover w-16 h-16 border-4 border-gray-900 rounded-full -top-28 md:w-28 md:h-28 md:-top-32"
+            className="absolute object-cover w-16 h-16 border-4 bg-gray-900 border-gray-900 rounded-full -top-28 md:w-28 md:h-28 md:-top-32"
           />
         </div>
         <div className="flex flex-col md:flex-row">
@@ -317,6 +299,18 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
       </div>
     </div>
   )
+}
+
+interface AdminEditCreatorsLayoutProps {
+  marketplace: Marketplace
+  children: ReactElement
+}
+
+AdminEditCreators.getLayout = function GetLayout({
+  marketplace,
+  children,
+}: AdminEditCreatorsLayoutProps): ReactElement {
+  return <AdminLayout marketplace={marketplace}>{children}</AdminLayout>
 }
 
 export default AdminEditCreators

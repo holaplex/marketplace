@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { ReactElement, useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
@@ -8,14 +8,13 @@ import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import client from './../../../client'
-import WalletPortal from './../../../../src/components/WalletPortal'
-import { Link } from 'react-router-dom'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 import { initMarketplaceSDK } from './../../../modules/marketplace'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 import { SplToken } from '../../../components/SplToken'
+import { AdminLayout } from '../../../layouts/Admin'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -213,25 +212,8 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
   }
 
   return (
-    <div className="flex flex-col items-center text-white bg-gray-900">
-      <div className="fixed top-0 z-10 flex items-center justify-between w-full p-6 text-white bg-gray-900/80 backdrop-blur-md grow">
-        <Link to="/">
-          <button className="flex items-center justify-between gap-2 bg-gray-800 rounded-full align sm:px-4 sm:py-2 sm:h-14 hover:bg-gray-600 transition duration-100 transform hover:scale-[1.02]">
-            <img
-              className="w-12 h-12 rounded-full md:w-8 md:h-8 aspect-square"
-              src={marketplace.logoUrl}
-            />
-            <div className="hidden sm:block">{marketplace.name}</div>
-          </button>
-        </Link>
-        <div className="flex items-center gap-6">
-          <div className="text-sm underline cursor-pointer">
-            Admin Dashboard
-          </div>
-          <WalletPortal />
-        </div>
-      </div>
-      <div className="relative w-full">
+    <div className="w-full">
+      <div>
         <img
           src={marketplace.bannerUrl}
           alt={marketplace.name}
@@ -368,6 +350,18 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
       </div>
     </div>
   )
+}
+
+interface AdminEditTokensLayoutProps {
+  marketplace: Marketplace
+  children: ReactElement
+}
+
+AdminEditTokens.getLayout = function GetLayout({
+  marketplace,
+  children,
+}: AdminEditTokensLayoutProps): ReactElement {
+  return <AdminLayout marketplace={marketplace}>{children}</AdminLayout>
 }
 
 export default AdminEditTokens

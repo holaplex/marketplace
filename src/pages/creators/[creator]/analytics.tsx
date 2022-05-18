@@ -1,43 +1,20 @@
 import { gql, useQuery } from '@apollo/client'
 import { NextPageContext, NextPage } from 'next'
-import { isNil } from 'ramda'
+import { isNil, or, any, equals, not, map, prop } from 'ramda'
 import { subDays } from 'date-fns'
-import client from '../../client'
-import { Marketplace, PriceChart, GetActivities } from 'src/types'
-import { AnalyticsLayout } from './../../layouts/Analytics'
+import client from '../../../client'
+import { Marketplace, PriceChart, GetActivities } from './../../../types'
+import { AnalyticsLayout } from './../../../layouts/Analytics'
+import { truncateAddress } from './../../../modules/address'
+import { useRouter } from 'next/router'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
-const GET_PRICE_CHART_DATA = gql`
-  query GetPriceChartData(
-    $auctionHouses: [PublicKey!]!
-    $startDate: DateTimeUtc!
-    $endDate: DateTimeUtc!
-  ) {
-    charts(
-      auctionHouses: $auctionHouses
-      startDate: $startDate
-      endDate: $endDate
-    ) {
-      listingFloor {
-        price
-        date
-      }
-      salesAverage {
-        price
-        date
-      }
-      totalVolume {
-        price
-        date
-      }
-    }
-  }
-`
+const pluckCreatorAddresses = map(prop('creatorAddress'))
 
 const GET_ACTIVITIES = gql`
-  query GetActivities($auctionHouses: [PublicKey!]!) {
-    activities(auctionHouses: $auctionHouses) {
+  query GetActivities($auctionHouses: [PublicKey!]!, $creators: [PublicKey!]) {
+    activities(auctionHouses: $auctionHouses, creators: $creators) {
       address
       metadata
       auctionHouse
@@ -60,7 +37,36 @@ const GET_ACTIVITIES = gql`
   }
 `
 
-export async function getServerSideProps({ req }: NextPageContext) {
+const GET_PRICE_CHART_DATA = gql`
+  query GetPriceChartData(
+    $auctionHouses: [PublicKey!]!
+    $creators: [PublicKey!]
+    $startDate: DateTimeUtc!
+    $endDate: DateTimeUtc!
+  ) {
+    charts(
+      auctionHouses: $auctionHouses
+      creators: $creators
+      startDate: $startDate
+      endDate: $endDate
+    ) {
+      listingFloor {
+        price
+        date
+      }
+      salesAverage {
+        price
+        date
+      }
+      totalVolume {
+        price
+        date
+      }
+    }
+  }
+`
+
+export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain'] || SUBDOMAIN
 
   const response = await client.query<GetMarketplace>({
@@ -73,6 +79,10 @@ export async function getServerSideProps({ req }: NextPageContext) {
           description
           logoUrl
           bannerUrl
+          creators {
+            creatorAddress
+            storeConfigAddress
+          }
           auctionHouse {
             authority
             address
@@ -88,8 +98,15 @@ export async function getServerSideProps({ req }: NextPageContext) {
   const {
     data: { marketplace },
   } = response
+  const marketplaceCreatorAddresses = pluckCreatorAddresses(
+    marketplace?.creators || []
+  )
 
-  if (isNil(marketplace)) {
+  const isMarketplaceCreator = any(equals(query.creator))(
+    marketplaceCreatorAddresses
+  )
+
+  if (or(isNil(marketplace), not(isMarketplaceCreator))) {
     return {
       notFound: true,
     }
@@ -102,10 +119,6 @@ export async function getServerSideProps({ req }: NextPageContext) {
   }
 }
 
-interface GetMarketplaceInfo {
-  marketplace: Marketplace
-}
-
 interface GetMarketplace {
   marketplace: Marketplace | null
 }
@@ -114,18 +127,20 @@ export interface GetPriceChartData {
   charts: PriceChart
 }
 
-interface AnalyticsProps {
+interface CreatorAnalyticsProps {
   marketplace: Marketplace
 }
 
 const startDate = subDays(new Date(), 6).toISOString()
 const endDate = new Date().toISOString()
 
-const Analytics: NextPage<AnalyticsProps> = ({ marketplace }) => {
+const CreatorAnalytics: NextPage<CreatorAnalyticsProps> = ({ marketplace }) => {
+  const router = useRouter()
   const priceChartQuery = useQuery<GetPriceChartData>(GET_PRICE_CHART_DATA, {
     fetchPolicy: 'network-only',
     variables: {
       auctionHouses: [marketplace.auctionHouse.address],
+      creators: [router.query.creator],
       startDate,
       endDate,
     },
@@ -134,13 +149,16 @@ const Analytics: NextPage<AnalyticsProps> = ({ marketplace }) => {
   const activitiesQuery = useQuery<GetActivities>(GET_ACTIVITIES, {
     variables: {
       auctionHouses: [marketplace.auctionHouse.address],
+      creators: [router.query.creator],
     },
   })
 
+  const truncatedAddress = truncateAddress(router.query?.creator as string)
+
   return (
     <AnalyticsLayout
-      title={<h1>{marketplace.name}</h1>}
-      metaTitle={`${marketplace.name} Activity`}
+      title={<h1 className="mb-4 text-3xl pubkey">{truncatedAddress}</h1>}
+      metaTitle={`${truncatedAddress} Activity`}
       marketplace={marketplace}
       priceChartQuery={priceChartQuery}
       activitiesQuery={activitiesQuery}
@@ -148,4 +166,4 @@ const Analytics: NextPage<AnalyticsProps> = ({ marketplace }) => {
   )
 }
 
-export default Analytics
+export default CreatorAnalytics

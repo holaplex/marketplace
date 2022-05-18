@@ -2,7 +2,7 @@
   "name": "marketplace",
   "private": true,
   "scripts": {
-    "dev": "PORT=8080 next dev",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@apollo/client": "^3.5.6",
+    "@dialectlabs/react": "^0.4.11",
+    "@dialectlabs/react-ui": "^0.7.3",
     "@fontsource/inter": "^4.5.1",
     "@fontsource/jetbrains-mono": "^4.5.0",
     "@fontsource/material-icons": "^4.5.1",
@@ -45,8 +47,6 @@
     "react-intersection-observer": "^8.33.1",
     "react-loader-spinner": "^6.0.0-0",
     "react-multi-carousel": "^2.8.0",
-    "react-router": "^6.2.1",
-    "react-router-dom": "^6.2.1",
     "react-select": "^5.2.2",
     "react-toastify": "^8.2.0",
     "recharts": "^2.1.9",

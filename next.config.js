@@ -9,18 +9,6 @@ module.exports = {
 
     return config
   },
-  async rewrites() {
-    return [
-      {
-        source: '/nfts/:address/listings/new',
-        destination: '/nfts/:address',
-      },
-      {
-        source: '/nfts/:address/offers/new',
-        destination: '/nfts/:address',
-      },
-    ]
-  },
   reactStrictMode: false,
   env: {
     NEXT_PUBLIC_GRAPH_ENDPOINT: process.env.NEXT_PUBLIC_GRAPH_ENDPOINT,
