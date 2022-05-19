@@ -18,6 +18,7 @@
     "@fontsource/jetbrains-mono": "^4.5.0",
     "@fontsource/material-icons": "^4.5.1",
     "@heroicons/react": "^1.0.5",
+    "@holaplex/marketplace-js-sdk": "^0.1.7",
     "@holaplex/mpl-auction-house": "^0.0.7",
     "@metaplex-foundation/mpl-auction-house": "1.1.1",
     "@metaplex-foundation/mpl-token-metadata": "^1.2.5",
