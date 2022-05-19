@@ -317,16 +317,19 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
                       className="flex justify-between w-full"
                     >
                       <SplToken mint={field.address} />
-                      <div className="flex gap-4 items-center">
-                        <span className="font-medium text-gray-100">
-                          Make default
-                        </span>
-                        <Trash2
-                          className="rounded-full bg-gray-700 p-1.5 text-white"
-                          onClick={() => remove(index)}
-                          size="2rem"
-                        />
-                      </div>
+                      {field.address !==
+                        'So11111111111111111111111111111111111111112' && (
+                        <div className="flex gap-4 items-center">
+                          {/* <span className="font-medium text-gray-100">
+-                          Make default
+-                        </span> */}
+                          <Trash2
+                            className="rounded-full bg-gray-700 p-1.5 text-white"
+                            onClick={() => remove(index)}
+                            size="2rem"
+                          />
+                        </div>
+                      )}
                     </li>
                   )
                 })}
