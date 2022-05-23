@@ -14,6 +14,7 @@ import Button, { ButtonType } from './../../../../components/Button'
 import { useLogin } from '../../../../hooks/login'
 import { Wallet } from '@metaplex/js'
 import { OffersClient, Nft as NftFromSdk } from '@holaplex/marketplace-js-sdk'
+import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -212,28 +213,18 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
       return
     }
 
-    // try {
-    //   signed = await signTransaction(txt)
-    // } catch (e: any) {
-    //   toast.error(e.message)
-    //   return
-    // }
-    // let signature: string | undefined = undefined
-
     try {
-      /** TODO: To show the following toast, we might need to get 
-       callback from sdk once the transaction is signed 
-       */
-      // toast('Sending the transaction to Solana.')
-      // signature = await connection.sendRawTransaction(signed.serialize())
-      // await connection.confirmTransaction(signature, 'confirmed')
+      toast('Sending the transaction to Solana.')
 
       const offersClient = new OffersClient(
         connection,
         wallet as Wallet,
         marketplace.auctionHouse
       )
-      await offersClient.make({ amount, nft: nft as NftFromSdk })
+      await offersClient.make({
+        amount: amount * LAMPORTS_PER_SOL,
+        nft: nft as NftFromSdk,
+      })
       toast.success('The transaction was confirmed.')
     } catch (e: any) {
       toast.error(e.message)

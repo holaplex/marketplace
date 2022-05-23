@@ -11,10 +11,20 @@ import client from './../../../client'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
-import { initMarketplaceSDK } from './../../../modules/marketplace'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 import { SplToken } from '../../../components/SplToken'
 import { AdminLayout } from '../../../layouts/Admin'
+import { MarketplaceClient } from '@holaplex/marketplace-js-sdk'
+import { Wallet } from '@metaplex/js'
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+} from '@solana/web3.js'
+import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import { NATIVE_MINT } from '@solana/spl-token'
+import { createCreateAuctionHouseInstruction } from '@holaplex/mpl-auction-house/dist/src/generated/instructions'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -96,6 +106,102 @@ interface MarketplaceForm {
   token: string
 }
 
+async function createAuctionHouses(
+  connection: Connection,
+  wallet: Wallet,
+  tokens: { address: string }[],
+  sellerFeeBasisPoints: number
+): Promise<{ address: string }[]> {
+  const publicKey = wallet.publicKey
+
+  const auctionHouses: { address: string }[] = []
+  const instructions: TransactionInstruction[] = []
+
+  tokens.forEach(async (token) => {
+    const canChangeSalePrice = false
+    const requiresSignOff = false
+    const treasuryWithdrawalDestination = undefined
+    const feeWithdrawalDestination = undefined
+    const treasuryMint = token.address
+
+    const twdKey = treasuryWithdrawalDestination
+      ? new PublicKey(treasuryWithdrawalDestination)
+      : wallet.publicKey
+
+    const fwdKey = feeWithdrawalDestination
+      ? new PublicKey(feeWithdrawalDestination)
+      : wallet.publicKey
+
+    const tMintKey = treasuryMint ? new PublicKey(treasuryMint) : NATIVE_MINT
+
+    const twdAta = tMintKey.equals(NATIVE_MINT)
+      ? twdKey
+      : (
+          await AuctionHouseProgram.findAssociatedTokenAccountAddress(
+            tMintKey,
+            twdKey
+          )
+        )[0]
+
+    const [auctionHouse, bump] =
+      await AuctionHouseProgram.findAuctionHouseAddress(
+        wallet.publicKey,
+        tMintKey
+      )
+
+    auctionHouses.push({ address: auctionHouse.toBase58() })
+
+    const [feeAccount, feePayerBump] =
+      await AuctionHouseProgram.findAuctionHouseFeeAddress(auctionHouse)
+
+    const [treasuryAccount, treasuryBump] =
+      await AuctionHouseProgram.findAuctionHouseTreasuryAddress(auctionHouse)
+
+    const auctionHouseCreateInstruction = createCreateAuctionHouseInstruction(
+      {
+        treasuryMint: tMintKey,
+        payer: wallet.publicKey,
+        authority: wallet.publicKey,
+        feeWithdrawalDestination: fwdKey,
+        treasuryWithdrawalDestination: twdAta,
+        treasuryWithdrawalDestinationOwner: twdKey,
+        auctionHouse,
+        auctionHouseFeeAccount: feeAccount,
+        auctionHouseTreasury: treasuryAccount,
+      },
+      {
+        bump,
+        feePayerBump,
+        treasuryBump,
+        sellerFeeBasisPoints,
+        requiresSignOff,
+        canChangeSalePrice,
+      }
+    )
+    instructions.push(auctionHouseCreateInstruction)
+  })
+
+  const transaction = new Transaction()
+
+  instructions.forEach((instruction: TransactionInstruction) => {
+    transaction.add(instruction)
+  })
+
+  transaction.feePayer = publicKey
+  transaction.recentBlockhash = (
+    await connection.getRecentBlockhash()
+  ).blockhash
+
+  const signedTransaction = await wallet.signTransaction!(transaction)
+  const txtId = await connection.sendRawTransaction(
+    signedTransaction.serialize()
+  )
+
+  if (txtId) await connection.confirmTransaction(txtId, 'confirmed')
+
+  return auctionHouses
+}
+
 const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
   const wallet = useWallet()
   const { publicKey, signTransaction } = wallet
@@ -151,7 +257,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
       return
     }
 
-    const client = initMarketplaceSDK(connection, wallet)
+    const client = new MarketplaceClient(connection, wallet as Wallet)
 
     toast('Saving changes...')
 
@@ -167,7 +273,9 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
       (token) => !originalTokens.some((ot) => ot.address === token.address)
     )
     if (newTokens.length > 0) {
-      const newAuctionHouses = await client.createAuctionHouses(
+      const newAuctionHouses = await createAuctionHouses(
+        connection,
+        wallet as Wallet,
         newTokens,
         transactionFee
       )

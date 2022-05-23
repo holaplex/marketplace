@@ -11,9 +11,10 @@ import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 import { truncateAddress } from '../../../modules/address'
-import { initMarketplaceSDK } from './../../../modules/marketplace'
 import { AdminLayout } from '../../../layouts/Admin'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
+import { MarketplaceClient } from '@holaplex/marketplace-js-sdk'
+import { Wallet } from '@metaplex/js'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -146,7 +147,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
       return
     }
 
-    const client = initMarketplaceSDK(connection, wallet)
+    const client = new MarketplaceClient(connection, wallet as Wallet)
 
     toast('Saving changes...')
 

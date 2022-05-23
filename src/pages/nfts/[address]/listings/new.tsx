@@ -3,22 +3,18 @@ import { useForm, Controller } from 'react-hook-form'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
-import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
 import { NextPageContext } from 'next'
 import { map, prop, isEmpty, intersection, pipe, or, any, isNil } from 'ramda'
-import {
-  Transaction,
-  PublicKey,
-  LAMPORTS_PER_SOL,
-  SYSVAR_INSTRUCTIONS_PUBKEY,
-} from '@solana/web3.js'
+import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { gql, useQuery } from '@apollo/client'
 import client from './../../../../client'
 import { NftLayout } from './../../../../layouts/Nft'
 import Button, { ButtonType } from './../../../../components/Button'
 import { Nft, Marketplace, GetNftData } from './../../../../types'
 import { toast } from 'react-toastify'
+import { ListingsClient } from '@holaplex/marketplace-js-sdk'
+import { Wallet } from '@metaplex/js'
+import { Nft as NftFromSdk } from '@holaplex/marketplace-js-sdk'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -99,9 +95,6 @@ const GET_NFT = gql`
     }
   }
 `
-
-const { createSellInstruction, createPrintListingReceiptInstruction } =
-  AuctionHouseProgram.instructions
 
 interface GetNftPage {
   marketplace: Marketplace | null
@@ -205,7 +198,8 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<SellNftForm>({})
-  const { publicKey, signTransaction } = useWallet()
+  const wallet = useWallet()
+  const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
   const router = useRouter()
 
@@ -214,109 +208,18 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
       return
     }
 
-    const buyerPrice = Number(amount) * LAMPORTS_PER_SOL
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
-    const authority = new PublicKey(marketplace.auctionHouse.authority)
-    const auctionHouseFeeAccount = new PublicKey(
-      marketplace.auctionHouse.auctionHouseFeeAccount
-    )
-    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
-    const tokenMint = new PublicKey(nft.mintAddress)
-
-    const associatedTokenAccount = new PublicKey(
-      nft.owner.associatedTokenAccountAddress
-    )
-
-    const [sellerTradeState, tradeStateBump] =
-      await AuctionHouseProgram.findTradeStateAddress(
-        publicKey,
-        auctionHouse,
-        associatedTokenAccount,
-        treasuryMint,
-        tokenMint,
-        buyerPrice,
-        1
-      )
-
-    const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
-
-    const [programAsSigner, programAsSignerBump] =
-      await AuctionHouseProgram.findAuctionHouseProgramAsSignerAddress()
-
-    const [freeTradeState, freeTradeBump] =
-      await AuctionHouseProgram.findTradeStateAddress(
-        publicKey,
-        auctionHouse,
-        associatedTokenAccount,
-        treasuryMint,
-        tokenMint,
-        0,
-        1
-      )
-
-    const txt = new Transaction()
-
-    const sellInstructionArgs = {
-      tradeStateBump,
-      freeTradeStateBump: freeTradeBump,
-      programAsSignerBump: programAsSignerBump,
-      buyerPrice,
-      tokenSize: 1,
-    }
-
-    const sellInstructionAccounts = {
-      wallet: publicKey,
-      tokenAccount: associatedTokenAccount,
-      metadata: metadata,
-      authority: authority,
-      auctionHouse: auctionHouse,
-      auctionHouseFeeAccount: auctionHouseFeeAccount,
-      sellerTradeState: sellerTradeState,
-      freeSellerTradeState: freeTradeState,
-      programAsSigner: programAsSigner,
-    }
-
-    const sellInstruction = createSellInstruction(
-      sellInstructionAccounts,
-      sellInstructionArgs
-    )
-
-    const [receipt, receiptBump] =
-      await AuctionHouseProgram.findListingReceiptAddress(sellerTradeState)
-
-    const printListingReceiptInstruction = createPrintListingReceiptInstruction(
-      {
-        receipt,
-        bookkeeper: publicKey,
-        instruction: SYSVAR_INSTRUCTIONS_PUBKEY,
-      },
-      {
-        receiptBump,
-      }
-    )
-
-    txt.add(sellInstruction).add(printListingReceiptInstruction)
-
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
-    txt.feePayer = publicKey
-
-    let signed: Transaction | undefined = undefined
-
-    try {
-      signed = await signTransaction(txt)
-    } catch (e: any) {
-      toast.error(e.message)
-      return
-    }
-
-    let signature: string | undefined = undefined
-
     try {
       toast('Sending the transaction to Solana.')
 
-      signature = await connection.sendRawTransaction(signed.serialize())
-
-      await connection.confirmTransaction(signature, 'confirmed')
+      const listingsClient = new ListingsClient(
+        connection,
+        wallet as Wallet,
+        marketplace.auctionHouse
+      )
+      await listingsClient.post({
+        amount: +amount * LAMPORTS_PER_SOL,
+        nft: nft as NftFromSdk,
+      })
 
       toast.success('The transaction was confirmed.')
     } catch (e: any) {
@@ -356,6 +259,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
                     autoFocus
                     value={value}
                     className="input"
+                    type="number"
                     onChange={(e: any) => {
                       onChange(e.target.value)
                     }}
