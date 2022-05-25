@@ -18,16 +18,12 @@ import Link from 'next/link'
 import { DollarSign, Tag } from 'react-feather'
 import { truncateAddress, addressAvatar } from '../../modules/address'
 import { toSOL } from '../../modules/lamports'
-import {
-  Activity,
-  Marketplace,
-  GetPriceChartData,
-  GetActivities,
-} from './../../types'
+import { Activity, Marketplace } from '@holaplex/marketplace-js-sdk'
 import { format } from 'timeago.js'
 import cx from 'classnames'
 import { BasicLayout } from '../Basic'
 import Chart from './../../components/Chart'
+import { GetActivities, GetPriceChartData } from 'src/types'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
 

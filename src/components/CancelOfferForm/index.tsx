@@ -2,10 +2,14 @@ import { useForm } from 'react-hook-form'
 import { OperationVariables, ApolloQueryResult } from '@apollo/client'
 import Button, { ButtonSize, ButtonType } from './../../components/Button'
 import { toast } from 'react-toastify'
-import { Marketplace } from '../../types'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { Wallet } from '@metaplex/js'
-import { initMarketplaceSDK, Nft, Offer } from '@holaplex/marketplace-js-sdk'
+import {
+  initMarketplaceSDK,
+  Marketplace,
+  Nft,
+  Offer,
+} from '@holaplex/marketplace-js-sdk'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { useMemo } from 'react'
 

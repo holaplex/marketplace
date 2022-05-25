@@ -11,10 +11,11 @@ import { NftLayout } from './../../layouts/Nft'
 import client from '../../client'
 import Button, { ButtonType } from '../../components/Button'
 import { useLogin } from '../../hooks/login'
-import { Marketplace, Offer, GetNftData } from '../../types.d'
+import { Marketplace, Offer } from '@holaplex/marketplace-js-sdk'
 import { ReactElement, useMemo } from 'react'
 import { Wallet } from '@metaplex/js'
 import { Nft, Listing, initMarketplaceSDK } from '@holaplex/marketplace-js-sdk'
+import { GetNftData } from 'src/types'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 

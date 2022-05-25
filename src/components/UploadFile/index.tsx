@@ -1,6 +1,6 @@
 import ipfsSDK from './../../modules/ipfs/client'
 import { useEffect, useState } from 'react'
-import { useForm, ChangeHandler, InternalFieldName } from 'react-hook-form'
+import { useForm, InternalFieldName } from 'react-hook-form'
 import { TailSpin } from 'react-loader-spinner'
 
 interface UploadFileProps {

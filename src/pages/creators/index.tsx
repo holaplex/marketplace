@@ -11,7 +11,7 @@ import client from '../../client'
 import cx from 'classnames'
 import { BasicLayout, NavigationLink } from './../../layouts/Basic'
 import { truncateAddress, addressAvatar } from '../../modules/address'
-import { Marketplace } from '../../types'
+import { Marketplace } from '@holaplex/marketplace-js-sdk'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -76,7 +76,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
     }
   }
 
-  if (pipe(length, equals(1))(marketplace.creators)) {
+  if (marketplace.creators && pipe(length, equals(1))(marketplace.creators)) {
     return {
       redirect: {
         permanent: false,
@@ -106,7 +106,7 @@ interface CreatorsPageProps extends AppProps {
 
 const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
   const { publicKey, connected } = useWallet()
-  const creators = map(prop('creatorAddress'))(marketplace.creators)
+  //const creators = map(prop('creatorAddress'))(marketplace.creators)
 
   const creatorsQuery = useQuery<GetCreatorPreviews>(GET_CREATORS_PREVIEW, {
     variables: {
@@ -167,7 +167,7 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
             </div>
           </>
         ) : (
-          creatorsQuery.data?.marketplace.creators.map((creator) => {
+          creatorsQuery.data?.marketplace.creators?.map((creator) => {
             return (
               <Link
                 key={creator.creatorAddress}
@@ -205,7 +205,7 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-3 mb-2 gap-4 overflow-hidden">
-                    {creator.preview.map((nft, index) => {
+                    {creator.preview?.map((nft, index) => {
                       return (
                         <div className="w-full" key={nft.address}>
                           <img
@@ -213,7 +213,7 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
                               'w-full object-cover aspect-square rounded-md',
                               {
                                 'hidden md:block':
-                                  index === creator.preview.length - 1,
+                                  index === creator.preview?.length - 1,
                               }
                             )}
                             src={nft.image}

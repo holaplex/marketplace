@@ -7,7 +7,7 @@ import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
 import client from './../../../client'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
-import { Marketplace } from './../../../types.d'
+import { Marketplace } from '@holaplex/marketplace-js-sdk'
 import { useLogin } from '../../../hooks/login'
 
 import { Transaction, PublicKey } from '@solana/web3.js'

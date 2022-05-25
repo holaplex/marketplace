@@ -9,7 +9,6 @@ import { AppProps } from 'next/app'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import client from './../../../client'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
-import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 import { SplToken } from '../../../components/SplToken'
@@ -17,7 +16,7 @@ import { AdminLayout } from '../../../layouts/Admin'
 import { Wallet } from '@metaplex/js'
 import { PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js'
 import { NATIVE_MINT } from '@solana/spl-token'
-import { initMarketplaceSDK } from '@holaplex/marketplace-js-sdk'
+import { initMarketplaceSDK, Marketplace } from '@holaplex/marketplace-js-sdk'
 import { createCreateAuctionHouseInstruction } from '@metaplex-foundation/mpl-auction-house/dist/src/generated/instructions'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 
@@ -192,7 +191,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
 
   const [showAdd, setShowAdd] = useState(false)
 
-  const originalTokens = marketplace.auctionHouses.map(({ treasuryMint }) => ({
+  const originalTokens = marketplace.auctionHouses?.map(({ treasuryMint }) => ({
     address: treasuryMint,
   }))
 
@@ -208,7 +207,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
       subdomain: marketplace.subdomain,
       name: marketplace.name,
       description: marketplace.description,
-      creators: marketplace.creators.map(({ creatorAddress }) => ({
+      creators: marketplace.creators?.map(({ creatorAddress }) => ({
         address: creatorAddress,
       })),
       transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,
@@ -243,7 +242,9 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
 
     // Remove auction houses corresponding to deleted tokens
     const auctionHouses = marketplace.auctionHouses
-      .filter((ah) => tokens.some((token) => token.address === ah.treasuryMint))
+      ?.filter((ah) =>
+        tokens.some((token) => token.address === ah.treasuryMint)
+      )
       .map(({ address }) => ({
         address,
       }))

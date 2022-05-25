@@ -32,13 +32,13 @@ import { truncateAddress, addressAvatar } from '../../modules/address'
 import { toSOL } from '../../modules/lamports'
 import {
   Activity,
-  GetNftData,
   Listing,
   Marketplace,
   Nft,
   Offer,
-} from '../../types'
+} from '@holaplex/marketplace-js-sdk'
 import { identity } from 'lodash'
+import { GetNftData } from 'src/types'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
 const pickAuctionHouse = prop('auctionHouse')

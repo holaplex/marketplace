@@ -35,15 +35,13 @@ import {
   Creator,
   Marketplace,
   Nft,
-  NftCount,
   PresetNftFilter,
-  PriceChart,
-  Wallet,
-} from '../types.d'
+} from '@holaplex/marketplace-js-sdk'
 import { List } from './../components/List'
 import { NftCard } from './../components/NftCard'
 import { subDays } from 'date-fns'
 import Chart from './../components/Chart'
+import { NftCount, PriceChart, Wallet } from 'src/types'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -253,7 +251,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
     }
   }
 
-  if (pipe(length, equals(1))(marketplace.creators)) {
+  if (marketplace.creators && pipe(length, equals(1))(marketplace.creators)) {
     return {
       redirect: {
         permanent: false,

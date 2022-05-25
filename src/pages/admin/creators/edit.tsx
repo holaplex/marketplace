@@ -8,12 +8,11 @@ import { AppProps } from 'next/app'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import client from './../../../client'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
-import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 import { truncateAddress } from '../../../modules/address'
 import { AdminLayout } from '../../../layouts/Admin'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
-import { initMarketplaceSDK } from '@holaplex/marketplace-js-sdk'
+import { initMarketplaceSDK, Marketplace } from '@holaplex/marketplace-js-sdk'
 import { Wallet } from '@metaplex/js'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -121,7 +120,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
       subdomain: marketplace.subdomain,
       name: marketplace.name,
       description: marketplace.description,
-      creators: marketplace.creators.map(({ creatorAddress }) => ({
+      creators: marketplace.creators?.map(({ creatorAddress }) => ({
         address: creatorAddress,
       })),
       transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,

@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react'
-import { Marketplace } from '../../types'
+import { Marketplace } from '@holaplex/marketplace-js-sdk'
 import Link from 'next/link'
 import { equals } from 'ramda'
 import cx from 'classnames'

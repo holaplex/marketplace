@@ -9,13 +9,12 @@ import client from './../../../client'
 import UploadFile from './../../../../src/components/UploadFile'
 import Link from 'next/link'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
-import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 import { AdminLayout } from 'src/layouts/Admin'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 import { ReactElement, useMemo } from 'react'
 import { Wallet } from '@metaplex/js'
-import { initMarketplaceSDK } from '@holaplex/marketplace-js-sdk'
+import { initMarketplaceSDK, Marketplace } from '@holaplex/marketplace-js-sdk'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -117,7 +116,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
       subdomain: marketplace.subdomain,
       name: marketplace.name,
       description: marketplace.description,
-      creators: marketplace.creators.map(({ creatorAddress }) => ({
+      creators: marketplace.creators?.map(({ creatorAddress }) => ({
         address: creatorAddress,
       })),
       transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,

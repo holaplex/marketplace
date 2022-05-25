@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React from 'react'
 import { KeyType } from '../../types'
 import { isEmpty, range, map } from 'ramda'
 import { InView } from 'react-intersection-observer'

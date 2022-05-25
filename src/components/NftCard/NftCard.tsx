@@ -5,7 +5,7 @@ import React from 'react'
 import Link from 'next/link'
 import { addressAvatar } from 'src/modules/address'
 import { toSOL } from './../../modules/lamports'
-import { Listing, Marketplace, Nft } from './../../types'
+import { Listing, Marketplace, Nft } from '@holaplex/marketplace-js-sdk'
 
 interface NftCardProps {
   nft: Nft
@@ -14,9 +14,11 @@ interface NftCardProps {
 
 export const NftCard = ({ nft, marketplace }: NftCardProps) => {
   const { publicKey } = useWallet()
-  const listing = find<Listing>(
-    pipe(prop('auctionHouse'), equals(marketplace.auctionHouse.address))
-  )(nft.listings)
+  const listing = !nft.listings
+    ? null
+    : find<Listing>(
+        pipe(prop('auctionHouse'), equals(marketplace.auctionHouse.address))
+      )(nft.listings)
 
   const isOwner = equals(nft.owner?.address, publicKey?.toBase58())
 
@@ -28,7 +30,7 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
           className="w-full aspect-square object-cover"
           src={nft.image as string}
         />
-        {nft.offers.length > 0 && (
+        {nft.offers && nft.offers.length > 0 && (
           <div className="absolute top-3 left-3 text-xs rounded-full py-1 px-2 bg-black bg-opacity-60">
             {nft.offers.length} {nft.offers.length == 1 ? 'Offer' : 'Offers'}
           </div>

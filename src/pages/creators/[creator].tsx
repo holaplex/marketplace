@@ -51,8 +51,8 @@ import {
   Marketplace,
   Nft,
   PresetNftFilter,
-  PriceChart,
-} from './../../types.d'
+} from '@holaplex/marketplace-js-sdk'
+import { PriceChart } from 'src/types'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 

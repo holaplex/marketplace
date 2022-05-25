@@ -3,8 +3,9 @@ import { NextPageContext, NextPage } from 'next'
 import { isNil } from 'ramda'
 import { subDays } from 'date-fns'
 import client from '../../client'
-import { Marketplace, PriceChart, GetActivities } from 'src/types'
+import { PriceChart, GetActivities } from 'src/types'
 import { AnalyticsLayout } from './../../layouts/Analytics'
+import { Marketplace } from '@holaplex/marketplace-js-sdk'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
