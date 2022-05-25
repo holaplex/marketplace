@@ -1,4 +1,4 @@
-import { ReactElement, useState } from 'react'
+import { ReactElement, useMemo, useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
@@ -13,7 +13,7 @@ import { useLogin } from '../../../hooks/login'
 import { truncateAddress } from '../../../modules/address'
 import { AdminLayout } from '../../../layouts/Admin'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
-import { MarketplaceClient } from '@holaplex/marketplace-js-sdk'
+import { initMarketplaceSDK } from '@holaplex/marketplace-js-sdk'
 import { Wallet } from '@metaplex/js'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -101,6 +101,11 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
   const { connection } = useConnection()
   const login = useLogin()
 
+  const sdk = useMemo(
+    () => initMarketplaceSDK(connection, wallet as Wallet),
+    [connection, wallet]
+  )
+
   const [showAdd, setShowAdd] = useState(false)
 
   const {
@@ -147,8 +152,6 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
       return
     }
 
-    const client = new MarketplaceClient(connection, wallet as Wallet)
-
     toast('Saving changes...')
 
     const settings = {
@@ -176,7 +179,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
     }
 
     try {
-      await client.update(settings, transactionFee)
+      await sdk.update(settings, transactionFee)
 
       toast.success(
         <>

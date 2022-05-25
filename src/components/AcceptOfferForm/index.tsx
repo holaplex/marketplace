@@ -2,15 +2,16 @@ import { useForm } from 'react-hook-form'
 import Button, { ButtonSize, ButtonType } from './../../components/Button'
 import { OperationVariables, ApolloQueryResult } from '@apollo/client'
 import { toast } from 'react-toastify'
-import { Listing, Marketplace, Nft, Offer } from '../../types'
+import { Marketplace } from '../../types'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { OffersClient } from '@holaplex/marketplace-js-sdk'
 import { Wallet } from '@metaplex/js'
 import {
-  Listing as ListingFromSdk,
-  Nft as NftFromSdk,
-  Offer as OfferFromSdk,
+  initMarketplaceSDK,
+  Listing,
+  Nft,
+  Offer,
 } from '@holaplex/marketplace-js-sdk'
+import { useMemo } from 'react'
 
 interface AcceptOfferFormProps {
   offer: Offer
@@ -32,6 +33,11 @@ const AcceptOfferForm = ({
   const wallet = useWallet()
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
+  const sdk = useMemo(
+    () => initMarketplaceSDK(connection, wallet as Wallet),
+    [connection, wallet]
+  )
+
   const {
     formState: { isSubmitting },
     handleSubmit,
@@ -44,16 +50,10 @@ const AcceptOfferForm = ({
 
     try {
       toast('Sending the transaction to Solana.')
-
-      const offersClient = new OffersClient(
-        connection,
-        wallet as Wallet,
-        marketplace.auctionHouse
-      )
-      await offersClient.accept({
-        cancel: [listing] as ListingFromSdk[],
-        nft: nft as NftFromSdk,
-        offer: offer as OfferFromSdk,
+      await sdk.offers(marketplace.auctionHouse).accept({
+        cancel: [listing],
+        nft,
+        offer,
       })
 
       await refetch()

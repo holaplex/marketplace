@@ -13,9 +13,9 @@ import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 import { AdminLayout } from 'src/layouts/Admin'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
-import { ReactElement } from 'react'
-import { MarketplaceClient } from '@holaplex/marketplace-js-sdk'
+import { ReactElement, useMemo } from 'react'
 import { Wallet } from '@metaplex/js'
+import { initMarketplaceSDK } from '@holaplex/marketplace-js-sdk'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -100,7 +100,10 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
   const login = useLogin()
-
+  const sdk = useMemo(
+    () => initMarketplaceSDK(connection, wallet as Wallet),
+    [connection, wallet]
+  )
   const {
     register,
     control,
@@ -137,8 +140,6 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
       return
     }
 
-    const client = new MarketplaceClient(connection, wallet as Wallet)
-
     toast('Saving changes...')
 
     const settings = {
@@ -166,7 +167,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
     }
 
     try {
-      await client.update(settings, transactionFee)
+      await sdk.update(settings, transactionFee)
 
       toast.success(
         <>

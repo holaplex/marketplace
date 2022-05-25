@@ -2,15 +2,12 @@ import { useForm } from 'react-hook-form'
 import { OperationVariables, ApolloQueryResult } from '@apollo/client'
 import Button, { ButtonSize, ButtonType } from './../../components/Button'
 import { toast } from 'react-toastify'
-import { Marketplace, Nft, Offer } from '../../types'
+import { Marketplace } from '../../types'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { OffersClient } from '@holaplex/marketplace-js-sdk'
 import { Wallet } from '@metaplex/js'
-import {
-  Nft as NftFromSdk,
-  Offer as OfferFromSdk,
-} from '@holaplex/marketplace-js-sdk'
+import { initMarketplaceSDK, Nft, Offer } from '@holaplex/marketplace-js-sdk'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { useMemo } from 'react'
 
 interface CancelOfferFormProps {
   offer: Offer
@@ -35,6 +32,11 @@ const CancelOfferForm = ({
     handleSubmit,
   } = useForm()
 
+  const sdk = useMemo(
+    () => initMarketplaceSDK(connection, wallet as Wallet),
+    [connection, wallet]
+  )
+
   const cancelOfferTransaction = async () => {
     if (!publicKey || !signTransaction || !offer || !nft) {
       return
@@ -43,15 +45,10 @@ const CancelOfferForm = ({
     try {
       toast('Sending the transaction to Solana.')
 
-      const offersClient = new OffersClient(
-        connection,
-        wallet as Wallet,
-        marketplace.auctionHouse
-      )
-      await offersClient.cancel({
+      await sdk.offers(marketplace.auctionHouse).cancel({
         amount: offer.price.toNumber() * LAMPORTS_PER_SOL,
-        nft: nft as NftFromSdk,
-        offer: offer as OfferFromSdk,
+        nft,
+        offer,
       })
 
       await refetch()

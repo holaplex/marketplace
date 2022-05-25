@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react'
+import React, { ReactElement, useMemo } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -10,11 +10,10 @@ import { gql, useQuery } from '@apollo/client'
 import client from './../../../../client'
 import { NftLayout } from './../../../../layouts/Nft'
 import Button, { ButtonType } from './../../../../components/Button'
-import { Nft, Marketplace, GetNftData } from './../../../../types'
+import { Marketplace, GetNftData } from './../../../../types'
 import { toast } from 'react-toastify'
-import { ListingsClient } from '@holaplex/marketplace-js-sdk'
+import { initMarketplaceSDK, Nft } from '@holaplex/marketplace-js-sdk'
 import { Wallet } from '@metaplex/js'
-import { Nft as NftFromSdk } from '@holaplex/marketplace-js-sdk'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -202,6 +201,10 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
   const router = useRouter()
+  const sdk = useMemo(
+    () => initMarketplaceSDK(connection, wallet as Wallet),
+    [connection, wallet]
+  )
 
   const sellNftTransaction = async ({ amount }: SellNftForm) => {
     if (!publicKey || !signTransaction) {
@@ -211,14 +214,9 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     try {
       toast('Sending the transaction to Solana.')
 
-      const listingsClient = new ListingsClient(
-        connection,
-        wallet as Wallet,
-        marketplace.auctionHouse
-      )
-      await listingsClient.post({
+      await sdk.listings(marketplace.auctionHouse).post({
         amount: +amount * LAMPORTS_PER_SOL,
-        nft: nft as NftFromSdk,
+        nft,
       })
 
       toast.success('The transaction was confirmed.')

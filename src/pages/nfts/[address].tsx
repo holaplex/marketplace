@@ -11,14 +11,10 @@ import { NftLayout } from './../../layouts/Nft'
 import client from '../../client'
 import Button, { ButtonType } from '../../components/Button'
 import { useLogin } from '../../hooks/login'
-import { Listing, Marketplace, Nft, Offer, GetNftData } from '../../types.d'
-import { ReactElement } from 'react'
-import { ListingsClient } from '@holaplex/marketplace-js-sdk'
+import { Marketplace, Offer, GetNftData } from '../../types.d'
+import { ReactElement, useMemo } from 'react'
 import { Wallet } from '@metaplex/js'
-import {
-  Nft as NftFromSdk,
-  Listing as ListingFromSdk,
-} from '@holaplex/marketplace-js-sdk'
+import { Nft, Listing, initMarketplaceSDK } from '@holaplex/marketplace-js-sdk'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -209,6 +205,10 @@ const NftShow: NextPage<NftPageProps> = ({
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
   const login = useLogin()
+  const sdk = useMemo(
+    () => initMarketplaceSDK(connection, wallet as Wallet),
+    [connection, wallet]
+  )
 
   const buyNftTransaction = async () => {
     if (!publicKey || !signTransaction) {
@@ -223,14 +223,9 @@ const NftShow: NextPage<NftPageProps> = ({
     try {
       toast('Sending the transaction to Solana.')
 
-      const listingsClient = new ListingsClient(
-        connection,
-        wallet as Wallet,
-        marketplace.auctionHouse
-      )
-      await listingsClient.buy({
-        listing: listing as ListingFromSdk,
-        nft: nft as NftFromSdk,
+      await sdk.listings(marketplace.auctionHouse).buy({
+        listing,
+        nft,
       })
 
       toast.success('The transaction was confirmed.')
@@ -254,14 +249,9 @@ const NftShow: NextPage<NftPageProps> = ({
     try {
       toast('Sending the transaction to Solana.')
 
-      const listingsClient = new ListingsClient(
-        connection,
-        wallet as Wallet,
-        marketplace.auctionHouse
-      )
-      await listingsClient.cancel({
-        listing: listing as ListingFromSdk,
-        nft: nft as NftFromSdk,
+      await sdk.listings(marketplace.auctionHouse).cancel({
+        listing,
+        nft,
       })
 
       toast.success('The transaction was confirmed.')
