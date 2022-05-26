@@ -10,12 +10,12 @@ import { gql, useQuery } from '@apollo/client'
 import client from './../../../../client'
 import { NftLayout } from './../../../../layouts/Nft'
 import Button, { ButtonType } from './../../../../components/Button'
-import { GetNftData } from './../../../../types'
 import { toast } from 'react-toastify'
 import {
   initMarketplaceSDK,
   Nft,
   Marketplace,
+  GetNftData,
 } from '@holaplex/marketplace-js-sdk'
 import { Wallet } from '@metaplex/js'
 

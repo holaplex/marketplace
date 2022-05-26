@@ -3,11 +3,15 @@ import { NextPageContext, NextPage } from 'next'
 import { isNil, or, any, equals, not, map, prop } from 'ramda'
 import { subDays } from 'date-fns'
 import client from '../../../client'
-import { PriceChart, GetActivities } from './../../../types'
 import { AnalyticsLayout } from './../../../layouts/Analytics'
 import { truncateAddress } from './../../../modules/address'
 import { useRouter } from 'next/router'
-import { Marketplace } from '@holaplex/marketplace-js-sdk'
+import {
+  Marketplace,
+  PriceChart,
+  GetActivities,
+  GetPriceChartData,
+} from '@holaplex/marketplace-js-sdk'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -122,10 +126,6 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
 
 interface GetMarketplace {
   marketplace: Marketplace | null
-}
-
-export interface GetPriceChartData {
-  charts: PriceChart
 }
 
 interface CreatorAnalyticsProps {

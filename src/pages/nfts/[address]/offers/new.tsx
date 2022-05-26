@@ -9,7 +9,6 @@ import { gql, useQuery } from '@apollo/client'
 import { toast } from 'react-toastify'
 import { NftLayout } from './../../../../layouts/Nft'
 import client from './../../../../client'
-import { GetNftData } from './../../../../types'
 import Button, { ButtonType } from './../../../../components/Button'
 import { useLogin } from '../../../../hooks/login'
 import { Wallet } from '@metaplex/js'
@@ -17,6 +16,7 @@ import {
   initMarketplaceSDK,
   Marketplace,
   Nft,
+  GetNftData,
 } from '@holaplex/marketplace-js-sdk'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 

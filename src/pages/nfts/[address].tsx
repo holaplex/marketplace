@@ -14,8 +14,12 @@ import { useLogin } from '../../hooks/login'
 import { Marketplace, Offer } from '@holaplex/marketplace-js-sdk'
 import { ReactElement, useMemo } from 'react'
 import { Wallet } from '@metaplex/js'
-import { Nft, Listing, initMarketplaceSDK } from '@holaplex/marketplace-js-sdk'
-import { GetNftData } from 'src/types'
+import {
+  Nft,
+  Listing,
+  initMarketplaceSDK,
+  GetNftData,
+} from '@holaplex/marketplace-js-sdk'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 

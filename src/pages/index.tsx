@@ -36,12 +36,14 @@ import {
   Marketplace,
   Nft,
   PresetNftFilter,
+  GetPriceChartData,
+  NftCount,
+  Wallet,
 } from '@holaplex/marketplace-js-sdk'
 import { List } from './../components/List'
 import { NftCard } from './../components/NftCard'
 import { subDays } from 'date-fns'
 import Chart from './../components/Chart'
-import { NftCount, PriceChart, Wallet } from 'src/types'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -286,10 +288,6 @@ interface HomePageProps extends AppProps {
 interface NftFilterForm {
   attributes: AttributeFilter[]
   preset: PresetNftFilter
-}
-
-export interface GetPriceChartData {
-  charts: PriceChart
 }
 
 const startDate = subDays(new Date(), 6).toISOString()

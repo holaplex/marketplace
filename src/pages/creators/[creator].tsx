@@ -51,8 +51,9 @@ import {
   Marketplace,
   Nft,
   PresetNftFilter,
+  PriceChart,
+  GetPriceChartData,
 } from '@holaplex/marketplace-js-sdk'
-import { PriceChart } from 'src/types'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -247,10 +248,6 @@ interface CreatorPageProps extends AppProps {
 interface NftFilterForm {
   attributes: AttributeFilter[]
   preset: PresetNftFilter
-}
-
-export interface GetPriceChartData {
-  charts: PriceChart
 }
 
 const startDate = subDays(new Date(), 6).toISOString()
@@ -536,7 +533,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                   <Controller
                     control={control}
                     name="preset"
-                    render={({ field: { value, onChange } }) => (
+                    render={({ field: { onChange } }) => (
                       <label
                         htmlFor="preset-listed"
                         className={cx(
@@ -578,7 +575,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                       <Controller
                         control={control}
                         name="preset"
-                        render={({ field: { value, onChange } }) => (
+                        render={({ field: { onChange } }) => (
                           <label
                             htmlFor="preset-owned"
                             className={cx(
@@ -621,7 +618,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                       <Controller
                         control={control}
                         name="preset"
-                        render={({ field: { value, onChange } }) => (
+                        render={({ field: { onChange } }) => (
                           <label
                             htmlFor="preset-open"
                             className={cx(
@@ -784,7 +781,6 @@ interface CreatorShowLayoutProps {
 
 CreatorShow.getLayout = function GetLayout({
   marketplace,
-  nft,
   children,
 }: CreatorShowLayoutProps): ReactElement {
   return <BannerLayout marketplace={marketplace}>{children}</BannerLayout>

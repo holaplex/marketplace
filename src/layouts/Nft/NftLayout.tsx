@@ -36,9 +36,9 @@ import {
   Marketplace,
   Nft,
   Offer,
+  GetNftData,
 } from '@holaplex/marketplace-js-sdk'
 import { identity } from 'lodash'
-import { GetNftData } from 'src/types'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
 const pickAuctionHouse = prop('auctionHouse')

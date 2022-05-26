@@ -1,7 +1,7 @@
 import { format, parseISO } from 'date-fns'
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { toSOL } from '../../modules/lamports'
-import { PricePoint } from '../../types'
+import { PricePoint } from '@holaplex/marketplace-js-sdk'
 
 interface ChartProps {
   height?: number
