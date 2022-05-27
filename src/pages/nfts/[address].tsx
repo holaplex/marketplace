@@ -7,6 +7,7 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
   Transaction,
   TransactionInstruction,
+  BlockheightBasedTransactionConfirmationStrategy,
 } from '@solana/web3.js'
 import { useRouter } from 'next/router'
 import { NextPage, NextPageContext } from 'next'
@@ -407,7 +408,7 @@ const NftShow: NextPage<NftPageProps> = ({
       )
       .add(printPurchaseReceiptInstruction)
 
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+    txt.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
     txt.feePayer = publicKey
 
     let signed: Transaction | undefined = undefined
@@ -426,7 +427,13 @@ const NftShow: NextPage<NftPageProps> = ({
 
       signature = await connection.sendRawTransaction(signed.serialize())
 
-      await connection.confirmTransaction(signature, 'confirmed')
+      const currentBlockHeight = await connection.getBlockHeight()
+      let strategy: BlockheightBasedTransactionConfirmationStrategy = {
+        signature: signature,
+        blockhash: txt.recentBlockhash,
+        lastValidBlockHeight: currentBlockHeight + 1000,
+      }
+      await connection.confirmTransaction(strategy)
 
       toast.success('The transaction was confirmed.')
 
@@ -498,7 +505,7 @@ const NftShow: NextPage<NftPageProps> = ({
 
     txt.add(cancelInstruction).add(cancelListingReceiptInstruction)
 
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+    txt.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
     txt.feePayer = publicKey
 
     let signed: Transaction | undefined = undefined
@@ -517,7 +524,13 @@ const NftShow: NextPage<NftPageProps> = ({
 
       signature = await connection.sendRawTransaction(signed.serialize())
 
-      await connection.confirmTransaction(signature, 'confirmed')
+      const currentBlockHeight = await connection.getBlockHeight()
+      let strategy: BlockheightBasedTransactionConfirmationStrategy = {
+        signature: signature,
+        blockhash: txt.recentBlockhash,
+        lastValidBlockHeight: currentBlockHeight + 1000,
+      }
+      await connection.confirmTransaction(strategy)
 
       toast.success('The transaction was confirmed.')
 

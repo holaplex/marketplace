@@ -297,7 +297,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
 
     txt.add(sellInstruction).add(printListingReceiptInstruction)
 
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+    txt.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
     txt.feePayer = publicKey
 
     let signed: Transaction | undefined = undefined
@@ -328,7 +328,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
 
   return (
     <form
-      className="text-left grow mt-6"
+      className="mt-6 text-left grow"
       onSubmit={handleSubmit(sellNftTransaction)}
     >
       <h3 className="mb-6 text-xl font-bold md:text-2xl">Sell this Nft</h3>

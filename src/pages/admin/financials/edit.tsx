@@ -10,7 +10,11 @@ import Button, { ButtonSize, ButtonType } from '../../../components/Button'
 import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
 
-import { Transaction, PublicKey } from '@solana/web3.js'
+import {
+  Transaction,
+  PublicKey,
+  BlockheightBasedTransactionConfirmationStrategy,
+} from '@solana/web3.js'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 import { AdminLayout } from '../../../layouts/Admin'
@@ -138,7 +142,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
 
     txt.add(withdrawFromTreasuryInstruction)
 
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+    txt.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
     txt.feePayer = publicKey
 
     let signed: Transaction | undefined = undefined
@@ -157,7 +161,13 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
       setWithdrawlLoading(true)
       signature = await connection.sendRawTransaction(signed.serialize())
 
-      await connection.confirmTransaction(signature, 'confirmed')
+      const currentBlockHeight = await connection.getBlockHeight()
+      let strategy: BlockheightBasedTransactionConfirmationStrategy = {
+        signature: signature,
+        blockhash: txt.recentBlockhash,
+        lastValidBlockHeight: currentBlockHeight + 1000,
+      }
+      await connection.confirmTransaction(strategy)
 
       toast.success('The transaction was confirmed.')
     } catch (e) {
@@ -179,7 +189,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
         <div className="relative w-full mt-20 mb-1">
           <img
             src={marketplace.logoUrl}
-            className="absolute object-cover w-16 h-16 border-4 bg-gray-900 border-gray-900 rounded-full -top-28 md:w-28 md:h-28 md:-top-32"
+            className="absolute object-cover w-16 h-16 bg-gray-900 border-4 border-gray-900 rounded-full -top-28 md:w-28 md:h-28 md:-top-32"
           />
         </div>
         <div className="flex flex-col md:flex-row">

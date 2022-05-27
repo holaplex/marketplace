@@ -13,6 +13,7 @@ import {
   PublicKey,
   LAMPORTS_PER_SOL,
   SYSVAR_INSTRUCTIONS_PUBKEY,
+  BlockheightBasedTransactionConfirmationStrategy,
 } from '@solana/web3.js'
 import { toast } from 'react-toastify'
 import { NftLayout } from './../../../../layouts/Nft'
@@ -314,7 +315,7 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
       .add(publicBuyInstruction)
       .add(printBidReceiptInstruction)
 
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+    txt.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
     txt.feePayer = publicKey
 
     let signed: Transaction | undefined = undefined
@@ -333,7 +334,13 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
 
       signature = await connection.sendRawTransaction(signed.serialize())
 
-      await connection.confirmTransaction(signature, 'confirmed')
+      const currentBlockHeight = await connection.getBlockHeight()
+      let strategy: BlockheightBasedTransactionConfirmationStrategy = {
+        signature: signature,
+        blockhash: txt.recentBlockhash,
+        lastValidBlockHeight: currentBlockHeight + 1000,
+      }
+      await connection.confirmTransaction(strategy)
 
       toast.success('The transaction was confirmed.')
     } catch (e: any) {
@@ -356,7 +363,7 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
 
   return (
     <form
-      className="text-left grow mt-6"
+      className="mt-6 text-left grow"
       onSubmit={handleSubmit(placeOfferTransaction)}
     >
       <h3 className="mb-6 text-xl font-bold md:text-2xl">Make an offer</h3>

@@ -108,7 +108,7 @@ class MarketplaceClient {
     transaction.add(setStorefrontV2Instructions)
     transaction.feePayer = publicKey
     transaction.recentBlockhash = (
-      await connection.getRecentBlockhash()
+      await connection.getLatestBlockhash()
     ).blockhash
 
     const signedTransaction = await wallet.signTransaction!(transaction)

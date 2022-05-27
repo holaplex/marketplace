@@ -7,6 +7,7 @@ import {
   PublicKey,
   SYSVAR_INSTRUCTIONS_PUBKEY,
   TransactionInstruction,
+  BlockheightBasedTransactionConfirmationStrategy,
 } from '@solana/web3.js'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { Listing, Marketplace, Nft, Offer } from '../../types'
@@ -263,7 +264,7 @@ const AcceptOfferForm = ({
       txt.add(cancelListingInstruction).add(cancelListingReceiptInstruction)
     }
 
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
+    txt.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
     txt.feePayer = publicKey
 
     let signed: Transaction | undefined = undefined
@@ -282,7 +283,13 @@ const AcceptOfferForm = ({
 
       signature = await connection.sendRawTransaction(signed.serialize())
 
-      await connection.confirmTransaction(signature, 'confirmed')
+      const currentBlockHeight = await connection.getBlockHeight()
+      let strategy: BlockheightBasedTransactionConfirmationStrategy = {
+        signature: signature,
+        blockhash: txt.recentBlockhash,
+        lastValidBlockHeight: currentBlockHeight + 1000,
+      }
+      await connection.confirmTransaction(strategy)
 
       await refetch()
 
