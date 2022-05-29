@@ -47,7 +47,7 @@ metadata:
     reloader.stakater.com/auto: "true"
   name: nginx-marketplace
 spec:
-  replicas: 3
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
