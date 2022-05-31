@@ -22,7 +22,7 @@ export const SplToken = (props: { mint: string }) => {
     return (
       <span className="text-gray-100 text-sm">truncateAddress(props.mint)</span>
     )
-  console.log(token)
+
   return (
     <div className="flex items-center gap-3">
       <img src={token.logoURI} className="h-8 w-8" />

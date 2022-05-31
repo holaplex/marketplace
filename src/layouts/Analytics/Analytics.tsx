@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react'
+import React, { ReactElement, useEffect, useState } from 'react'
 import { gql, useQuery, QueryResult, OperationVariables } from '@apollo/client'
 import Head from 'next/head'
 import { PublicKey } from '@solana/web3.js'
@@ -23,11 +23,15 @@ import {
   Marketplace,
   GetActivities,
   GetPriceChartData,
+  MintStats,
 } from '@holaplex/marketplace-js-sdk'
 import { format } from 'timeago.js'
 import cx from 'classnames'
 import { BasicLayout } from '../Basic'
 import Chart from './../../components/Chart'
+import { Controller, useForm } from 'react-hook-form'
+import Select from 'react-select'
+import { ENV, TokenInfo, TokenListProvider } from '@solana/spl-token-registry'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
 
@@ -41,6 +45,17 @@ const GET_MARKETPLACE_INFO = gql`
       }
       auctionHouse {
         address
+        stats {
+          mint
+          floor
+          average
+          volume24hr
+          volumeTotal
+        }
+      }
+      auctionHouses {
+        address
+        treasuryMint
         stats {
           mint
           floor
@@ -66,6 +81,47 @@ interface AnalyticsLayoutProps {
   metaTitle: string
 }
 
+interface TokenFilter {
+  token: string
+}
+
+type OptionType = { label: string; value: number }
+
+const isSol = (token: TokenInfo | undefined) =>
+  equals(token?.address, 'So11111111111111111111111111111111111111112')
+
+const PriceData = ({
+  token,
+  price,
+  priceType,
+  loading,
+}: {
+  token: TokenInfo | undefined
+  price: number
+  priceType: string
+  loading: boolean
+}) => (
+  <div className="flex flex-col">
+    <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
+      {priceType}
+    </span>
+    {loading ? (
+      <div className="block bg-gray-800 w-20 h-10 rounded" />
+    ) : (
+      <div className="flex items-end gap-2">
+        <span
+          className={cx('text-3xl font-bold', {
+            'sol-amount': isSol(token),
+          })}
+        >
+          {isSol(token) ? toSOL(price) : price}
+        </span>
+        {!isSol(token) && <span className="text-sm">{token?.symbol}</span>}
+      </div>
+    )}
+  </div>
+)
+
 export const AnalyticsLayout = ({
   marketplace,
   priceChartQuery,
@@ -78,6 +134,37 @@ export const AnalyticsLayout = ({
       subdomain: marketplace.subdomain,
     },
   })
+  const marketplaceData = marketplaceQuery.data?.marketplace
+  const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
+
+  // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
+  // const tokens: TokenInfo[] = marketplaceData?.auctionHouses?.map(
+  //   ({ treasuryMint }) => tokenMap.get(treasuryMint)
+  // )
+  const tokens = [
+    tokenMap.get('So11111111111111111111111111111111111111112'),
+    tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+  ]
+  const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>(
+    tokens[0]
+  )
+
+  // TODO: Once auctionHouses has data, we can uncommment this
+  // const [stats, setStats] = useState<MintStats | undefined>(
+  //   marketplaceQuery.data?.marketplace.auctionHouses.filter(
+  //     (ah) => ah.treasuryMint === selectedToken?.address
+  //   )[0].stats
+  // )
+
+  const [stats, setStats] = useState<MintStats | undefined>(
+    marketplaceQuery.data?.marketplace.auctionHouse.stats
+  )
+
+  const { control } = useForm<TokenFilter>({
+    defaultValues: {
+      token: selectedToken?.address,
+    },
+  })
 
   let activities: Activity[] = activitiesQuery.data?.activities || []
 
@@ -85,6 +172,19 @@ export const AnalyticsLayout = ({
     marketplaceQuery.loading ||
     priceChartQuery.loading ||
     activitiesQuery.loading
+
+  useEffect(() => {
+    new TokenListProvider().resolve().then((tokens) => {
+      const tokenList = tokens.filterByChainId(ENV.MainnetBeta).getList()
+
+      setTokenMap(
+        tokenList.reduce((map, item) => {
+          map.set(item.address, item)
+          return map
+        }, new Map())
+      )
+    })
+  }, [setTokenMap])
 
   return (
     <BasicLayout marketplace={marketplace}>
@@ -97,70 +197,72 @@ export const AnalyticsLayout = ({
         <meta property="og:image" content={marketplace.bannerUrl} />
         <meta property="og:description" content={marketplace.description} />
       </Head>
-
-      <p className="mt-6 mb-2 max-w-prose">Activity and analytics for</p>
-      {title}
+      <div className="flex justify-between">
+        <div className="flex flex-col">
+          <p className="mt-6 mb-2 max-w-prose">Activity and analytics for</p>
+          {title}
+        </div>
+        <div className="flex flex-col">
+          <p className="mt-6 mb-2 max-w-prose">Token</p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+            }}
+          >
+            <Controller
+              control={control}
+              name="token"
+              defaultValue={selectedToken?.address}
+              render={({ field }) => {
+                return (
+                  <Select
+                    {...field}
+                    options={
+                      tokens.map((token) => ({
+                        value: token?.address,
+                        label: token?.name,
+                      })) as OptionsType<OptionType>
+                    }
+                    className="select-base-theme"
+                    classNamePrefix="base"
+                    onChange={(next: ValueType<OptionType>) => {
+                      setSelectedToken(tokenMap.get(next.value))
+                    }}
+                  />
+                )
+              }}
+            />
+          </form>
+        </div>
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 py-12">
-        <div className="flex flex-col">
-          <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
-            Floor Price
-          </span>
-          {loading ? (
-            <div className="block bg-gray-800 w-20 h-10 rounded" />
-          ) : (
-            <span className="sol-amount text-3xl font-bold">
-              {toSOL(
-                (marketplaceQuery.data?.marketplace.auctionHouse.stats?.floor.toNumber() ||
-                  0) as number
-              )}
-            </span>
-          )}
-        </div>
-        <div className="flex flex-col">
-          <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
-            Avg Price
-          </span>
-          {loading ? (
-            <div className="block bg-gray-800 w-20 h-10 rounded" />
-          ) : (
-            <span className="sol-amount text-3xl font-bold">
-              {toSOL(
-                (marketplaceQuery.data?.marketplace.auctionHouse.stats?.average.toNumber() ||
-                  0) as number
-              )}
-            </span>
-          )}
-        </div>
-        <div className="flex flex-col">
-          <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
-            Vol Last 24h
-          </span>
-          {loading ? (
-            <div className="block bg-gray-800 w-20 h-10 rounded" />
-          ) : (
-            <span className="sol-amount text-3xl font-bold">
-              {toSOL(
-                (marketplaceQuery.data?.marketplace.auctionHouse.stats?.volume24hr.toNumber() ||
-                  0) as number
-              )}
-            </span>
-          )}
-        </div>
-        <div className="flex flex-col">
-          <span className="text-gray-300 uppercase font-semibold block w-full mb-2">
-            Vol All Time
-          </span>
-          {loading ? (
-            <div className="block bg-gray-800 w-20 h-10 rounded" />
-          ) : (
-            <span className="sol-amount text-3xl font-bold">
-              {toSOL(
-                (marketplaceQuery.data?.marketplace.auctionHouse.stats?.volumeTotal.toNumber() ||
-                  0) as number
-              )}
-            </span>
-          )}
-        </div>
+        <PriceData
+          token={selectedToken}
+          price={stats?.floor.toNumber() || 0}
+          priceType="Floor Price"
+          loading={loading}
+        />
+
+        <PriceData
+          token={selectedToken}
+          price={stats?.average.toNumber() || 0}
+          priceType="Avg Price"
+          loading={loading}
+        />
+
+        <PriceData
+          token={selectedToken}
+          price={stats?.volume24hr.toNumber() || 0}
+          priceType="Vol Last 24h"
+          loading={loading}
+        />
+
+        <PriceData
+          token={selectedToken}
+          price={stats?.volumeTotal.toNumber() || 0}
+          priceType="Vol All Time"
+          loading={loading}
+        />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 w-full gap-12 my-20">
         <div className="flex flex-col w-full">
