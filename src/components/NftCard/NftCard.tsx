@@ -4,7 +4,7 @@ import { equals, find, not, pipe, prop, when, isNil, always } from 'ramda'
 import React from 'react'
 import Link from 'next/link'
 import { addressAvatar } from 'src/modules/address'
-import { toSOL } from './../../modules/lamports'
+import { toSOL } from '../../modules/sol'
 import { Listing, Marketplace, Nft } from '@holaplex/marketplace-js-sdk'
 
 interface NftCardProps {

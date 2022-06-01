@@ -29,7 +29,7 @@ import AcceptOfferForm from '../../components/AcceptOfferForm'
 import CancelOfferForm from '../../components/CancelOfferForm'
 import { BasicLayout } from '../Basic'
 import { truncateAddress, addressAvatar } from '../../modules/address'
-import { toSOL } from '../../modules/lamports'
+import { toSOL } from '../../modules/sol'
 import {
   Activity,
   Listing,

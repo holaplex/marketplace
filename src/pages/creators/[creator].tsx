@@ -30,7 +30,7 @@ import { Filter } from 'react-feather'
 import { Controller, useForm } from 'react-hook-form'
 import Link from 'next/link'
 import Select from 'react-select'
-import { toSOL } from './../../modules/lamports'
+import { toSOL } from '../../modules/sol'
 import { BannerLayout } from './../../layouts/Banner'
 import {
   GetNftCounts,

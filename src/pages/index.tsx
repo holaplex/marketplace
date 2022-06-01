@@ -20,7 +20,7 @@ import {
   when,
 } from 'ramda'
 import React, { ReactElement, useEffect, useState } from 'react'
-import { toSOL } from './../modules/lamports'
+import { toSOL } from '../modules/sol'
 import { Filter } from 'react-feather'
 import { Controller, useForm } from 'react-hook-form'
 import Link from 'next/link'

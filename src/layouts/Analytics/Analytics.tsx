@@ -17,7 +17,7 @@ import {
 import Link from 'next/link'
 import { DollarSign, Tag } from 'react-feather'
 import { truncateAddress, addressAvatar } from '../../modules/address'
-import { toSOL } from '../../modules/lamports'
+import { isSol, toSOL } from '../../modules/sol'
 import {
   Activity,
   Marketplace,
@@ -87,9 +87,6 @@ interface TokenFilter {
 
 type OptionType = { label: string; value: number }
 
-const isSol = (token: TokenInfo | undefined) =>
-  equals(token?.address, 'So11111111111111111111111111111111111111112')
-
 const PriceData = ({
   token,
   price,
@@ -111,12 +108,14 @@ const PriceData = ({
       <div className="flex items-end gap-2">
         <span
           className={cx('text-3xl font-bold', {
-            'sol-amount': isSol(token),
+            'sol-amount': isSol(token?.address),
           })}
         >
-          {isSol(token) ? toSOL(price) : price}
+          {isSol(token?.address) ? toSOL(price) : price}
         </span>
-        {!isSol(token) && <span className="text-sm">{token?.symbol}</span>}
+        {!isSol(token?.address) && (
+          <span className="text-sm">{token?.symbol}</span>
+        )}
       </div>
     )}
   </div>

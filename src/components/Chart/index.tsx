@@ -1,6 +1,6 @@
 import { format, parseISO } from 'date-fns'
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
-import { toSOL } from '../../modules/lamports'
+import { toSOL } from '../../modules/sol'
 import { PricePoint } from '@holaplex/marketplace-js-sdk'
 
 interface ChartProps {

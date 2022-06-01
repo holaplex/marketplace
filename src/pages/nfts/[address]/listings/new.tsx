@@ -1,103 +1,41 @@
-import React, { ReactElement, useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { NextPageContext } from 'next'
-import { map, prop, isEmpty, intersection, pipe, or, any, isNil } from 'ramda'
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
-import { gql, useQuery } from '@apollo/client'
+import {
+  map,
+  prop,
+  isEmpty,
+  intersection,
+  pipe,
+  or,
+  any,
+  isNil,
+  when,
+  always,
+} from 'ramda'
+import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
+import { gql } from '@apollo/client'
 import client from './../../../../client'
-import { NftLayout } from './../../../../layouts/Nft'
-import Button, { ButtonType } from './../../../../components/Button'
+import Button from './../../../../components/Button'
 import { toast } from 'react-toastify'
 import {
   initMarketplaceSDK,
   Nft,
   Marketplace,
-  GetNftData,
 } from '@holaplex/marketplace-js-sdk'
 import { Wallet } from '@metaplex/js'
+import { Modal } from 'src/layouts/Modal'
+import { addressAvatar } from 'src/modules/address'
+import Select from 'react-select'
+import { ENV, TokenInfo, TokenListProvider } from '@solana/spl-token-registry'
+import cx from 'classnames'
+import { isSol } from 'src/modules/sol'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
-const GET_NFT = gql`
-  query GetNft($address: String!) {
-    nft(address: $address) {
-      name
-      address
-      image(width: 1400)
-      sellerFeeBasisPoints
-      mintAddress
-      description
-      primarySaleHappened
-      category
-      files {
-        fileType
-        uri
-      }
-      owner {
-        address
-        associatedTokenAccountAddress
-        twitterHandle
-        profile {
-          handle
-          profileImageUrl
-        }
-      }
-      attributes {
-        traitType
-        value
-      }
-      creators {
-        address
-        twitterHandle
-        profile {
-          handle
-          profileImageUrl
-        }
-      }
-      offers {
-        address
-        tradeState
-        price
-        buyer
-        createdAt
-        auctionHouse
-      }
-      activities {
-        address
-        metadata
-        auctionHouse
-        price
-        createdAt
-        wallets {
-          address
-          profile {
-            handle
-            profileImageUrl
-          }
-        }
-        activityType
-      }
-      listings {
-        address
-        auctionHouse
-        bookkeeper
-        seller
-        metadata
-        purchaseReceipt
-        price
-        tokenSize
-        bump
-        tradeState
-        tradeStateBump
-        createdAt
-        canceledAt
-      }
-    }
-  }
-`
+type OptionType = { label: string; value: number }
 
 interface GetNftPage {
   marketplace: Marketplace | null
@@ -188,6 +126,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
 
 interface SellNftForm {
   amount: string
+  token: string
 }
 
 interface SellNftProps {
@@ -210,7 +149,25 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     [connection, wallet]
   )
 
-  const sellNftTransaction = async ({ amount }: SellNftForm) => {
+  const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
+
+  // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
+  // const tokens: TokenInfo[] = marketplaceData?.auctionHouses?.map(
+  //   ({ treasuryMint }) => tokenMap.get(treasuryMint)
+  // )
+  const tokens = [
+    tokenMap.get('So11111111111111111111111111111111111111112'),
+    tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+  ]
+  const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>(
+    tokens[0]
+  )
+
+  const goBack = () => {
+    router.push(`/nfts/${nft.address}`)
+  }
+
+  const sellNftTransaction = async ({ amount, token }: SellNftForm) => {
     if (!publicKey || !signTransaction) {
       return
     }
@@ -218,8 +175,9 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     try {
       toast('Sending the transaction to Solana.')
 
+      //TODO: Set the auctionhouse corresponding to selected token
       await sdk.listings(marketplace.auctionHouse).post({
-        amount: +amount * LAMPORTS_PER_SOL,
+        amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
         nft,
       })
 
@@ -231,118 +189,129 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     }
   }
 
+  useEffect(() => {
+    new TokenListProvider().resolve().then((tokens) => {
+      const tokenList = tokens.filterByChainId(ENV.MainnetBeta).getList()
+
+      setTokenMap(
+        tokenList.reduce((map, item) => {
+          map.set(item.address, item)
+          return map
+        }, new Map())
+      )
+    })
+  }, [setTokenMap])
+
   return (
-    <form
-      className="text-left grow mt-6"
-      onSubmit={handleSubmit(sellNftTransaction)}
-    >
-      <h3 className="mb-6 text-xl font-bold md:text-2xl">Sell this Nft</h3>
-      <label className="block mb-1">Price in SOL</label>
-      <div className="prefix-input prefix-icon-sol">
-        <Controller
-          control={control}
-          name="amount"
-          render={({ field: { onChange, value } }) => {
-            if (!nft) {
-              return <></>
-            }
-
-            const amount = Number(value || 0) * LAMPORTS_PER_SOL
-
-            const royalties = (amount * nft.sellerFeeBasisPoints) / 10000
-
-            const auctionHouseFee =
-              (amount * marketplace.auctionHouse.sellerFeeBasisPoints) / 10000
-
-            return (
-              <>
-                <div className="mb-4 sol-input">
-                  <input
-                    autoFocus
-                    value={value}
-                    className="input"
-                    type="number"
-                    onChange={(e: any) => {
-                      onChange(e.target.value)
-                    }}
-                  />
+    <>
+      <Modal title={'List NFT for sale'} open={true} setOpen={goBack}>
+        <div className="mt-8 flex w-full justify-start">
+          <div className={`relative aspect-square h-14 w-14`}>
+            {nft?.image && (
+              <img
+                src={nft.image}
+                alt={`nft-mini-image`}
+                className="block w-full h-auto border-none rounded-lg shadow"
+              />
+            )}
+          </div>
+          <div className="flex-col ml-4">
+            <span>{nft.name}</span>
+            <div className="flex ml-1.5">
+              {nft.creators.map((creator) => (
+                <div key={creator.address} className="-ml-1.5">
+                  <a
+                    href={`https://holaplex.com/profiles/${creator.address}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <img
+                      className="rounded-full h-6 w-6 object-cover border-2 border-gray-900 transition-transform hover:scale-[1.5]"
+                      src={
+                        when(
+                          isNil,
+                          always(addressAvatar(new PublicKey(creator.address)))
+                        )(creator.profile?.profileImageUrl) as string
+                      }
+                    />
+                  </a>
                 </div>
-                <div className="flex flex-col gap-2 mb-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">
-                      {nft.sellerFeeBasisPoints / 100}% creator royalty
-                    </span>
-                    <div className="flex justify-center gap-2">
-                      <span className="icon-sol"></span>
-                      <span>{royalties / LAMPORTS_PER_SOL}</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">
-                      {marketplace.auctionHouse.sellerFeeBasisPoints / 100}%
-                      transaction fee
-                    </span>
-                    <div className="flex justify-center gap-2">
-                      <span className="icon-sol"></span>
-                      <span>{auctionHouseFee / LAMPORTS_PER_SOL}</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">You receive</span>
-                    <div className="flex justify-center gap-2">
-                      <span className="icon-sol"></span>
-                      <span>
-                        {(amount - royalties - auctionHouseFee) /
-                          LAMPORTS_PER_SOL}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )
-          }}
-        />
-      </div>
-      <div className="grid flex-grow grid-cols-2 gap-4">
-        <Link href={`/nfts/${nft?.address}`} passHref>
-          <a>
-            <Button block type={ButtonType.Secondary}>
-              Cancel
+              ))}
+            </div>
+          </div>
+        </div>
+        <form
+          className="text-left grow mt-6"
+          onSubmit={handleSubmit(sellNftTransaction)}
+        >
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block mb-1">Price</label>
+              <Controller
+                control={control}
+                name="amount"
+                render={({ field: { onChange, value } }) => {
+                  if (!nft) {
+                    return <></>
+                  }
+
+                  return (
+                    <>
+                      <div
+                        className={cx('mb-4', {
+                          'sol-input': isSol(selectedToken?.address),
+                        })}
+                      >
+                        <input
+                          autoFocus
+                          value={value}
+                          className="input"
+                          type="number"
+                          onChange={(e: any) => {
+                            onChange(e.target.value)
+                          }}
+                        />
+                      </div>
+                    </>
+                  )
+                }}
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Token</label>
+              <Controller
+                control={control}
+                name="token"
+                defaultValue={selectedToken?.address}
+                render={({ field }) => {
+                  return (
+                    <Select
+                      {...field}
+                      options={
+                        tokens.map((token) => ({
+                          value: token?.address,
+                          label: token?.name,
+                        })) as OptionsType<OptionType>
+                      }
+                      className="select-base-theme w-full"
+                      classNamePrefix="base"
+                      onChange={(next: ValueType<OptionType>) => {
+                        setSelectedToken(tokenMap.get(next.value))
+                      }}
+                    />
+                  )
+                }}
+              />
+            </div>
+          </div>
+          <div className="mt-14">
+            <Button block htmlType="submit" loading={isSubmitting}>
+              List for sale
             </Button>
-          </a>
-        </Link>
-        <Button block htmlType="submit" loading={isSubmitting}>
-          List for sale
-        </Button>
-      </div>
-    </form>
-  )
-}
-
-interface ListingNewLayoutProps {
-  marketplace: Marketplace
-  nft: Nft
-  children: ReactElement
-}
-
-ListingNew.getLayout = function NftShowLayout({
-  marketplace,
-  nft,
-  children,
-}: ListingNewLayoutProps) {
-  const router = useRouter()
-
-  const nftQuery = useQuery<GetNftData>(GET_NFT, {
-    client,
-    variables: {
-      address: router.query?.address,
-    },
-  })
-
-  return (
-    <NftLayout marketplace={marketplace} nft={nft} nftQuery={nftQuery}>
-      {children}
-    </NftLayout>
+          </div>
+        </form>
+      </Modal>
+    </>
   )
 }
 
