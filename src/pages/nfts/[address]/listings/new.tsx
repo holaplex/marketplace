@@ -27,11 +27,11 @@ import {
 } from '@holaplex/marketplace-js-sdk'
 import { Wallet } from '@metaplex/js'
 import { Modal } from 'src/layouts/Modal'
-import { addressAvatar } from 'src/modules/address'
 import Select from 'react-select'
 import { ENV, TokenInfo, TokenListProvider } from '@solana/spl-token-registry'
 import cx from 'classnames'
 import { isSol } from 'src/modules/sol'
+import { NftPreview } from 'src/components/NftPreview'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -206,39 +206,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     <>
       <Modal title={'List NFT for sale'} open={true} setOpen={goBack}>
         <div className="mt-8 flex w-full justify-start">
-          <div className={`relative aspect-square h-14 w-14`}>
-            {nft?.image && (
-              <img
-                src={nft.image}
-                alt={`nft-mini-image`}
-                className="block w-full h-auto border-none rounded-lg shadow"
-              />
-            )}
-          </div>
-          <div className="flex-col ml-4">
-            <span>{nft.name}</span>
-            <div className="flex ml-1.5">
-              {nft.creators.map((creator) => (
-                <div key={creator.address} className="-ml-1.5">
-                  <a
-                    href={`https://holaplex.com/profiles/${creator.address}`}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    <img
-                      className="rounded-full h-6 w-6 object-cover border-2 border-gray-900 transition-transform hover:scale-[1.5]"
-                      src={
-                        when(
-                          isNil,
-                          always(addressAvatar(new PublicKey(creator.address)))
-                        )(creator.profile?.profileImageUrl) as string
-                      }
-                    />
-                  </a>
-                </div>
-              ))}
-            </div>
-          </div>
+          <NftPreview nft={nft} />
         </div>
         <form
           className="text-left grow mt-6"
