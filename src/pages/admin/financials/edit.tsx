@@ -1,4 +1,4 @@
-import { ReactElement, useState } from 'react'
+import { ReactElement, useEffect, useMemo, useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
@@ -7,13 +7,17 @@ import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
 import client from './../../../client'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
-import { Marketplace } from '@holaplex/marketplace-js-sdk'
+import { initMarketplaceSDK, Marketplace } from '@holaplex/marketplace-js-sdk'
 import { useLogin } from '../../../hooks/login'
-
-import { Transaction, PublicKey } from '@solana/web3.js'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 import { AdminLayout } from '../../../layouts/Admin'
+import { ENV, TokenInfo, TokenListProvider } from '@solana/spl-token-registry'
+import cx from 'classnames'
+import { isSol, toSOL } from 'src/modules/sol'
+import { Connection, Wallet } from '@metaplex/js'
+import { AuctionHouse } from '@holaplex/marketplace-js-sdk/dist/types'
+import { PublicKey } from '@solana/web3.js'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -84,87 +88,67 @@ interface AdminEditFinancialsProps extends AppProps {
   marketplace: Marketplace
 }
 
+const getTreasuryBalance = async (ah: AuctionHouse, connection: Connection) => {
+  const auctionHouseTreasury = new PublicKey(ah.auctionHouseTreasury)
+  const auctionHouseTreasuryBalance = await connection.getBalance(
+    auctionHouseTreasury
+  )
+  return auctionHouseTreasuryBalance
+}
+
 const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
   const wallet = useWallet()
-  const { connection } = useConnection()
   const { publicKey, signTransaction } = wallet
+  const { connection } = useConnection()
+  const sdk = useMemo(
+    () => initMarketplaceSDK(connection, wallet as Wallet),
+    [connection, wallet]
+  )
 
   const login = useLogin()
 
   const [withdrawlLoading, setWithdrawlLoading] = useState(false)
 
-  const payoutFunds = async () => {
+  const claimFunds = async (ah: AuctionHouse) => {
     if (!publicKey || !signTransaction || !wallet) {
       toast.error('Wallet not connected')
-
       login()
-
       return
     }
 
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
-    const authority = new PublicKey(marketplace.auctionHouse.authority)
-    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
-    const auctionHouseTreasury = new PublicKey(
-      marketplace.auctionHouse.auctionHouseTreasury
-    )
-
-    const treasuryWithdrawalDestination = new PublicKey(
-      marketplace.auctionHouse.treasuryWithdrawalDestination
-    )
-
-    const auctionHouseTreasuryBalance = await connection.getBalance(
-      auctionHouseTreasury
-    )
-
-    const withdrawFromTreasuryInstructionAccounts = {
-      treasuryMint,
-      authority,
-      treasuryWithdrawalDestination,
-      auctionHouseTreasury,
-      auctionHouse,
-    }
-    const withdrawFromTreasuryInstructionArgs = {
-      amount: auctionHouseTreasuryBalance,
-    }
-
-    const withdrawFromTreasuryInstruction =
-      createWithdrawFromTreasuryInstruction(
-        withdrawFromTreasuryInstructionAccounts,
-        withdrawFromTreasuryInstructionArgs
-      )
-
-    const txt = new Transaction()
-
-    txt.add(withdrawFromTreasuryInstruction)
-
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
-    txt.feePayer = publicKey
-
-    let signed: Transaction | undefined = undefined
-
-    try {
-      signed = await signTransaction(txt)
-    } catch (e: any) {
-      toast.error(e.message)
-      return
-    }
-
-    let signature: string | undefined = undefined
-
-    try {
-      toast('Sending the transaction to Solana.')
-      setWithdrawlLoading(true)
-      signature = await connection.sendRawTransaction(signed.serialize())
-
-      await connection.confirmTransaction(signature, 'confirmed')
-
-      toast.success('The transaction was confirmed.')
-    } catch (e) {
-      toast.error(e.message)
-    }
+    toast('Sending the transaction to Solana.')
+    setWithdrawlLoading(true)
+    // TODO:Once sdk is updated
+    // await sdk.claimFunds(ah)
+    toast.success('The transaction was confirmed.')
     setWithdrawlLoading(false)
   }
+
+  const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
+
+  // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
+  // const tokens: TokenInfo[] = marketplace?.auctionHouses?.map(
+  //   ({ treasuryMint }) => tokenMap.get(treasuryMint)
+  // )
+  const tokens = [
+    tokenMap.get('So11111111111111111111111111111111111111112'),
+    tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+  ]
+
+  //TODO: getTreasuryBalance() for each token
+
+  useEffect(() => {
+    new TokenListProvider().resolve().then((tokens) => {
+      const tokenList = tokens.filterByChainId(ENV.MainnetBeta).getList()
+
+      setTokenMap(
+        tokenList.reduce((map, item) => {
+          map.set(item.address, item)
+          return map
+        }, new Map())
+      )
+    })
+  }, [setTokenMap])
 
   return (
     <div className="w-full">
@@ -190,24 +174,57 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
           </div>
           <div className="flex flex-col items-center w-full pb-16 grow">
             <div className="w-full max-w-3xl">
-              <div className="grid items-start grid-cols-12 mb-10 md:mb-0 md:flex-row md:justify-between">
-                <div className="w-full mb-4 col-span-full md:col-span-6 lg:col-span-8">
-                  <h2>Financials</h2>
-                  <p className="text-gray-300">
-                    Manage the finances of this marketplace.
-                  </p>
+              <div className="flex-col mb-10 md:mb-0">
+                <div className="w-full mb-4">
+                  <h2>Transaction fees collected</h2>
                 </div>
-                <div className="flex justify-end col-span-full md:col-span-6 lg:col-span-4">
-                  <Button
-                    block
-                    onClick={payoutFunds}
-                    type={ButtonType.Primary}
-                    size={ButtonSize.Small}
-                    loading={withdrawlLoading}
-                  >
-                    Claim Funds
-                  </Button>
-                  &nbsp;&nbsp;
+                <div className="grid grid-cols-12 gap-4">
+                  {tokens.map((token) => (
+                    <>
+                      <div className="flex-col col-span-6 md:col-span-3">
+                        <span className="text-gray-300 uppercase font-semibold text-xs">
+                          {token?.symbol} All time
+                        </span>
+                        <div className="flex items-end gap-1">
+                          <span
+                            className={cx('text-lg font-semibold', {
+                              'sol-amount': isSol(token?.address),
+                            })}
+                          >
+                            {isSol(token?.address) ? toSOL(0) : 0}
+                          </span>
+                          {!isSol(token?.address) && (
+                            <span className="text-sm">{token?.symbol}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-col col-span-6 md:col-span-3">
+                        <span className="text-gray-300 uppercase font-semibold text-xs">
+                          {token?.symbol} Unredeemed
+                        </span>
+                        <div
+                          className={cx('text-lg font-semibold', {
+                            'sol-amount': isSol(token?.address),
+                          })}
+                        >
+                          {isSol(token?.address) ? toSOL(0) : 0}
+                        </div>
+                      </div>
+                      <div className="flex md:justify-end col-span-full md:col-span-6">
+                        <div></div>
+                        <Button
+                          className="px-4"
+                          //TODO: Add auction house from auctionhouses array
+                          onClick={() => claimFunds(marketplace.auctionHouse)}
+                          type={ButtonType.Primary}
+                          size={ButtonSize.Small}
+                          loading={withdrawlLoading}
+                        >
+                          Redeem {token?.symbol}
+                        </Button>
+                      </div>
+                    </>
+                  ))}
                 </div>
               </div>
             </div>
