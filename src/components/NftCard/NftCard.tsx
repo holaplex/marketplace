@@ -71,6 +71,7 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
             <div className="flex-1 mr-auto">
               <p className="label">Price</p>
               <p className="font-semibold icon-sol">
+                {/* TODO: Update token type once we get full auctionHouse object in Listing model */}
                 {toSOL(listing.price.toNumber())}
               </p>
             </div>
