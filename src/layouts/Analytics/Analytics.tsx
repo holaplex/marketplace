@@ -207,7 +207,7 @@ export const AnalyticsLayout = ({
                     options={
                       tokens.map((token) => ({
                         value: token?.address,
-                        label: token?.name,
+                        label: token?.symbol,
                       })) as OptionsType<OptionType>
                     }
                     className="select-base-theme"

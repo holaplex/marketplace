@@ -97,7 +97,10 @@ const GET_NFTS = gql`
       }
       listings {
         address
-        auctionHouse
+        auctionHouse {
+          address
+          treasuryMint
+        }
         price
       }
     }
@@ -401,7 +404,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         always(null)
       )(preset as PresetNftFilter)
 
-      //TODO: Update auctionHouses according to the selected tokens
+      //TODO: Update auctionHouses according to the selected tokens and by default use all auction houses.
       nftsQuery
         .refetch({
           creators,

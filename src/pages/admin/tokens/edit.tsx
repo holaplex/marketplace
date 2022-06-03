@@ -19,6 +19,7 @@ import { NATIVE_MINT } from '@solana/spl-token'
 import { initMarketplaceSDK, Marketplace } from '@holaplex/marketplace-js-sdk'
 import { createCreateAuctionHouseInstruction } from '@metaplex-foundation/mpl-auction-house/dist/src/generated/instructions'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import { useTokenList } from 'src/hooks/tokenList'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -188,6 +189,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
   )
+  const tokenMap = useTokenList()
 
   const [showAdd, setShowAdd] = useState(false)
 
@@ -430,7 +432,10 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
                       key={field.address}
                       className="flex justify-between w-full"
                     >
-                      <SplToken mint={field.address} />
+                      <SplToken
+                        mintAddress={field.address}
+                        tokenInfo={tokenMap.get(field.address)}
+                      />
                       {field.address !==
                         'So11111111111111111111111111111111111111112' && (
                         <div className="flex gap-4 items-center">

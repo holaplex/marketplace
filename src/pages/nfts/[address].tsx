@@ -70,12 +70,18 @@ const GET_NFT = gql`
         price
         buyer
         createdAt
-        auctionHouse
+        auctionHouse {
+          address
+          treasuryMint
+        }
       }
       activities {
         address
         metadata
-        auctionHouse
+        auctionHouse {
+          address
+          treasuryMint
+        }
         price
         createdAt
         wallets {
@@ -89,7 +95,10 @@ const GET_NFT = gql`
       }
       listings {
         address
-        auctionHouse
+        auctionHouse {
+          address
+          treasuryMint
+        }
         bookkeeper
         seller
         metadata
@@ -204,6 +213,7 @@ const NftShow: NextPage<NftPageProps> = ({
   marketplace,
   nftQuery,
 }) => {
+  console.log(nft, isOwner, offer, listing, marketplace)
   const cancelListingForm = useForm()
   const buyNowForm = useForm()
   const wallet = useWallet()

@@ -110,7 +110,10 @@ const GET_NFTS = gql`
       }
       listings {
         address
-        auctionHouse
+        auctionHouse {
+          address
+          treasuryMint
+        }
         price
       }
     }
@@ -345,7 +348,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
 
   useEffect(() => {
     const subscription = watch(({ attributes, preset, tokens }) => {
-      console.log('Watch Values', preset, tokens)
+      console.log('Watch Values', preset, tokens, attributes)
 
       const pubkey = publicKey?.toBase58()
       const nextAttributes = pipe(

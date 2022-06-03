@@ -56,18 +56,16 @@ export const Modal = ({
       >
         <button
           onClick={() => setOpen(false)}
-          className={`absolute top-7 right-6 hover:text-gray-400`}
+          className="absolute top-7 right-6 hover:text-gray-400"
         >
-          <X color={`#ffffff`} />
+          <X color="#ffffff" />
         </button>
         {title && (
-          <div className={`flex w-full items-center justify-center`}>
-            <h4 className={`text-2xl font-medium`}>{title}</h4>
+          <div className="flex w-full items-center justify-center">
+            <h4 className="text-2xl font-medium">{title}</h4>
           </div>
         )}
-        <div
-          className={`scrollbar-thumb-rounded-full flex h-full w-full flex-col scrollbar-thin scrollbar-track-gray-900`}
-        >
+        <div className="scrollbar-thumb-rounded-full flex h-full w-full flex-col scrollbar-thin scrollbar-track-gray-900">
           {children}
         </div>
       </div>

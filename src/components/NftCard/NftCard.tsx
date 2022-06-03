@@ -14,12 +14,15 @@ interface NftCardProps {
 
 export const NftCard = ({ nft, marketplace }: NftCardProps) => {
   const { publicKey } = useWallet()
+  console.log('nft', nft)
   const listing = !nft.listings
     ? null
     : find<Listing>(
-        pipe(prop('auctionHouse'), equals(marketplace.auctionHouse.address))
+        pipe(
+          prop('auctionHouse.address'),
+          equals(marketplace.auctionHouse.address)
+        )
       )(nft.listings)
-
   const isOwner = equals(nft.owner?.address, publicKey?.toBase58())
 
   return (

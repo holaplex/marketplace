@@ -245,7 +245,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
                       options={
                         tokens.map((token) => ({
                           value: token?.address,
-                          label: token?.name,
+                          label: token?.symbol,
                         })) as OptionsType<OptionType>
                       }
                       className="select-base-theme w-full"
