@@ -1,21 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import { TokenListProvider, TokenInfo, ENV } from '@solana/spl-token-registry'
+import React from 'react'
+import { useTokenList } from 'src/hooks/tokenList'
 
 export const SplToken = (props: { mint: string }) => {
-  const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
-
-  useEffect(() => {
-    new TokenListProvider().resolve().then((tokens) => {
-      const tokenList = tokens.filterByChainId(ENV.MainnetBeta).getList()
-
-      setTokenMap(
-        tokenList.reduce((map, item) => {
-          map.set(item.address, item)
-          return map
-        }, new Map())
-      )
-    })
-  }, [setTokenMap])
+  const tokenMap = useTokenList()
 
   const token = tokenMap.get(props.mint)
   if (!token)

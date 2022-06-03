@@ -12,12 +12,13 @@ import { useLogin } from '../../../hooks/login'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 import { AdminLayout } from '../../../layouts/Admin'
-import { ENV, TokenInfo, TokenListProvider } from '@solana/spl-token-registry'
+import { TokenInfo } from '@solana/spl-token-registry'
 import cx from 'classnames'
 import { isSol, toSOL } from 'src/modules/sol'
 import { Connection, Wallet } from '@metaplex/js'
 import { AuctionHouse } from '@holaplex/marketplace-js-sdk/dist/types'
 import { PublicKey } from '@solana/web3.js'
+import { useTokenList } from 'src/hooks/tokenList'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -104,9 +105,8 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
   )
-
   const login = useLogin()
-
+  const tokenMap = useTokenList()
   const [withdrawlLoading, setWithdrawlLoading] = useState(false)
 
   const claimFunds = async (ah: AuctionHouse) => {
@@ -124,8 +124,6 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
     setWithdrawlLoading(false)
   }
 
-  const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
-
   // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
   // const tokens: TokenInfo[] = marketplace?.auctionHouses?.map(
   //   ({ treasuryMint }) => tokenMap.get(treasuryMint)
@@ -136,19 +134,6 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
   ]
 
   //TODO: getTreasuryBalance() for each token
-
-  useEffect(() => {
-    new TokenListProvider().resolve().then((tokens) => {
-      const tokenList = tokens.filterByChainId(ENV.MainnetBeta).getList()
-
-      setTokenMap(
-        tokenList.reduce((map, item) => {
-          map.set(item.address, item)
-          return map
-        }, new Map())
-      )
-    })
-  }, [setTokenMap])
 
   return (
     <div className="w-full">

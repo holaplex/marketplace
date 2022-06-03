@@ -28,10 +28,11 @@ import {
 import { Wallet } from '@metaplex/js'
 import { Modal } from 'src/layouts/Modal'
 import Select from 'react-select'
-import { ENV, TokenInfo, TokenListProvider } from '@solana/spl-token-registry'
+import { TokenInfo } from '@solana/spl-token-registry'
 import cx from 'classnames'
 import { isSol } from 'src/modules/sol'
 import { NftPreview } from 'src/components/NftPreview'
+import { useTokenList } from 'src/hooks/tokenList'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -148,8 +149,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
   )
-
-  const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
+  const tokenMap = useTokenList()
 
   // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
   // const tokens: TokenInfo[] = marketplaceData?.auctionHouses?.map(
@@ -188,19 +188,6 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
       router.push(`/nfts/${nft.address}`)
     }
   }
-
-  useEffect(() => {
-    new TokenListProvider().resolve().then((tokens) => {
-      const tokenList = tokens.filterByChainId(ENV.MainnetBeta).getList()
-
-      setTokenMap(
-        tokenList.reduce((map, item) => {
-          map.set(item.address, item)
-          return map
-        }, new Map())
-      )
-    })
-  }, [setTokenMap])
 
   return (
     <>

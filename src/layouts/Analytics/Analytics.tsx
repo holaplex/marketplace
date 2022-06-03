@@ -31,7 +31,8 @@ import { BasicLayout } from '../Basic'
 import Chart from './../../components/Chart'
 import { Controller, useForm } from 'react-hook-form'
 import Select from 'react-select'
-import { ENV, TokenInfo, TokenListProvider } from '@solana/spl-token-registry'
+import { TokenInfo } from '@solana/spl-token-registry'
+import { useTokenList } from 'src/hooks/tokenList'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
 
@@ -133,8 +134,8 @@ export const AnalyticsLayout = ({
       subdomain: marketplace.subdomain,
     },
   })
+  const tokenMap = useTokenList()
   const marketplaceData = marketplaceQuery.data?.marketplace
-  const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
 
   // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
   // const tokens: TokenInfo[] = marketplaceData?.auctionHouses?.map(
@@ -171,19 +172,6 @@ export const AnalyticsLayout = ({
     marketplaceQuery.loading ||
     priceChartQuery.loading ||
     activitiesQuery.loading
-
-  useEffect(() => {
-    new TokenListProvider().resolve().then((tokens) => {
-      const tokenList = tokens.filterByChainId(ENV.MainnetBeta).getList()
-
-      setTokenMap(
-        tokenList.reduce((map, item) => {
-          map.set(item.address, item)
-          return map
-        }, new Map())
-      )
-    })
-  }, [setTokenMap])
 
   return (
     <BasicLayout marketplace={marketplace}>

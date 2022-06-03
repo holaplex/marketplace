@@ -44,7 +44,8 @@ import { List } from './../components/List'
 import { NftCard } from './../components/NftCard'
 import { subDays } from 'date-fns'
 import Chart from './../components/Chart'
-import { ENV, TokenInfo, TokenListProvider } from '@solana/spl-token-registry'
+import { TokenInfo } from '@solana/spl-token-registry'
+import { useTokenList } from 'src/hooks/tokenList'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -298,6 +299,8 @@ const endDate = new Date().toISOString()
 const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const { publicKey, connected } = useWallet()
   const creators = map(prop('creatorAddress'))(marketplace.creators)
+  const tokenMap = useTokenList()
+
   const marketplaceQuery = useQuery<GetMarketplaceInfo>(GET_MARKETPLACE_INFO, {
     variables: {
       subdomain: marketplace.subdomain,
@@ -358,8 +361,6 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const { watch, control, getValues } = useForm<NftFilterForm>({
     defaultValues: { preset: PresetNftFilter.All, tokens: [] },
   })
-
-  const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
 
   // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
   // const tokens: TokenInfo[] = marketplace?.auctionHouses?.map(
@@ -426,19 +427,6 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     creators,
     nftsQuery.variables?.limit,
   ])
-
-  useEffect(() => {
-    new TokenListProvider().resolve().then((tokens) => {
-      const tokenList = tokens.filterByChainId(ENV.MainnetBeta).getList()
-
-      setTokenMap(
-        tokenList.reduce((map, item) => {
-          map.set(item.address, item)
-          return map
-        }, new Map())
-      )
-    })
-  }, [setTokenMap])
 
   const loading =
     creatorsQuery.loading ||

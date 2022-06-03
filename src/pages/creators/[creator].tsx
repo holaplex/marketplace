@@ -54,7 +54,8 @@ import {
   PriceChart,
   GetPriceChartData,
 } from '@holaplex/marketplace-js-sdk'
-import { ENV, TokenInfo, TokenListProvider } from '@solana/spl-token-registry'
+import { TokenInfo } from '@solana/spl-token-registry'
+import { useTokenList } from 'src/hooks/tokenList'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -319,8 +320,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const { watch, control, getValues } = useForm<NftFilterForm>({
     defaultValues: { preset: PresetNftFilter.All, tokens: [] },
   })
-
-  const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
+  const tokenMap = useTokenList()
 
   // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
   // const tokens: TokenInfo[] = marketplace?.auctionHouses?.map(
@@ -394,19 +394,6 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     router.query.creator,
     creator,
   ])
-
-  useEffect(() => {
-    new TokenListProvider().resolve().then((tokens) => {
-      const tokenList = tokens.filterByChainId(ENV.MainnetBeta).getList()
-
-      setTokenMap(
-        tokenList.reduce((map, item) => {
-          map.set(item.address, item)
-          return map
-        }, new Map())
-      )
-    })
-  }, [setTokenMap])
 
   return (
     <>
