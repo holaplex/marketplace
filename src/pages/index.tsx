@@ -382,8 +382,6 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
 
   useEffect(() => {
     const subscription = watch(({ preset, tokens }) => {
-      console.log('Watch Values', preset, tokens)
-
       const pubkey = publicKey?.toBase58()
 
       const owners = ifElse(

@@ -14,7 +14,6 @@ interface NftCardProps {
 
 export const NftCard = ({ nft, marketplace }: NftCardProps) => {
   const { publicKey } = useWallet()
-  console.log('nft', nft)
   const listing = !nft.listings
     ? null
     : find<Listing>(

@@ -213,7 +213,6 @@ const NftShow: NextPage<NftPageProps> = ({
   marketplace,
   nftQuery,
 }) => {
-  console.log(nft, isOwner, offer, listing, marketplace)
   const cancelListingForm = useForm()
   const buyNowForm = useForm()
   const wallet = useWallet()
