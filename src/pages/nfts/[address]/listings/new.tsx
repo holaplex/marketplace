@@ -1,36 +1,26 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { NextPageContext } from 'next'
-import {
-  map,
-  prop,
-  isEmpty,
-  intersection,
-  pipe,
-  or,
-  any,
-  isNil,
-  when,
-  always,
-} from 'ramda'
+import { map, prop, isEmpty, intersection, pipe, or, any, isNil } from 'ramda'
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
 import { gql } from '@apollo/client'
 import client from './../../../../client'
-import Button from './../../../../components/Button'
+import Button, { ButtonType } from './../../../../components/Button'
 import { toast } from 'react-toastify'
 import {
   initMarketplaceSDK,
   Nft,
   Marketplace,
+  Offer,
 } from '@holaplex/marketplace-js-sdk'
 import { Wallet } from '@metaplex/js'
 import { Modal } from 'src/layouts/Modal'
 import Select from 'react-select'
 import { TokenInfo } from '@solana/spl-token-registry'
 import cx from 'classnames'
-import { isSol } from 'src/modules/sol'
+import { isSol, toSOL } from 'src/modules/sol'
 import { NftPreview } from 'src/components/NftPreview'
 import { useTokenList } from 'src/hooks/tokenList'
 
@@ -92,6 +82,17 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           }
           creators {
             address
+          }
+          offers {
+            address
+            tradeState
+            price
+            buyer
+            createdAt
+            auctionHouse {
+              address
+              treasuryMint
+            }
           }
         }
       }
@@ -162,9 +163,36 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
   const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>(
     tokens[0]
   )
+  let highestOffer: Offer | undefined
+  if (nft.offers) {
+    highestOffer = nft.offers.reduce((a, b) => {
+      return a.price > b.price ? a : b
+    })
+  }
 
   const goBack = () => {
     router.push(`/nfts/${nft.address}`)
+  }
+
+  const acceptOffer = async () => {
+    if (!publicKey || !signTransaction) {
+      return
+    }
+
+    try {
+      toast('Sending the transaction to Solana.')
+
+      await sdk.offers(marketplace.auctionHouse).accept({
+        offer: highestOffer!,
+        nft,
+      })
+
+      toast.success('The transaction was confirmed.')
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      router.push(`/nfts/${nft.address}`)
+    }
   }
 
   const sellNftTransaction = async ({ amount, token }: SellNftForm) => {
@@ -195,6 +223,25 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
         <div className="mt-8 flex w-full justify-start">
           <NftPreview nft={nft} />
         </div>
+        {highestOffer && (
+          <div className="flex justify-between mt-8">
+            <div className="flex-col gap-2">
+              <div className="text-gray-300">Highest offer</div>
+              <span
+                className={cx('', {
+                  'sol-amount': isSol(highestOffer.auctionHouse.treasuryMint),
+                })}
+              >
+                {isSol(highestOffer.auctionHouse.treasuryMint)
+                  ? toSOL(highestOffer.price)
+                  : highestOffer.price}
+              </span>
+            </div>
+            <div>
+              <Button onClick={acceptOffer}>Accept Offer</Button>
+            </div>
+          </div>
+        )}
         <form
           className="text-left grow mt-6"
           onSubmit={handleSubmit(sellNftTransaction)}

@@ -1,4 +1,4 @@
-import React, { useEffect, ReactElement, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { any, map, intersection, or, isEmpty, isNil, pipe, prop } from 'ramda'
 import { NextPageContext } from 'next'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
