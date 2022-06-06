@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
@@ -7,7 +7,7 @@ import { map, prop, isEmpty, intersection, pipe, or, any, isNil } from 'ramda'
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
 import { gql } from '@apollo/client'
 import client from './../../../../client'
-import Button, { ButtonType } from './../../../../components/Button'
+import Button from './../../../../components/Button'
 import { toast } from 'react-toastify'
 import {
   initMarketplaceSDK,
@@ -139,6 +139,7 @@ interface SellNftProps {
 const ListingNew = ({ nft, marketplace }: SellNftProps) => {
   const {
     control,
+    setValue,
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<SellNftForm>({})
@@ -160,11 +161,20 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     tokenMap.get('So11111111111111111111111111111111111111112'),
     tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
   ]
-  const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>(
-    tokens[0]
-  )
+  const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>()
+
+  useEffect(() => {
+    if (!selectedToken && tokens[0]) {
+      setSelectedToken(tokens[0])
+      setValue('token', {
+        value: tokens[0].address,
+        label: tokens[0].symbol,
+      })
+    }
+  }, [setValue, selectedToken, tokens])
+
   let highestOffer: Offer | undefined
-  if (nft.offers) {
+  if (nft.offers && nft.offers?.length > 0) {
     highestOffer = nft.offers.reduce((a, b) => {
       return a.price > b.price ? a : b
     })
@@ -289,14 +299,18 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
                   return (
                     <Select
                       {...field}
+                      className="select-base-theme w-full"
+                      classNamePrefix="base"
+                      value={{
+                        value: selectedToken?.address,
+                        label: selectedToken?.symbol,
+                      }}
                       options={
                         tokens.map((token) => ({
                           value: token?.address,
                           label: token?.symbol,
                         })) as OptionsType<OptionType>
                       }
-                      className="select-base-theme w-full"
-                      classNamePrefix="base"
                       onChange={(next: ValueType<OptionType>) => {
                         setSelectedToken(tokenMap.get(next.value))
                       }}

@@ -83,7 +83,7 @@ interface AnalyticsLayoutProps {
 }
 
 interface TokenFilter {
-  token: string
+  token: OptionsType<OptionType>
 }
 
 type OptionType = { label: string; value: number }
@@ -145,9 +145,19 @@ export const AnalyticsLayout = ({
     tokenMap.get('So11111111111111111111111111111111111111112'),
     tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
   ]
-  const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>(
-    tokens[0]
-  )
+
+  const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>()
+  const { control, setValue } = useForm<TokenFilter>()
+
+  useEffect(() => {
+    if (!selectedToken && tokens[0]) {
+      setSelectedToken(tokens[0])
+      setValue('token', {
+        value: tokens[0].address,
+        label: tokens[0].symbol,
+      })
+    }
+  }, [setValue, selectedToken, tokens])
 
   // TODO: Once auctionHouses has data, we can uncommment this
   // const [stats, setStats] = useState<MintStats | undefined>(
@@ -159,12 +169,6 @@ export const AnalyticsLayout = ({
   const [stats, setStats] = useState<MintStats | undefined>(
     marketplaceQuery.data?.marketplace.auctionHouse.stats
   )
-
-  const { control } = useForm<TokenFilter>({
-    defaultValues: {
-      token: selectedToken?.address,
-    },
-  })
 
   let activities: Activity[] = activitiesQuery.data?.activities || []
 
@@ -191,35 +195,42 @@ export const AnalyticsLayout = ({
         </div>
         <div className="flex flex-col">
           <p className="mt-6 mb-2 max-w-prose">Token</p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-            }}
-          >
-            <Controller
-              control={control}
-              name="token"
-              defaultValue={selectedToken?.address}
-              render={({ field }) => {
-                return (
-                  <Select
-                    {...field}
-                    options={
-                      tokens.map((token) => ({
-                        value: token?.address,
-                        label: token?.symbol,
-                      })) as OptionsType<OptionType>
-                    }
-                    className="select-base-theme"
-                    classNamePrefix="base"
-                    onChange={(next: ValueType<OptionType>) => {
-                      setSelectedToken(tokenMap.get(next.value))
-                    }}
-                  />
-                )
+          {loading ? (
+            <div className="block bg-gray-800 w-20 h-10 rounded" />
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
               }}
-            />
-          </form>
+            >
+              <Controller
+                control={control}
+                name="token"
+                render={({ field }) => {
+                  return (
+                    <Select
+                      {...field}
+                      className="select-base-theme"
+                      classNamePrefix="base"
+                      value={{
+                        value: selectedToken?.address,
+                        label: selectedToken?.symbol,
+                      }}
+                      options={
+                        tokens.map((token) => ({
+                          value: token?.address,
+                          label: token?.symbol,
+                        })) as OptionsType<OptionType>
+                      }
+                      onChange={(next: ValueType<OptionType>) => {
+                        setSelectedToken(tokenMap.get(next.value))
+                      }}
+                    />
+                  )
+                }}
+              />
+            </form>
+          )}
         </div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 py-12">

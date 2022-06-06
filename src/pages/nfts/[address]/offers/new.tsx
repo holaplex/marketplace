@@ -127,6 +127,7 @@ interface OfferProps {
 const OfferNew = ({ nft, marketplace }: OfferProps) => {
   const {
     control,
+    setValue,
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<OfferForm>({})
@@ -149,9 +150,17 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
     tokenMap.get('So11111111111111111111111111111111111111112'),
     tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
   ]
-  const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>(
-    tokens[0]
-  )
+  const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>()
+
+  useEffect(() => {
+    if (!selectedToken && tokens[0]) {
+      setSelectedToken(tokens[0])
+      setValue('token', {
+        value: tokens[0].address,
+        label: tokens[0].symbol,
+      })
+    }
+  }, [setValue, selectedToken, tokens])
 
   const goBack = () => {
     router.push(`/nfts/${nft.address}`)
@@ -246,14 +255,18 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
                   return (
                     <Select
                       {...field}
+                      className="select-base-theme w-full"
+                      classNamePrefix="base"
+                      value={{
+                        value: selectedToken?.address,
+                        label: selectedToken?.symbol,
+                      }}
                       options={
                         tokens.map((token) => ({
                           value: token?.address,
                           label: token?.symbol,
                         })) as OptionsType<OptionType>
                       }
-                      className="select-base-theme w-full"
-                      classNamePrefix="base"
                       onChange={(next: ValueType<OptionType>) => {
                         setSelectedToken(tokenMap.get(next.value))
                       }}
