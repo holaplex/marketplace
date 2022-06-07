@@ -192,10 +192,15 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     try {
       toast('Sending the transaction to Solana.')
 
-      await sdk.offers(marketplace.auctionHouse).accept({
-        offer: highestOffer!,
-        nft,
-      })
+      await sdk
+        .transaction()
+        .add(
+          sdk.offers(marketplace.auctionHouse).accept({
+            offer: highestOffer!,
+            nft,
+          })
+        )
+        .send()
 
       toast.success('The transaction was confirmed.')
     } catch (e: any) {

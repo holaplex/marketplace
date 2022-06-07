@@ -49,11 +49,16 @@ const CancelOfferForm = ({
     try {
       toast('Sending the transaction to Solana.')
 
-      await sdk.offers(marketplace.auctionHouse).cancel({
-        amount: offer.price.toNumber() * LAMPORTS_PER_SOL,
-        nft,
-        offer,
-      })
+      await sdk
+        .transaction()
+        .add(
+          sdk.offers(marketplace.auctionHouse).cancel({
+            amount: offer.price.toNumber() * LAMPORTS_PER_SOL,
+            nft,
+            offer,
+          })
+        )
+        .send()
 
       await refetch()
 

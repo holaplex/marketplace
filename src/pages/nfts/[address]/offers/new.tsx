@@ -179,13 +179,19 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
     try {
       toast('Sending the transaction to Solana.')
       //TODO: Set the auctionhouse corresponding to selected token
-      await sdk.offers(marketplace.auctionHouse).make({
-        amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
-        nft: nft,
-      })
+      await sdk
+        .transaction()
+        .add(
+          sdk.offers(marketplace.auctionHouse).make({
+            amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
+            nft: nft,
+          })
+        )
+        .send()
       toast.success('The transaction was confirmed.')
     } catch (e: any) {
       toast.error(e.message)
+      console.log(e)
     } finally {
       router.push(`/nfts/${nft.address}`)
     }

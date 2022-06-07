@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useMemo, useState } from 'react'
+import { ReactElement, useMemo, useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
@@ -12,7 +12,6 @@ import { useLogin } from '../../../hooks/login'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 import { AdminLayout } from '../../../layouts/Admin'
-import { TokenInfo } from '@solana/spl-token-registry'
 import cx from 'classnames'
 import { isSol, toSOL } from 'src/modules/sol'
 import { Connection, Wallet } from '@metaplex/js'
@@ -118,8 +117,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
 
     toast('Sending the transaction to Solana.')
     setWithdrawlLoading(true)
-    // TODO:Once sdk is updated
-    // await sdk.claimFunds(ah)
+    await sdk.claimFunds(ah)
     toast.success('The transaction was confirmed.')
     setWithdrawlLoading(false)
   }

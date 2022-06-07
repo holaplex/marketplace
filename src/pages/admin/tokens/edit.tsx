@@ -255,6 +255,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
     const newTokens = tokens.filter(
       (token) => !originalTokens.some((ot) => ot.address === token.address)
     )
+
     const newAuctionHousesInstructions: TransactionInstruction[] = []
 
     if (newTokens.length > 0) {
@@ -286,6 +287,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
       },
       creators,
       subdomain: marketplace.subdomain,
+      address: {},
       auctionHouses: auctionHouses,
     }
 
@@ -300,8 +302,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
 
       //await sdk.update(settings, transactionFee)
       // TODO: Create fetchUpdateInstruction method in sdk
-      const updateInstruction: TransactionInstruction =
-        sdk.fetchUpdateInstruction(settings, transactionFee)
+      const updateInstruction = await sdk.update(settings, transactionFee)
       transaction.add(updateInstruction)
 
       transaction.feePayer = publicKey

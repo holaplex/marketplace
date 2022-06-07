@@ -153,6 +153,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
 
     toast('Saving changes...')
 
+    // TODO: Add auctionHouses field once it has data
     const settings = {
       meta: {
         name,
@@ -172,13 +173,11 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
       },
       creators,
       subdomain: marketplace.subdomain,
-      address: {
-        auctionHouse: marketplace.auctionHouse.address,
-      },
+      address: {},
     }
 
     try {
-      await sdk.update(settings, transactionFee)
+      await sdk.transaction().add(sdk.update(settings, transactionFee)).send()
 
       toast.success(
         <>

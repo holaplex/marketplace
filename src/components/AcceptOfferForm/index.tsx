@@ -50,11 +50,16 @@ const AcceptOfferForm = ({
 
     try {
       toast('Sending the transaction to Solana.')
-      await sdk.offers(marketplace.auctionHouse).accept({
-        cancel: [listing],
-        nft,
-        offer,
-      })
+      await sdk
+        .transaction()
+        .add(
+          sdk.offers(marketplace.auctionHouse).accept({
+            cancel: listing ? [listing] : [],
+            nft,
+            offer,
+          })
+        )
+        .send()
 
       await refetch()
 

@@ -44,7 +44,6 @@ import { List } from './../components/List'
 import { NftCard } from './../components/NftCard'
 import { subDays } from 'date-fns'
 import Chart from './../components/Chart'
-import { TokenInfo } from '@solana/spl-token-registry'
 import { useTokenList } from 'src/hooks/tokenList'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN

@@ -237,10 +237,15 @@ const NftShow: NextPage<NftPageProps> = ({
     try {
       toast('Sending the transaction to Solana.')
 
-      await sdk.listings(marketplace.auctionHouse).buy({
-        listing,
-        nft,
-      })
+      await sdk
+        .transaction()
+        .add(
+          sdk.listings(marketplace.auctionHouse).buy({
+            listing,
+            nft,
+          })
+        )
+        .send()
 
       toast.success('The transaction was confirmed.')
 
