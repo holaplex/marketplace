@@ -8,7 +8,6 @@ import {
   all,
   always,
   and,
-  or,
   when,
   any,
   equals,
@@ -29,7 +28,6 @@ import AcceptOfferForm from '../../components/AcceptOfferForm'
 import CancelOfferForm from '../../components/CancelOfferForm'
 import { BasicLayout } from '../Basic'
 import { truncateAddress, addressAvatar } from '../../modules/address'
-import { toSOL } from '../../modules/sol'
 import {
   Activity,
   Listing,
@@ -39,6 +37,8 @@ import {
   GetNftData,
 } from '@holaplex/marketplace-js-sdk'
 import { identity } from 'lodash'
+import Price from '../../components/Price'
+import { useTokenList } from '../../hooks/tokenList'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
 const pickAuctionHouse = prop('auctionHouse')
@@ -58,6 +58,7 @@ export const NftLayout = ({
 }: NftLayoutProps) => {
   const { publicKey } = useWallet()
   const router = useRouter()
+  const tokenMap = useTokenList()
 
   const { data, loading, refetch } = nftQuery
 
@@ -250,11 +251,11 @@ export const NftLayout = ({
                   {listing && (
                     <div className="flex-1 mb-6">
                       <div className="label">PRICE</div>
-                      <p className="text-base md:text-xl lg:text-3xl">
-                        <b className="sol-amount">
-                          {toSOL(listing.price.toNumber())}
-                        </b>
-                      </p>
+                      <Price
+                        price={listing.price.toNumber()}
+                        token={tokenMap.get(listing.auctionHouse.treasuryMint)}
+                        style={'text-base md:text-xl lg:text-3xl font-bold'}
+                      />
                     </div>
                   )}
                 </div>
@@ -353,9 +354,10 @@ export const NftLayout = ({
                           </a>
                         </div>
                         <div>
-                          <span className="sol-amount">
-                            {toSOL(o.price.toNumber())}
-                          </span>
+                          <Price
+                            price={o.price.toNumber()}
+                            token={tokenMap.get(o.auctionHouse.treasuryMint)}
+                          />
                         </div>
                         <div>{format(o.createdAt, 'en_US')}</div>
                         {(offer || isOwner) && (
@@ -512,9 +514,10 @@ export const NftLayout = ({
                             </div>
                           </div>
                           <div className="self-center">
-                            <span className="sol-amount">
-                              {toSOL(a.price.toNumber())}
-                            </span>
+                            <Price
+                              price={a.price.toNumber()}
+                              token={tokenMap.get(a.auctionHouse.treasuryMint)}
+                            />
                           </div>
                           <div className="self-center text-sm">
                             {format(a.createdAt, 'en_US')}

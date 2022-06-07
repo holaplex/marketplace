@@ -4,15 +4,17 @@ import { equals, find, not, pipe, prop, when, isNil, always } from 'ramda'
 import React from 'react'
 import Link from 'next/link'
 import { addressAvatar } from 'src/modules/address'
-import { toSOL } from '../../modules/sol'
 import { Listing, Marketplace, Nft } from '@holaplex/marketplace-js-sdk'
+import Price from '../Price'
+import { TokenInfo } from '@solana/spl-token-registry'
 
 interface NftCardProps {
   nft: Nft
   marketplace: Marketplace
+  tokenMap: Map<string, TokenInfo>
 }
 
-export const NftCard = ({ nft, marketplace }: NftCardProps) => {
+export const NftCard = ({ nft, marketplace, tokenMap }: NftCardProps) => {
   const { publicKey } = useWallet()
   const listing = !nft.listings
     ? null
@@ -72,10 +74,11 @@ export const NftCard = ({ nft, marketplace }: NftCardProps) => {
           <>
             <div className="flex-1 mr-auto">
               <p className="label">Price</p>
-              <p className="font-semibold icon-sol">
-                {/* TODO: Update token type once we get full auctionHouse object in Listing model */}
-                {toSOL(listing.price.toNumber())}
-              </p>
+              <Price
+                price={listing.price.toNumber()}
+                token={tokenMap.get(listing.auctionHouse.treasuryMint)}
+                style={'font-semibold'}
+              />
             </div>
             {not(isOwner) && (
               <Link href={`/nfts/${nft.address}`} passHref>

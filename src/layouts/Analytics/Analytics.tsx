@@ -32,7 +32,8 @@ import Chart from './../../components/Chart'
 import { Controller, useForm } from 'react-hook-form'
 import Select from 'react-select'
 import { TokenInfo } from '@solana/spl-token-registry'
-import { useTokenList } from 'src/hooks/tokenList'
+import { useTokenList } from '../../hooks/tokenList'
+import Price from '../../components/Price'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
 
@@ -94,7 +95,7 @@ const PriceData = ({
   priceType,
   loading,
 }: {
-  token: TokenInfo | undefined
+  token?: TokenInfo
   price: number
   priceType: string
   loading: boolean
@@ -106,18 +107,7 @@ const PriceData = ({
     {loading ? (
       <div className="block bg-gray-800 w-20 h-10 rounded" />
     ) : (
-      <div className="flex items-end gap-2">
-        <span
-          className={cx('text-3xl font-bold', {
-            'sol-amount': isSol(token?.address),
-          })}
-        >
-          {isSol(token?.address) ? toSOL(price) : price}
-        </span>
-        {!isSol(token?.address) && (
-          <span className="text-sm">{token?.symbol}</span>
-        )}
-      </div>
+      <Price token={token} price={price} style="text-3xl font-bold" />
     )}
   </div>
 )
@@ -146,7 +136,7 @@ export const AnalyticsLayout = ({
     tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
   ]
 
-  const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>()
+  const [selectedToken, setSelectedToken] = useState<TokenInfo>()
   const { control, setValue } = useForm<TokenFilter>()
 
   useEffect(() => {
@@ -421,9 +411,10 @@ export const AnalyticsLayout = ({
                         </div>
                       </div>
                       <div className="self-center">
-                        <span className="sol-amount">
-                          {toSOL(a.price.toNumber())}
-                        </span>
+                        <Price
+                          price={a.price.toNumber()}
+                          token={tokenMap.get(a.auctionHouse.treasuryMint)}
+                        />
                       </div>
                       <div className="self-center text-sm">
                         {format(a.createdAt, 'en_US')}

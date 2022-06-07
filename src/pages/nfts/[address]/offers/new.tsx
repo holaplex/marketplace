@@ -233,7 +233,7 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
                     <>
                       <div
                         className={cx('mb-4', {
-                          'sol-input': isSol(selectedToken?.address),
+                          'sol-input': isSol(selectedToken?.address || ''),
                         })}
                       >
                         <input

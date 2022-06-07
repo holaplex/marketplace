@@ -23,6 +23,7 @@ import cx from 'classnames'
 import { isSol, toSOL } from 'src/modules/sol'
 import { NftPreview } from 'src/components/NftPreview'
 import { useTokenList } from 'src/hooks/tokenList'
+import Price from 'src/components/Price'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -242,15 +243,10 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
           <div className="flex justify-between mt-8">
             <div className="flex-col gap-2">
               <div className="text-gray-300">Highest offer</div>
-              <span
-                className={cx('', {
-                  'sol-amount': isSol(highestOffer.auctionHouse.treasuryMint),
-                })}
-              >
-                {isSol(highestOffer.auctionHouse.treasuryMint)
-                  ? toSOL(highestOffer.price)
-                  : highestOffer.price}
-              </span>
+              <Price
+                price={highestOffer.price.toNumber()}
+                token={tokenMap.get(highestOffer.auctionHouse.treasuryMint)}
+              />
             </div>
             <div>
               <Button onClick={acceptOffer}>Accept Offer</Button>
@@ -276,7 +272,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
                     <>
                       <div
                         className={cx('mb-4', {
-                          'sol-input': isSol(selectedToken?.address),
+                          'sol-input': isSol(selectedToken?.address || ''),
                         })}
                       >
                         <input
