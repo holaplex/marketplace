@@ -200,7 +200,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
   const {
     control,
     handleSubmit,
-    formState: { errors, isDirty, isSubmitting },
+    formState: { isDirty, isSubmitting },
   } = useForm<MarketplaceForm>({
     defaultValues: {
       domain: `${marketplace.subdomain}.holaplex.market`,
@@ -212,7 +212,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
       creators: marketplace.creators?.map(({ creatorAddress }) => ({
         address: creatorAddress,
       })),
-      transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,
+      transactionFee: marketplace.auctionHouses[0].sellerFeeBasisPoints,
       tokens: originalTokens,
       token: '',
     },
@@ -253,7 +253,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
 
     // Add auction houses corresponding to new tokens
     const newTokens = tokens.filter(
-      (token) => !originalTokens.some((ot) => ot.address === token.address)
+      (token) => !originalTokens?.some((ot) => ot.address === token.address)
     )
 
     const newAuctionHousesInstructions: TransactionInstruction[] = []
@@ -264,7 +264,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
         newTokens,
         transactionFee
       )
-      auctionHouses.push(...result.auctionHouses)
+      auctionHouses?.push(...result.auctionHouses)
       newAuctionHousesInstructions.push(...result.instructions)
     }
 
@@ -300,7 +300,6 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
         }
       )
 
-      //await sdk.update(settings, transactionFee)
       // TODO: Create fetchUpdateInstruction method in sdk
       const updateInstruction = await sdk.update(settings, transactionFee)
       transaction.add(updateInstruction)
