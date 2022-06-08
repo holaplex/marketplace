@@ -18,6 +18,7 @@ import { Connection, Wallet } from '@metaplex/js'
 import { AuctionHouse } from '@holaplex/marketplace-js-sdk/dist/types'
 import { PublicKey } from '@solana/web3.js'
 import { useTokenList } from 'src/hooks/tokenList'
+import Price from 'src/components/Price'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -47,7 +48,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             address
             treasuryMint
             auctionHouseTreasury
@@ -122,16 +123,25 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
     setWithdrawlLoading(false)
   }
 
-  // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
-  // const tokens: TokenInfo[] = marketplace?.auctionHouses?.map(
-  //   ({ treasuryMint }) => tokenMap.get(treasuryMint)
-  // )
-  const tokens = [
-    tokenMap.get('So11111111111111111111111111111111111111112'),
-    tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  ]
+  const tokens = marketplace.auctionHouses?.map(({ treasuryMint }) =>
+    tokenMap.get(treasuryMint)
+  )
 
-  //TODO: getTreasuryBalance() for each token
+  // DUMMY TOKENS FOR TESTING
+  // const tokens = [
+  //   tokenMap.get('So11111111111111111111111111111111111111112'),
+  //   tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+  // ]
+
+  const treasuryBalanceMap = useMemo(() => {
+    const map = new Map()
+
+    marketplace.auctionHouses?.forEach(async (ah) => {
+      const balance = await getTreasuryBalance(ah, connection)
+      map.set(ah.treasuryMint, balance)
+    })
+    return map
+  }, [connection, marketplace.auctionHouses])
 
   return (
     <div className="w-full">
@@ -162,43 +172,42 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
                   <h2>Transaction fees collected</h2>
                 </div>
                 <div className="grid grid-cols-12 gap-4">
-                  {tokens.map((token) => (
+                  {tokens?.map((token) => (
                     <>
                       <div className="flex-col col-span-6 md:col-span-3">
+                        {/* TODO: Get All Time Balance */}
                         <span className="text-gray-300 uppercase font-semibold text-xs">
                           {token?.symbol} All time
                         </span>
-                        <div className="flex items-end gap-1">
-                          <span
-                            className={cx('text-lg font-semibold', {
-                              'sol-amount': isSol(token?.address),
-                            })}
-                          >
-                            {isSol(token?.address) ? toSOL(0) : 0}
-                          </span>
-                          {!isSol(token?.address) && (
-                            <span className="text-sm">{token?.symbol}</span>
-                          )}
-                        </div>
+                        {/* <Price
+                          price={0}
+                          token={token}
+                          style="text-lg font-semibold"
+                        /> */}
                       </div>
                       <div className="flex-col col-span-6 md:col-span-3">
                         <span className="text-gray-300 uppercase font-semibold text-xs">
                           {token?.symbol} Unredeemed
                         </span>
-                        <div
-                          className={cx('text-lg font-semibold', {
-                            'sol-amount': isSol(token?.address),
-                          })}
-                        >
-                          {isSol(token?.address) ? toSOL(0) : 0}
-                        </div>
+                        <Price
+                          price={
+                            treasuryBalanceMap.get(token?.address) as number
+                          }
+                          token={token}
+                          style="text-lg font-semibold"
+                        />
                       </div>
                       <div className="flex md:justify-end col-span-full md:col-span-6">
                         <div></div>
                         <Button
                           className="px-4"
-                          //TODO: Add auction house from auctionhouses array
-                          onClick={() => claimFunds(marketplace.auctionHouse)}
+                          onClick={() =>
+                            claimFunds(
+                              marketplace.auctionHouses?.filter(
+                                (ah) => ah.treasuryMint === token?.address
+                              )[0]!
+                            )
+                          }
                           type={ButtonType.Primary}
                           size={ButtonSize.Small}
                           loading={withdrawlLoading}
