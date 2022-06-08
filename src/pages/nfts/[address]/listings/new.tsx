@@ -220,10 +220,15 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
       toast('Sending the transaction to Solana.')
 
       //TODO: Set the auctionhouse corresponding to selected token
-      await sdk.listings(marketplace.auctionHouse).post({
-        amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
-        nft,
-      })
+      await sdk
+        .transaction()
+        .add(
+          sdk.listings(marketplace.auctionHouse).post({
+            amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
+            nft,
+          })
+        )
+        .send()
 
       toast.success('The transaction was confirmed.')
     } catch (e: any) {
