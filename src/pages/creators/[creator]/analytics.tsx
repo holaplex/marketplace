@@ -22,7 +22,10 @@ const GET_ACTIVITIES = gql`
     activities(auctionHouses: $auctionHouses, creators: $creators) {
       address
       metadata
-      auctionHouse
+      auctionHouse {
+        address
+        treasuryMint
+      }
       price
       createdAt
       wallets {
@@ -91,6 +94,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
           auctionHouse {
             authority
             address
+            treasuryMint
           }
         }
       }
@@ -136,11 +140,13 @@ const startDate = subDays(new Date(), 6).toISOString()
 const endDate = new Date().toISOString()
 
 const CreatorAnalytics: NextPage<CreatorAnalyticsProps> = ({ marketplace }) => {
+  const auctionHouses = map(prop('address'))(marketplace.auctionHouses || [])
+
   const router = useRouter()
   const priceChartQuery = useQuery<GetPriceChartData>(GET_PRICE_CHART_DATA, {
     fetchPolicy: 'network-only',
     variables: {
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: auctionHouses,
       creators: [router.query.creator],
       startDate,
       endDate,
@@ -149,7 +155,7 @@ const CreatorAnalytics: NextPage<CreatorAnalyticsProps> = ({ marketplace }) => {
 
   const activitiesQuery = useQuery<GetActivities>(GET_ACTIVITIES, {
     variables: {
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: auctionHouses,
       creators: [router.query.creator],
     },
   })

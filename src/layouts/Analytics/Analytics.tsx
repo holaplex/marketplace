@@ -45,16 +45,6 @@ const GET_MARKETPLACE_INFO = gql`
       stats {
         nfts
       }
-      auctionHouse {
-        address
-        stats {
-          mint
-          floor
-          average
-          volume24hr
-          volumeTotal
-        }
-      }
       auctionHouses {
         address
         treasuryMint
@@ -127,20 +117,21 @@ export const AnalyticsLayout = ({
   const tokenMap = useTokenList()
   const marketplaceData = marketplaceQuery.data?.marketplace
 
-  // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
-  // const tokens: TokenInfo[] = marketplaceData?.auctionHouses?.map(
-  //   ({ treasuryMint }) => tokenMap.get(treasuryMint)
-  // )
-  const tokens = [
-    tokenMap.get('So11111111111111111111111111111111111111112'),
-    tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  ]
+  const tokens = marketplaceData?.auctionHouses?.map(({ treasuryMint }) =>
+    tokenMap.get(treasuryMint)
+  )
+
+  // DUMMY TOKENS FOR TESTING
+  // const tokens = [
+  //   tokenMap.get('So11111111111111111111111111111111111111112'),
+  //   tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+  // ]
 
   const [selectedToken, setSelectedToken] = useState<TokenInfo>()
   const { control, setValue } = useForm<TokenFilter>()
 
   useEffect(() => {
-    if (!selectedToken && tokens[0]) {
+    if (!selectedToken && tokens && tokens[0]) {
       setSelectedToken(tokens[0])
       setValue('token', {
         value: tokens[0].address,
@@ -149,15 +140,12 @@ export const AnalyticsLayout = ({
     }
   }, [setValue, selectedToken, tokens])
 
-  // TODO: Once auctionHouses has data, we can uncommment this
-  // const [stats, setStats] = useState<MintStats | undefined>(
-  //   marketplaceQuery.data?.marketplace.auctionHouses.filter(
-  //     (ah) => ah.treasuryMint === selectedToken?.address
-  //   )[0].stats
-  // )
+  const selectedAuctionHouse = marketplaceData?.auctionHouses?.filter(
+    (ah) => ah.treasuryMint === selectedToken?.address
+  )[0]
 
   const [stats, setStats] = useState<MintStats | undefined>(
-    marketplaceQuery.data?.marketplace.auctionHouse.stats
+    selectedAuctionHouse?.stats
   )
 
   let activities: Activity[] = activitiesQuery.data?.activities || []

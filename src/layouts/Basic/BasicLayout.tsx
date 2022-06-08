@@ -52,7 +52,9 @@ export const BasicLayout = ({
             </Link>
             {equals(
               publicKey?.toBase58(),
-              marketplace.auctionHouse.authority
+              marketplace.auctionHouses
+                ? marketplace.auctionHouses[0].authority
+                : null
             ) && (
               <Link href="/admin/marketplace/edit" passHref>
                 <a

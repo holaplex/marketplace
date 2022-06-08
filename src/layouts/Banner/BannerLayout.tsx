@@ -39,7 +39,9 @@ export const BannerLayout = ({ marketplace, children }: BannerLayoutProps) => {
           <div className="flex items-center justify-end">
             {equals(
               publicKey?.toBase58(),
-              marketplace.auctionHouses[0].authority
+              marketplace.auctionHouses
+                ? marketplace.auctionHouses[0].authority
+                : null
             ) && (
               <Link href="/admin/marketplace/edit" passHref>
                 <a className="text-sm cursor-pointer mr-6 hover:underline ">

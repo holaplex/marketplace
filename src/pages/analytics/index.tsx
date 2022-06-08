@@ -1,6 +1,6 @@
 import { gql, useQuery } from '@apollo/client'
 import { NextPageContext, NextPage } from 'next'
-import { isNil } from 'ramda'
+import { isNil, map, prop } from 'ramda'
 import { subDays } from 'date-fns'
 import client from '../../client'
 import { AnalyticsLayout } from './../../layouts/Analytics'
@@ -45,7 +45,10 @@ const GET_ACTIVITIES = gql`
     activities(auctionHouses: $auctionHouses) {
       address
       metadata
-      auctionHouse
+      auctionHouse {
+        address
+        treasuryMint
+      }
       price
       createdAt
       wallets {
@@ -78,9 +81,10 @@ export async function getServerSideProps({ req }: NextPageContext) {
           description
           logoUrl
           bannerUrl
-          auctionHouse {
+          auctionHouses {
             authority
             address
+            treasuryMint
           }
         }
       }
@@ -123,10 +127,11 @@ const startDate = subDays(new Date(), 6).toISOString()
 const endDate = new Date().toISOString()
 
 const Analytics: NextPage<AnalyticsProps> = ({ marketplace }) => {
+  const auctionHouses = map(prop('address'))(marketplace.auctionHouses || [])
   const priceChartQuery = useQuery<GetPriceChartData>(GET_PRICE_CHART_DATA, {
     fetchPolicy: 'network-only',
     variables: {
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: auctionHouses,
       startDate,
       endDate,
     },
@@ -134,7 +139,7 @@ const Analytics: NextPage<AnalyticsProps> = ({ marketplace }) => {
 
   const activitiesQuery = useQuery<GetActivities>(GET_ACTIVITIES, {
     variables: {
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: auctionHouses,
     },
   })
 
