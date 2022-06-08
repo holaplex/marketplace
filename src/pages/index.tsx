@@ -1,4 +1,10 @@
-import { gql, useQuery, useLazyQuery } from '@apollo/client'
+import {
+  gql,
+  useQuery,
+  useLazyQuery,
+  QueryResult,
+  OperationVariables,
+} from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import cx from 'classnames'
 import { NextPage, NextPageContext } from 'next'
@@ -39,6 +45,7 @@ import {
   GetPriceChartData,
   NftCount,
   Wallet,
+  MintStats,
 } from '@holaplex/marketplace-js-sdk'
 import { List } from './../components/List'
 import { NftCard } from './../components/NftCard'
@@ -92,7 +99,6 @@ const GET_NFTS = gql`
       }
       offers {
         address
-        price
       }
       listings {
         address
@@ -119,6 +125,14 @@ export const GET_NFT_COUNTS = gql`
     nftCounts(creators: $creators) {
       total
       listed(auctionHouses: $auctionHouses)
+    }
+  }
+`
+
+export const GET_LISTED_TOKEN_NFT_COUNT = gql`
+  query GetNftCounts($creators: [PublicKey!]!, $auctionHouse: PublicKey!) {
+    nftCounts(creators: $creators) {
+      listed(auctionHouses: [$auctionHouse])
     }
   }
 `
@@ -171,8 +185,9 @@ const GET_MARKETPLACE_INFO = gql`
       stats {
         nfts
       }
-      auctionHouse {
+      auctionHouses {
         address
+        treasuryMint
         stats {
           mint
           floor
@@ -223,21 +238,10 @@ export async function getServerSideProps({ req }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             address
             treasuryMint
-            auctionHouseTreasury
-            treasuryWithdrawalDestination
-            feeWithdrawalDestination
             authority
-            creator
-            auctionHouseFeeAccount
-            bump
-            treasuryBump
-            feePayerBump
-            sellerFeeBasisPoints
-            requiresSignOff
-            canChangeSalePrice
           }
         }
       }
@@ -300,7 +304,8 @@ const endDate = new Date().toISOString()
 
 const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const { publicKey, connected } = useWallet()
-  const creators = map(prop('creatorAddress'))(marketplace.creators)
+  const creators = map(prop('creatorAddress'))(marketplace.creators || [])
+  const auctionHouses = map(prop('address'))(marketplace.auctionHouses || [])
   const tokenMap = useTokenList()
 
   const marketplaceQuery = useQuery<GetMarketplaceInfo>(GET_MARKETPLACE_INFO, {
@@ -312,8 +317,24 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const nftCountsQuery = useQuery<GetNftCounts>(GET_NFT_COUNTS, {
     variables: {
       creators,
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: auctionHouses,
     },
+  })
+
+  const listedCountQueryMap = new Map<
+    String,
+    QueryResult<GetNftCounts, OperationVariables>
+  >()
+
+  marketplace.auctionHouses?.forEach((auctionHouse) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const query = useQuery<GetNftCounts>(GET_LISTED_TOKEN_NFT_COUNT, {
+      variables: {
+        creators,
+        auctionHouse: auctionHouse.address,
+      },
+    })
+    listedCountQueryMap.set(auctionHouse.treasuryMint, query)
   })
 
   const [getWalletCounts, walletCountsQuery] = useLazyQuery<GetWalletCounts>(
@@ -322,7 +343,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
       variables: {
         address: publicKey?.toBase58(),
         creators,
-        auctionHouses: [marketplace.auctionHouse.address],
+        auctionHouses: auctionHouses,
       },
     }
   )
@@ -331,7 +352,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     fetchPolicy: 'network-only',
     variables: {
       creators,
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: auctionHouses,
       offset: 0,
       limit: 24,
     },
@@ -348,7 +369,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     {
       fetchPolicy: 'network-only',
       variables: {
-        auctionHouses: [marketplace.auctionHouse.address],
+        auctionHouses: auctionHouses,
         creators: creators,
         startDate: startDate,
         endDate: endDate,
@@ -360,18 +381,24 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
 
   const [hasMore, setHasMore] = useState(true)
 
+  const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
+    tokenMap.get(treasuryMint)
+  )
+
+  // DUMMY TOKENS FOR TESTING
+  // const tokens = [
+  //   tokenMap.get('So11111111111111111111111111111111111111112'),
+  //   tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+  // ]
+
   const { watch, control, getValues } = useForm<NftFilterForm>({
-    defaultValues: { preset: PresetNftFilter.All, tokens: [] },
+    defaultValues: {
+      preset: PresetNftFilter.All,
+      tokens: [] as string[],
+    },
   })
 
-  // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
-  // const tokens: TokenInfo[] = marketplace?.auctionHouses?.map(
-  //   ({ treasuryMint }) => tokenMap.get(treasuryMint)
-  // )
-  const tokens = [
-    tokenMap.get('So11111111111111111111111111111111111111112'),
-    tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  ]
+  const stats = marketplaceQuery.data?.marketplace.auctionHouses[0].stats
 
   useEffect(() => {
     if (publicKey) {
@@ -381,6 +408,16 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
 
   useEffect(() => {
     const subscription = watch(({ preset, tokens }) => {
+      let selectedAuctionHouses = auctionHouses
+      if (
+        preset === PresetNftFilter.Listed &&
+        tokens?.some((t) => t !== undefined)
+      ) {
+        selectedAuctionHouses = marketplace.auctionHouses
+          ?.filter(({ treasuryMint }) => tokens?.includes(treasuryMint))
+          .map(({ address }) => address) as string[]
+      }
+
       const pubkey = publicKey?.toBase58()
 
       const owners = ifElse(
@@ -401,11 +438,10 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         always(null)
       )(preset as PresetNftFilter)
 
-      //TODO: Update auctionHouses according to the selected tokens and by default use all auction houses.
       nftsQuery
         .refetch({
           creators,
-          auctionHouses: [marketplace.auctionHouse.address],
+          auctionHouses: selectedAuctionHouses,
           owners,
           offerers,
           listed,
@@ -470,10 +506,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               <div className="block bg-gray-800 w-20 h-6 rounded" />
             ) : (
               <span className="sol-amount text-xl font-semibold">
-                {toSOL(
-                  (marketplaceQuery.data?.marketplace.auctionHouse.stats?.floor.toNumber() ||
-                    0) as number
-                )}
+                {toSOL((stats?.floor.toNumber() || 0) as number)}
               </span>
             )}
           </div>
@@ -485,10 +518,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               <div className="block bg-gray-800 w-20 h-6 rounded" />
             ) : (
               <span className="sol-amount text-xl font-semibold">
-                {toSOL(
-                  (marketplaceQuery.data?.marketplace.auctionHouse.stats?.volume24hr.toNumber() ||
-                    0) as number
-                )}
+                {toSOL((stats?.volume24hr.toNumber() || 0) as number)}
               </span>
             )}
           </div>
@@ -800,10 +830,10 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                             ) : (
                               <div className="w-full flex justify-between">
                                 <div>{token?.name}</div>
-                                {/* TODO: Get nft counts for each token */}
-                                {/* <div className="text-gray-300">
-                                {nftCountsQuery.data?.nftCounts.listed}
-                              </div> */}
+                                <div className="text-gray-300">
+                                  {listedCountQueryMap.get(token?.address ?? '')
+                                    ?.data?.nftCounts.listed ?? 0}
+                                </div>
                               </div>
                             )}
                           </label>

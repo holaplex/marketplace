@@ -1,6 +1,6 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { PublicKey } from '@solana/web3.js'
-import { equals, find, not, pipe, prop, when, isNil, always } from 'ramda'
+import { equals, find, not, pipe, prop, when, isNil, always, map } from 'ramda'
 import React from 'react'
 import Link from 'next/link'
 import { addressAvatar } from 'src/modules/address'
@@ -21,7 +21,7 @@ export const NftCard = ({ nft, marketplace, tokenMap }: NftCardProps) => {
     : find<Listing>(
         pipe(
           prop('auctionHouse.address'),
-          equals(marketplace.auctionHouse.address)
+          equals(map(prop('address'))(marketplace.auctionHouses))
         )
       )(nft.listings)
   const isOwner = equals(nft.owner?.address, publicKey?.toBase58())
