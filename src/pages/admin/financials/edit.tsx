@@ -190,9 +190,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
                           {token?.symbol} Unredeemed
                         </span>
                         <Price
-                          price={
-                            treasuryBalanceMap.get(token?.address) as number
-                          }
+                          price={treasuryBalanceMap.get(token?.address) || 0}
                           token={token}
                           style="text-lg font-semibold"
                         />

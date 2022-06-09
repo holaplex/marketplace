@@ -113,10 +113,7 @@ async function assembleAuctionHouses(
 ): Promise<AssembleAuctionHousesResult> {
   const publicKey = wallet.publicKey
 
-  const auctionHouses: { address: string }[] = []
-  const instructions: TransactionInstruction[] = []
-
-  tokens.forEach(async (token) => {
+  const promises = tokens.map(async (token) => {
     const canChangeSalePrice = false
     const requiresSignOff = false
     const treasuryWithdrawalDestination = undefined
@@ -145,8 +142,6 @@ async function assembleAuctionHouses(
     const [auctionHouse, bump] =
       await AuctionHouseProgram.findAuctionHouseAddress(publicKey, tMintKey)
 
-    auctionHouses.push({ address: auctionHouse.toBase58() })
-
     const [feeAccount, feePayerBump] =
       await AuctionHouseProgram.findAuctionHouseFeeAddress(auctionHouse)
 
@@ -174,7 +169,17 @@ async function assembleAuctionHouses(
         canChangeSalePrice,
       }
     )
-    instructions.push(auctionHouseCreateInstruction)
+    return { auctionHouseCreateInstruction, address: auctionHouse.toBase58() }
+  })
+
+  const result = await Promise.all(promises)
+
+  const auctionHouses: { address: string }[] = []
+  const instructions: TransactionInstruction[] = []
+
+  result.forEach((r) => {
+    auctionHouses.push(r)
+    instructions.push(r.auctionHouseCreateInstruction)
   })
 
   return { auctionHouses, instructions }
@@ -241,7 +246,6 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
     }
 
     toast('Saving changes...')
-
     // Remove auction houses corresponding to deleted tokens
     const auctionHouses = marketplace.auctionHouses
       ?.filter((ah) =>
@@ -293,14 +297,17 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
 
     try {
       const transaction = new Transaction()
-
       newAuctionHousesInstructions.forEach(
         (instruction: TransactionInstruction) => {
           transaction.add(instruction)
         }
       )
 
-      // TODO: Create fetchUpdateInstruction method in sdk
+      // await sdk
+      //   .transaction()
+      //   .add(transaction)
+      //   .add(sdk.update(settings, transactionFee))
+      //   .send()
       const updateInstruction = await sdk.update(settings, transactionFee)
       transaction.add(updateInstruction)
 
