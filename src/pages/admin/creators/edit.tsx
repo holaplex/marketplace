@@ -1,7 +1,7 @@
 import { ReactElement, useMemo, useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
-import { isNil } from 'ramda'
+import { isNil, map, prop } from 'ramda'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
@@ -41,7 +41,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             address
             treasuryMint
             auctionHouseTreasury
@@ -98,6 +98,10 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
   const wallet = useWallet()
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
+  const auctionHouses = marketplace.auctionHouses?.map(({ address }) => ({
+    address: address,
+  }))
+
   const login = useLogin()
 
   const sdk = useMemo(
@@ -123,7 +127,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
       creators: marketplace.creators?.map(({ creatorAddress }) => ({
         address: creatorAddress,
       })),
-      transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,
+      transactionFee: marketplace.auctionHouses[0].sellerFeeBasisPoints,
       creator: '',
     },
   })
@@ -153,7 +157,6 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
 
     toast('Saving changes...')
 
-    // TODO: Add auctionHouses field once it has data
     const settings = {
       meta: {
         name,
@@ -174,6 +177,7 @@ const AdminEditCreators = ({ marketplace }: AdminEditCreatorsProps) => {
       creators,
       subdomain: marketplace.subdomain,
       address: {},
+      auctionHouses: auctionHouses,
     }
 
     try {

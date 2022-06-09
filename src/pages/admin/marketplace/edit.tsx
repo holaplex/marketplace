@@ -42,7 +42,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             address
             treasuryMint
             auctionHouseTreasury
@@ -99,6 +99,9 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
   const login = useLogin()
+  const auctionHouses = marketplace.auctionHouses?.map(({ address }) => ({
+    address: address,
+  }))
   const sdk = useMemo(
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
@@ -119,7 +122,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
       creators: marketplace.creators?.map(({ creatorAddress }) => ({
         address: creatorAddress,
       })),
-      transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,
+      transactionFee: marketplace.auctionHouses[0].sellerFeeBasisPoints,
     },
   })
 
@@ -141,7 +144,6 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
 
     toast('Saving changes...')
 
-    // TODO: Add auctionHouses field once it has data
     const settings = {
       meta: {
         name,
@@ -162,6 +164,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
       creators,
       subdomain: marketplace.subdomain,
       address: {},
+      auctionHouses: auctionHouses,
     }
 
     try {

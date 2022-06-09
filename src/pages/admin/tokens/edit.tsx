@@ -401,31 +401,6 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
                 />
               )}
               <ul className="flex flex-col max-h-screen gap-6 py-4 mb-10">
-                {/* DUMMY DATA: */}
-                {/* <li className="flex justify-between w-full">
-                  <SplToken mint="So11111111111111111111111111111111111111112" />
-                  <div className="flex gap-4 items-center">
-                    <span className="font-medium text-sm text-gray-500">
-                      Default
-                    </span>
-                    <Trash2
-                      className="rounded-full bg-gray-700 p-1.5 text-white"
-                      size="2rem"
-                    />
-                  </div>
-                </li>
-                <li className="flex justify-between w-full">
-                  <SplToken mint="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" />
-                  <div className="flex gap-4 items-center">
-                    <span className="font-medium text-sm text-gray-100">
-                      Make default
-                    </span>
-                    <Trash2
-                      className="rounded-full bg-gray-700 p-1.5 text-white"
-                      size="2rem"
-                    />
-                  </div>
-                </li> */}
                 {fields.map((field, index) => {
                   return (
                     <li
