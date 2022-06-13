@@ -1,4 +1,4 @@
-import { ReactElement, useMemo, useState } from 'react'
+import { ReactElement, useEffect, useMemo, useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
@@ -133,14 +133,24 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
   //   tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
   // ]
 
-  const treasuryBalanceMap = useMemo(() => {
-    const map = new Map()
+  const [treasuryBalances, setTreasuryBalances] = useState(new Map())
+  useEffect(() => {
+    if (!marketplace.auctionHouses) return
 
-    marketplace.auctionHouses?.forEach(async (ah) => {
+    const promises = marketplace.auctionHouses.map(async (ah) => {
       const balance = await getTreasuryBalance(ah, connection)
-      map.set(ah.treasuryMint, balance)
+      return { [ah.treasuryMint]: balance }
     })
-    return map
+
+    const map = new Map()
+    Promise.all(promises).then((balances) => {
+      balances.forEach((b) => {
+        Object.entries(b).forEach(([k, v]) => {
+          map.set(k, v)
+        })
+      })
+      setTreasuryBalances(map)
+    })
   }, [connection, marketplace.auctionHouses])
 
   return (
@@ -190,7 +200,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
                           {token?.symbol} Unredeemed
                         </span>
                         <Price
-                          price={treasuryBalanceMap.get(token?.address) || 0}
+                          price={treasuryBalances.get(token?.address) || 0}
                           token={token}
                           style="text-lg font-semibold"
                         />

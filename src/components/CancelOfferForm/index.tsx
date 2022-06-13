@@ -53,7 +53,6 @@ const CancelOfferForm = ({
         .transaction()
         .add(
           sdk.offers(marketplace.auctionHouse).cancel({
-            amount: offer.price.toNumber() * LAMPORTS_PER_SOL,
             nft,
             offer,
           })
