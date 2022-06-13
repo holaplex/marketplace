@@ -20,6 +20,7 @@ import { initMarketplaceSDK, Marketplace } from '@holaplex/marketplace-js-sdk'
 import { createCreateAuctionHouseInstruction } from '@metaplex-foundation/mpl-auction-house/dist/src/generated/instructions'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { useTokenList } from 'src/hooks/tokenList'
+import { isSol } from 'src/modules/sol'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -178,7 +179,7 @@ async function assembleAuctionHouses(
   const instructions: TransactionInstruction[] = []
 
   result.forEach((r) => {
-    auctionHouses.push(r)
+    auctionHouses.push({ address: r.address })
     instructions.push(r.auctionHouseCreateInstruction)
   })
 
@@ -195,7 +196,6 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
     [connection, wallet]
   )
   const tokenMap = useTokenList()
-
   const [showAdd, setShowAdd] = useState(false)
 
   const originalTokens = marketplace.auctionHouses?.map(({ treasuryMint }) => ({
@@ -303,24 +303,24 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
         }
       )
 
-      // await sdk
-      //   .transaction()
-      //   .add(transaction)
-      //   .add(sdk.update(settings, transactionFee))
-      //   .send()
-      const updateInstruction = await sdk.update(settings, transactionFee)
-      transaction.add(updateInstruction)
+      await sdk
+        .transaction()
+        .add(transaction)
+        .add(sdk.update(settings, transactionFee))
+        .send()
 
-      transaction.feePayer = publicKey
-      transaction.recentBlockhash = (
-        await connection.getRecentBlockhash()
-      ).blockhash
-      const signedTransaction = await wallet.signTransaction!(transaction)
-      const txtId = await connection.sendRawTransaction(
-        signedTransaction.serialize()
-      )
+      // const updateInstruction = await sdk.update(settings, transactionFee)
+      // transaction.add(updateInstruction)
 
-      if (txtId) await connection.confirmTransaction(txtId, 'confirmed')
+      // transaction.feePayer = publicKey
+      // transaction.recentBlockhash = (
+      //   await connection.getRecentBlockhash()
+      // ).blockhash
+      // const signedTransaction = await wallet.signTransaction!(transaction)
+      // const txtId = await connection.sendRawTransaction(
+      //   signedTransaction.serialize()
+      // )
+      // if (txtId) await connection.confirmTransaction(txtId, 'confirmed')
 
       toast.success(
         <>
@@ -418,8 +418,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
                         mintAddress={field.address}
                         tokenInfo={tokenMap.get(field.address)}
                       />
-                      {field.address !==
-                        'So11111111111111111111111111111111111111112' && (
+                      {!isSol(field.address) && (
                         <div className="flex gap-4 items-center">
                           {/* <span className="font-medium text-gray-100">
 -                          Make default
