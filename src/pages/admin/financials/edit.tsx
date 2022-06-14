@@ -106,7 +106,7 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
     [connection, wallet]
   )
   const login = useLogin()
-  const tokenMap = useTokenList()
+  const [tokenMap, loadingTokens] = useTokenList()
   const [withdrawlLoading, setWithdrawlLoading] = useState(false)
 
   const claimFunds = async (ah: AuctionHouse) => {

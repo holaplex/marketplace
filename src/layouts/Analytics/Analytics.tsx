@@ -114,7 +114,7 @@ export const AnalyticsLayout = ({
       subdomain: marketplace.subdomain,
     },
   })
-  const tokenMap = useTokenList()
+  const [tokenMap, loadingTokens] = useTokenList()
   const marketplaceData = marketplaceQuery.data?.marketplace
 
   const tokens = marketplaceData?.auctionHouses?.map(({ treasuryMint }) =>

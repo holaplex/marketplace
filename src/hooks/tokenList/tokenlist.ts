@@ -1,10 +1,15 @@
 import { ENV, TokenInfo, TokenListProvider } from '@solana/spl-token-registry'
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-export const useTokenList = () => {
-  const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map())
+type TokenMap = Map<string, TokenInfo>
 
-  useMemo(() => {
+export const useTokenList = (): [TokenMap, boolean] => {
+  const [tokenMap, setTokenMap] = useState<TokenMap>(new Map())
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setLoading(true)
+
     new TokenListProvider().resolve().then((tokens) => {
       const tokenList = tokens.filterByChainId(ENV.MainnetBeta).getList()
 
@@ -14,8 +19,9 @@ export const useTokenList = () => {
           return map
         }, new Map())
       )
+      setLoading(false)
     })
   }, [setTokenMap])
 
-  return tokenMap
+  return [tokenMap, loading]
 }

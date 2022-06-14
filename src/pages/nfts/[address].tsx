@@ -135,7 +135,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             address
             treasuryMint
             auctionHouseTreasury

@@ -334,7 +334,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const { watch, control, getValues } = useForm<NftFilterForm>({
     defaultValues: { preset: PresetNftFilter.All, tokens: [] },
   })
-  const tokenMap = useTokenList()
+  const [tokenMap, loadingTokens] = useTokenList()
 
   const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
     tokenMap.get(treasuryMint)

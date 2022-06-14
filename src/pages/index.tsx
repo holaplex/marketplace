@@ -306,7 +306,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const { publicKey, connected } = useWallet()
   const creators = map(prop('creatorAddress'))(marketplace.creators || [])
   const auctionHouses = map(prop('address'))(marketplace.auctionHouses || [])
-  const tokenMap = useTokenList()
+  const [tokenMap, loadingTokens] = useTokenList()
 
   const marketplaceQuery = useQuery<GetMarketplaceInfo>(GET_MARKETPLACE_INFO, {
     variables: {

@@ -11,6 +11,7 @@ import {
   always,
   map,
   isEmpty,
+  ifElse,
 } from 'ramda'
 import React from 'react'
 import Link from 'next/link'
@@ -27,15 +28,16 @@ interface NftCardProps {
 
 export const NftCard = ({ nft, marketplace, tokenMap }: NftCardProps) => {
   const { publicKey } = useWallet()
-  const listing = when(
-    pipe(isEmpty, not),
+  const listing = ifElse(
+    isEmpty,
+    always(null),
     find<Listing>(
       pipe(
         prop('auctionHouse.address'),
         equals(map(prop('address'))(marketplace.auctionHouses))
       )
     )
-  )(nft.listings)
+  )(nft.listings || [])
   const isOwner = equals(nft.owner?.address, publicKey?.toBase58())
 
   return (

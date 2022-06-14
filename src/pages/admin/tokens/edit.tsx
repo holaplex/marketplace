@@ -2,7 +2,6 @@ import { ReactElement, useMemo, useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
-import { Trash2 } from 'react-feather'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
@@ -19,8 +18,7 @@ import { NATIVE_MINT } from '@solana/spl-token'
 import { initMarketplaceSDK, Marketplace } from '@holaplex/marketplace-js-sdk'
 import { createCreateAuctionHouseInstruction } from '@metaplex-foundation/mpl-auction-house/dist/src/generated/instructions'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
-import { useTokenList } from 'src/hooks/tokenList'
-import { isSol } from 'src/modules/sol'
+import { useTokenList } from './../../../hooks/tokenList'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -195,7 +193,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
   )
-  const tokenMap = useTokenList()
+  const [tokenMap, loadingTokens] = useTokenList()
   const [showAdd, setShowAdd] = useState(false)
 
   const originalTokens = marketplace.auctionHouses?.map(({ treasuryMint }) => ({
@@ -309,19 +307,6 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
         .add(sdk.update(settings, transactionFee))
         .send()
 
-      // const updateInstruction = await sdk.update(settings, transactionFee)
-      // transaction.add(updateInstruction)
-
-      // transaction.feePayer = publicKey
-      // transaction.recentBlockhash = (
-      //   await connection.getRecentBlockhash()
-      // ).blockhash
-      // const signedTransaction = await wallet.signTransaction!(transaction)
-      // const txtId = await connection.sendRawTransaction(
-      //   signedTransaction.serialize()
-      // )
-      // if (txtId) await connection.confirmTransaction(txtId, 'confirmed')
-
       toast.success(
         <>
           Marketplace updated successfully! It may take a few moments for the
@@ -417,19 +402,8 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
                       <SplToken
                         mintAddress={field.address}
                         tokenInfo={tokenMap.get(field.address)}
+                        loading={loadingTokens}
                       />
-                      {!isSol(field.address) && (
-                        <div className="flex gap-4 items-center">
-                          {/* <span className="font-medium text-gray-100">
--                          Make default
--                        </span> */}
-                          <Trash2
-                            className="rounded-full bg-gray-700 p-1.5 text-white"
-                            onClick={() => remove(index)}
-                            size="2rem"
-                          />
-                        </div>
-                      )}
                     </li>
                   )
                 })}

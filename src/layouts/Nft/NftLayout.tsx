@@ -16,10 +16,15 @@ import {
   ifElse,
   isNil,
   length,
+  map,
   gt,
   not,
   pipe,
   prop,
+  view,
+  lensPath,
+  includes,
+  flip,
 } from 'ramda'
 import { PublicKey } from '@solana/web3.js'
 import { DollarSign, Tag } from 'react-feather'
@@ -41,7 +46,7 @@ import Price from '../../components/Price'
 import { useTokenList } from '../../hooks/tokenList'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
-const pickAuctionHouse = prop('auctionHouse')
+const pickAuctionHouseAddress = view(lensPath(['auctionHouse', 'address']))
 
 interface NftLayoutProps {
   marketplace: Marketplace
@@ -58,23 +63,28 @@ export const NftLayout = ({
 }: NftLayoutProps) => {
   const { publicKey } = useWallet()
   const router = useRouter()
-  const tokenMap = useTokenList()
+  const [tokenMap, loadingTokens] = useTokenList()
 
   const { data, loading, refetch } = nftQuery
 
-  const isMarketplaceAuctionHouse = equals(marketplace.auctionHouse.address)
+  const marketplaceAuctionHouseAddresses = map(prop('address'))(
+    marketplace.auctionHouses
+  )
+  const isMarketplaceAuctionHouse = flip(includes)(
+    marketplaceAuctionHouseAddresses
+  )
   const isOwner = equals(data?.nft.owner.address, publicKey?.toBase58()) || null
   const listing = find<Listing>(
-    pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
+    pipe(pickAuctionHouseAddress, isMarketplaceAuctionHouse)
   )(data?.nft.listings || [])
   const offers = filter<Offer>(
-    pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
+    pipe(pickAuctionHouseAddress, isMarketplaceAuctionHouse)
   )(data?.nft.offers || [])
   const offer = find<Offer>(pipe(prop('buyer'), equals(publicKey?.toBase58())))(
     data?.nft.offers || []
   )
   let activities = filter<Activity>(
-    pipe(pickAuctionHouse, isMarketplaceAuctionHouse)
+    pipe(pickAuctionHouseAddress, isMarketplaceAuctionHouse)
   )(data?.nft.activities || [])
 
   return (

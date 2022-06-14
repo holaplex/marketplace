@@ -187,7 +187,7 @@ h4 {
 }
 
 .select-base-theme .base__multi-value {
-  @apply bg-gray-500 text-white;
+  @apply text-white;
 }
 
 .select-base-theme .base__multi-value__label {
@@ -195,7 +195,7 @@ h4 {
 }
 
 .select-base-theme .base__single-value {
-  @apply bg-gray-500 text-white;
+  @apply text-white;
 }
 
 /* Dialect-specific */

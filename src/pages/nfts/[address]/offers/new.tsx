@@ -5,15 +5,18 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { Controller, useForm } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import { gql } from '@apollo/client'
+import { useQuery } from '@apollo/client'
 import { toast } from 'react-toastify'
 import client from './../../../../client'
 import Button from './../../../../components/Button'
 import { useLogin } from '../../../../hooks/login'
+import { NftLayout } from './../../../../layouts/Nft'
 import { Wallet } from '@metaplex/js'
 import {
   initMarketplaceSDK,
   Marketplace,
   Nft,
+  GetNftData,
 } from '@holaplex/marketplace-js-sdk'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { Modal } from 'src/layouts/Modal'
@@ -22,9 +25,96 @@ import { isSol } from 'src/modules/sol'
 import cx from 'classnames'
 import Select from 'react-select'
 import { TokenInfo } from '@solana/spl-token-registry'
-import { useTokenList } from 'src/hooks/tokenList'
+import { useTokenList } from './../../../../hooks/tokenList'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
+
+const GET_NFT = gql`
+  query GetNft($address: String!) {
+    nft(address: $address) {
+      name
+      address
+      image(width: 1400)
+      sellerFeeBasisPoints
+      mintAddress
+      description
+      primarySaleHappened
+      category
+      files {
+        fileType
+        uri
+      }
+      owner {
+        address
+        associatedTokenAccountAddress
+        twitterHandle
+        profile {
+          handle
+          profileImageUrl
+        }
+      }
+      attributes {
+        traitType
+        value
+      }
+      creators {
+        address
+        twitterHandle
+        profile {
+          handle
+          profileImageUrl
+        }
+      }
+      offers {
+        address
+        tradeState
+        price
+        buyer
+        createdAt
+        auctionHouse {
+          address
+          treasuryMint
+        }
+      }
+      activities {
+        address
+        metadata
+        auctionHouse {
+          address
+          treasuryMint
+        }
+        price
+        createdAt
+        wallets {
+          address
+          profile {
+            handle
+            profileImageUrl
+          }
+        }
+        activityType
+      }
+      listings {
+        address
+        auctionHouse {
+          address
+          treasuryMint
+        }
+        bookkeeper
+        seller
+        metadata
+        purchaseReceipt
+        price
+        tokenSize
+        bump
+        tradeState
+        tradeStateBump
+        createdAt
+        canceledAt
+      }
+    }
+  }
+`
 
 type OptionType = { label: string; value: number }
 
@@ -53,7 +143,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             address
             treasuryMint
             auctionHouseTreasury
@@ -140,7 +230,7 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
   )
-  const tokenMap = useTokenList()
+  const [tokenMap, loadingTokens] = useTokenList()
 
   // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
   // const tokens: TokenInfo[] = marketplaceData?.auctionHouses?.map(
@@ -290,6 +380,33 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
         </form>
       </Modal>
     </>
+  )
+}
+
+interface NftOfferLayoutProps {
+  marketplace: Marketplace
+  nft: Nft
+  children: React.ReactElement
+}
+
+OfferNew.getLayout = function NftShowLayout({
+  marketplace,
+  nft,
+  children,
+}: NftOfferLayoutProps) {
+  const router = useRouter()
+
+  const nftQuery = useQuery<GetNftData>(GET_NFT, {
+    client,
+    variables: {
+      address: router.query?.address,
+    },
+  })
+
+  return (
+    <NftLayout marketplace={marketplace} nft={nft} nftQuery={nftQuery}>
+      {children}
+    </NftLayout>
   )
 }
 

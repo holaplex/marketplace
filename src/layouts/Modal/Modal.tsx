@@ -34,7 +34,7 @@ export const Modal = ({
       role="dialog"
       className={cx(
         'fixed top-0 left-0 right-0 bottom-0',
-        'bg-gray-800 bg-opacity-40 backdrop-blur-lg ',
+        'backdrop-blur-md',
         'transition-opacity duration-500 ease-in-out',
         'flex flex-col items-center justify-center',
         {

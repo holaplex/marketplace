@@ -5,15 +5,17 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { NextPageContext } from 'next'
 import { map, prop, isEmpty, intersection, pipe, or, any, isNil } from 'ramda'
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
-import { gql } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import client from './../../../../client'
 import Button from './../../../../components/Button'
+import { NftLayout } from './../../../../layouts/Nft'
 import { toast } from 'react-toastify'
 import {
   initMarketplaceSDK,
   Nft,
   Marketplace,
   Offer,
+  GetNftData,
 } from '@holaplex/marketplace-js-sdk'
 import { Wallet } from '@metaplex/js'
 import { Modal } from 'src/layouts/Modal'
@@ -33,6 +35,93 @@ interface GetNftPage {
   marketplace: Marketplace | null
   nft: Nft | null
 }
+
+const GET_NFT = gql`
+  query GetNft($address: String!) {
+    nft(address: $address) {
+      name
+      address
+      image(width: 1400)
+      sellerFeeBasisPoints
+      mintAddress
+      description
+      primarySaleHappened
+      category
+      files {
+        fileType
+        uri
+      }
+      owner {
+        address
+        associatedTokenAccountAddress
+        twitterHandle
+        profile {
+          handle
+          profileImageUrl
+        }
+      }
+      attributes {
+        traitType
+        value
+      }
+      creators {
+        address
+        twitterHandle
+        profile {
+          handle
+          profileImageUrl
+        }
+      }
+      offers {
+        address
+        tradeState
+        price
+        buyer
+        createdAt
+        auctionHouse {
+          address
+          treasuryMint
+        }
+      }
+      activities {
+        address
+        metadata
+        auctionHouse {
+          address
+          treasuryMint
+        }
+        price
+        createdAt
+        wallets {
+          address
+          profile {
+            handle
+            profileImageUrl
+          }
+        }
+        activityType
+      }
+      listings {
+        address
+        auctionHouse {
+          address
+          treasuryMint
+        }
+        bookkeeper
+        seller
+        metadata
+        purchaseReceipt
+        price
+        tokenSize
+        bump
+        tradeState
+        tradeStateBump
+        createdAt
+        canceledAt
+      }
+    }
+  }
+`
 
 export async function getServerSideProps({ req, query }: NextPageContext) {
   const subdomain = req?.headers['x-holaplex-subdomain']
@@ -54,7 +143,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             address
             treasuryMint
             auctionHouseTreasury
@@ -152,7 +241,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
   )
-  const tokenMap = useTokenList()
+  const [tokenMap, loadingTokens] = useTokenList()
 
   // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
   // const tokens: TokenInfo[] = marketplaceData?.auctionHouses?.map(
@@ -284,7 +373,6 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
                           autoFocus
                           value={value}
                           className="input"
-                          type="number"
                           onChange={(e: any) => {
                             onChange(e.target.value)
                           }}
@@ -334,6 +422,33 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
         </form>
       </Modal>
     </>
+  )
+}
+
+interface ListingNewLayoutProps {
+  marketplace: Marketplace
+  nft: Nft
+  children: React.ReactElement
+}
+
+ListingNew.getLayout = function ListingNewLayout({
+  marketplace,
+  nft,
+  children,
+}: ListingNewLayoutProps) {
+  const router = useRouter()
+
+  const nftQuery = useQuery<GetNftData>(GET_NFT, {
+    client,
+    variables: {
+      address: router.query?.address,
+    },
+  })
+
+  return (
+    <NftLayout marketplace={marketplace} nft={nft} nftQuery={nftQuery}>
+      {children}
+    </NftLayout>
   )
 }
 
