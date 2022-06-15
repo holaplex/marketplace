@@ -10,7 +10,6 @@ import {
   Nft,
   Offer,
 } from '@holaplex/marketplace-js-sdk'
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { useMemo } from 'react'
 
 interface CancelOfferFormProps {
@@ -52,7 +51,7 @@ const CancelOfferForm = ({
       await sdk
         .transaction()
         .add(
-          sdk.offers(marketplace.auctionHouse).cancel({
+          sdk.offers(offer.auctionHouse).cancel({
             nft,
             offer,
           })

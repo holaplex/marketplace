@@ -17,7 +17,6 @@ interface AcceptOfferFormProps {
   offer: Offer
   listing?: Listing
   nft?: Nft
-  marketplace: Marketplace
   refetch: (
     variables?: Partial<OperationVariables> | undefined
   ) => Promise<ApolloQueryResult<_>>
@@ -26,7 +25,6 @@ interface AcceptOfferFormProps {
 const AcceptOfferForm = ({
   offer,
   nft,
-  marketplace,
   listing,
   refetch,
 }: AcceptOfferFormProps) => {
@@ -53,7 +51,7 @@ const AcceptOfferForm = ({
       await sdk
         .transaction()
         .add(
-          sdk.offers(marketplace.auctionHouse).accept({
+          sdk.offers(offer.auctionHouse).accept({
             cancel: listing ? [listing] : [],
             nft,
             offer,

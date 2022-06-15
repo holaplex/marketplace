@@ -386,7 +386,6 @@ export const NftLayout = ({
                             {isOwner && (
                               <AcceptOfferForm
                                 nft={data?.nft}
-                                marketplace={marketplace}
                                 offer={o}
                                 listing={listing}
                                 refetch={refetch}

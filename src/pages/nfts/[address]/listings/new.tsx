@@ -218,7 +218,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
 
 interface SellNftForm {
   amount: string
-  token: string
+  token: OptionsType<OptionType>
 }
 
 interface SellNftProps {
@@ -243,14 +243,16 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
   )
   const [tokenMap, loadingTokens] = useTokenList()
 
-  // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
-  // const tokens: TokenInfo[] = marketplaceData?.auctionHouses?.map(
-  //   ({ treasuryMint }) => tokenMap.get(treasuryMint)
-  // )
-  const tokens = [
-    tokenMap.get('So11111111111111111111111111111111111111112'),
-    tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  ]
+  const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
+    tokenMap.get(treasuryMint)
+  )
+
+  // DUMMY TOKENS FOR TESTING
+  // const tokens = [
+  //   tokenMap.get('So11111111111111111111111111111111111111112'),
+  //   tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+  // ]
+
   const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>()
 
   useEffect(() => {
@@ -285,10 +287,16 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
       await sdk
         .transaction()
         .add(
-          sdk.offers(marketplace.auctionHouse).accept({
-            offer: highestOffer!,
-            nft,
-          })
+          sdk
+            .offers(
+              marketplace.auctionHouses.filter(
+                (ah) => ah.treasuryMint === selectedToken?.address
+              )[0]
+            )
+            .accept({
+              offer: highestOffer!,
+              nft,
+            })
         )
         .send()
 
@@ -312,10 +320,16 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
       await sdk
         .transaction()
         .add(
-          sdk.listings(marketplace.auctionHouse).post({
-            amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
-            nft,
-          })
+          sdk
+            .listings(
+              marketplace.auctionHouses.filter(
+                (ah) => ah.treasuryMint === selectedToken?.address
+              )[0]
+            )
+            .post({
+              amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
+              nft,
+            })
         )
         .send()
 

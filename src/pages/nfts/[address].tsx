@@ -73,6 +73,18 @@ const GET_NFT = gql`
         auctionHouse {
           address
           treasuryMint
+          auctionHouseTreasury
+          treasuryWithdrawalDestination
+          feeWithdrawalDestination
+          authority
+          creator
+          auctionHouseFeeAccount
+          bump
+          treasuryBump
+          feePayerBump
+          sellerFeeBasisPoints
+          requiresSignOff
+          canChangeSalePrice
         }
       }
       activities {
@@ -98,6 +110,18 @@ const GET_NFT = gql`
         auctionHouse {
           address
           treasuryMint
+          auctionHouseTreasury
+          treasuryWithdrawalDestination
+          feeWithdrawalDestination
+          authority
+          creator
+          auctionHouseFeeAccount
+          bump
+          treasuryBump
+          feePayerBump
+          sellerFeeBasisPoints
+          requiresSignOff
+          canChangeSalePrice
         }
         bookkeeper
         seller
@@ -201,7 +225,6 @@ interface NftPageProps extends AppProps {
   offer: Offer
   listing: Listing
   nft: Nft
-  marketplace: Marketplace
   nftQuery: QueryResult<GetNftData, OperationVariables>
 }
 
@@ -210,7 +233,6 @@ const NftShow: NextPage<NftPageProps> = ({
   isOwner,
   offer,
   listing,
-  marketplace,
   nftQuery,
 }) => {
   const cancelListingForm = useForm()
@@ -240,7 +262,7 @@ const NftShow: NextPage<NftPageProps> = ({
       await sdk
         .transaction()
         .add(
-          sdk.listings(marketplace.auctionHouse).buy({
+          sdk.listings(listing.auctionHouse).buy({
             listing,
             nft,
           })
@@ -268,7 +290,7 @@ const NftShow: NextPage<NftPageProps> = ({
     try {
       toast('Sending the transaction to Solana.')
 
-      await sdk.listings(marketplace.auctionHouse).cancel({
+      await sdk.listings(listing.auctionHouse).cancel({
         listing,
         nft,
       })

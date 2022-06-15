@@ -74,6 +74,18 @@ const GET_NFT = gql`
         auctionHouse {
           address
           treasuryMint
+          auctionHouseTreasury
+          treasuryWithdrawalDestination
+          feeWithdrawalDestination
+          authority
+          creator
+          auctionHouseFeeAccount
+          bump
+          treasuryBump
+          feePayerBump
+          sellerFeeBasisPoints
+          requiresSignOff
+          canChangeSalePrice
         }
       }
       activities {
@@ -206,7 +218,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
 
 interface OfferForm {
   amount: string
-  token: string
+  token: OptionsType<OptionType>
 }
 
 interface OfferProps {
@@ -232,15 +244,17 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
   )
   const [tokenMap, loadingTokens] = useTokenList()
 
-  // TODO: Once auctionHouses has data, we can uncommment this and remove dummy tokens array
-  // const tokens: TokenInfo[] = marketplaceData?.auctionHouses?.map(
-  //   ({ treasuryMint }) => tokenMap.get(treasuryMint)
-  // )
-  const tokens = [
-    tokenMap.get('So11111111111111111111111111111111111111112'),
-    tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  ]
-  const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>()
+  const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
+    tokenMap.get(treasuryMint)
+  )
+
+  // DUMMY TOKENS FOR TESTING
+  // const tokens = [
+  //   tokenMap.get('So11111111111111111111111111111111111111112'),
+  //   tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+  // ]
+
+  const [selectedToken, setSelectedToken] = useState<TokenInfo>()
 
   useEffect(() => {
     if (!selectedToken && tokens[0]) {
@@ -268,14 +282,19 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
 
     try {
       toast('Sending the transaction to Solana.')
-      //TODO: Set the auctionhouse corresponding to selected token
       await sdk
         .transaction()
         .add(
-          sdk.offers(marketplace.auctionHouse).make({
-            amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
-            nft: nft,
-          })
+          sdk
+            .offers(
+              marketplace.auctionHouses.filter(
+                (ah) => ah.treasuryMint === selectedToken?.address
+              )[0]
+            )
+            .make({
+              amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
+              nft: nft,
+            })
         )
         .send()
       toast.success('The transaction was confirmed.')
