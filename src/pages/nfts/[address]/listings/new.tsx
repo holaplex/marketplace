@@ -1,10 +1,21 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import React, { useMemo } from 'react'
+import { useForm, Controller, useWatch } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { NextPageContext } from 'next'
-import { map, prop, isEmpty, intersection, pipe, or, any, isNil } from 'ramda'
-import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
+import {
+  map,
+  isEmpty,
+  intersection,
+  pipe,
+  or,
+  any,
+  isNil,
+  find,
+  prop,
+  equals,
+} from 'ramda'
+import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { gql, useQuery } from '@apollo/client'
 import client from './../../../../client'
 import Button from './../../../../components/Button'
@@ -16,16 +27,16 @@ import {
   Marketplace,
   Offer,
   GetNftData,
+  AuctionHouse,
 } from '@holaplex/marketplace-js-sdk'
 import { Wallet } from '@metaplex/js'
-import { Modal } from 'src/layouts/Modal'
+import { Modal } from './../../../../layouts/Modal'
 import Select from 'react-select'
-import { TokenInfo } from '@solana/spl-token-registry'
 import cx from 'classnames'
-import { isSol, toSOL } from 'src/modules/sol'
-import { NftPreview } from 'src/components/NftPreview'
-import { useTokenList } from 'src/hooks/tokenList'
-import Price from 'src/components/Price'
+import { isSol } from './../../../../modules/sol'
+import { NftPreview } from './../../../../components/NftPreview'
+import { useTokenList } from './../../../../hooks/tokenList'
+import Price from './../../../../components/Price'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -231,8 +242,11 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     control,
     setValue,
     handleSubmit,
+    getValues,
+    getFieldState,
     formState: { isSubmitting },
   } = useForm<SellNftForm>({})
+  useWatch({ name: 'token', control })
   const wallet = useWallet()
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
@@ -241,33 +255,22 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
   )
-  const [tokenMap, loadingTokens] = useTokenList()
-
+  const [tokenMap, _loadingTokens] = useTokenList()
   const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
     tokenMap.get(treasuryMint)
   )
-
-  // DUMMY TOKENS FOR TESTING
-  // const tokens = [
-  //   tokenMap.get('So11111111111111111111111111111111111111112'),
-  //   tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  // ]
-
-  const [selectedToken, setSelectedToken] = useState<TokenInfo | undefined>()
-
-  useEffect(() => {
-    if (!selectedToken && tokens[0]) {
-      setSelectedToken(tokens[0])
-      setValue('token', {
-        value: tokens[0].address,
-        label: tokens[0].symbol,
-      })
-    }
-  }, [setValue, selectedToken, tokens])
+  const selectedToken = getValues().token
+  const auctionHouse = find(
+    pipe(prop('treasuryMint'), equals(selectedToken?.value))
+  )(marketplace.auctionHouses || []) as AuctionHouse
 
   let highestOffer: Offer | undefined
   if (nft.offers && nft.offers?.length > 0) {
     highestOffer = nft.offers.reduce((a, b) => {
+      if (b.auctionHouse.address != auctionHouse.address) {
+        return a
+      }
+
       return a.price > b.price ? a : b
     })
   }
@@ -287,16 +290,10 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
       await sdk
         .transaction()
         .add(
-          sdk
-            .offers(
-              marketplace.auctionHouses.filter(
-                (ah) => ah.treasuryMint === selectedToken?.address
-              )[0]
-            )
-            .accept({
-              offer: highestOffer!,
-              nft,
-            })
+          sdk.offers(auctionHouse).accept({
+            offer: highestOffer!,
+            nft,
+          })
         )
         .send()
 
@@ -316,20 +313,13 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     try {
       toast('Sending the transaction to Solana.')
 
-      //TODO: Set the auctionhouse corresponding to selected token
       await sdk
         .transaction()
         .add(
-          sdk
-            .listings(
-              marketplace.auctionHouses.filter(
-                (ah) => ah.treasuryMint === selectedToken?.address
-              )[0]
-            )
-            .post({
-              amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
-              nft,
-            })
+          sdk.listings(auctionHouse).post({
+            amount: isSol(token.value) ? +amount * LAMPORTS_PER_SOL : +amount,
+            nft,
+          })
         )
         .send()
 
@@ -380,7 +370,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
                     <>
                       <div
                         className={cx('mb-4', {
-                          'sol-input': isSol(selectedToken?.address || ''),
+                          'sol-input': isSol(selectedToken?.value || ''),
                         })}
                       >
                         <input
@@ -402,17 +392,12 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
               <Controller
                 control={control}
                 name="token"
-                defaultValue={selectedToken?.address}
                 render={({ field }) => {
                   return (
                     <Select
-                      {...field}
                       className="select-base-theme w-full"
                       classNamePrefix="base"
-                      value={{
-                        value: selectedToken?.address,
-                        label: selectedToken?.symbol,
-                      }}
+                      value={field.value}
                       options={
                         tokens.map((token) => ({
                           value: token?.address,
@@ -420,7 +405,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
                         })) as OptionsType<OptionType>
                       }
                       onChange={(next: ValueType<OptionType>) => {
-                        setSelectedToken(tokenMap.get(next.value))
+                        field.onChange(next)
                       }}
                     />
                   )

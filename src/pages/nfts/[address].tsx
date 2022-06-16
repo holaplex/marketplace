@@ -286,17 +286,21 @@ const NftShow: NextPage<NftPageProps> = ({
     if (!listing || !isOwner) {
       return
     }
-
+    debugger
     try {
       toast('Sending the transaction to Solana.')
 
-      await sdk.listings(listing.auctionHouse).cancel({
-        listing,
-        nft,
-      })
+      await sdk
+        .transaction()
+        .add(
+          await sdk.listings(listing.auctionHouse).cancel({
+            listing,
+            nft,
+          })
+        )
+        .send()
 
       toast.success('The transaction was confirmed.')
-
       nftQuery.refetch()
     } catch (e: any) {
       toast.error(e.message)

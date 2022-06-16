@@ -10,11 +10,11 @@ interface NftPreviewProps {
 export const NftPreview = ({ nft }: NftPreviewProps) => {
   return (
     <>
-      <div className={`relative aspect-square h-14 w-14`}>
+      <div className="relative aspect-square h-14 w-14">
         {nft?.image && (
           <img
             src={nft.image}
-            alt={`nft-mini-image`}
+            alt="nft-mini-image"
             className="block w-full h-auto border-none rounded-lg shadow"
           />
         )}

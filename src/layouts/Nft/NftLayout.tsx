@@ -275,6 +275,7 @@ export const NftLayout = ({
                     isOwner,
                     listing,
                     offer,
+                    nftQuery,
                   })}
                 </div>
               </div>
