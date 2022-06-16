@@ -17,7 +17,6 @@ import {
 import Link from 'next/link'
 import { DollarSign, Tag } from 'react-feather'
 import { truncateAddress, addressAvatar } from '../../modules/address'
-import { isSol, toSOL } from '../../modules/sol'
 import {
   Activity,
   Marketplace,
@@ -27,7 +26,7 @@ import {
 } from '@holaplex/marketplace-js-sdk'
 import { format } from 'timeago.js'
 import cx from 'classnames'
-import { BasicLayout } from '../Basic'
+import { BasicLayout, NavigationLink } from '../Basic'
 import Chart from './../../components/Chart'
 import { Controller, useForm } from 'react-hook-form'
 import Select from 'react-select'
@@ -156,7 +155,7 @@ export const AnalyticsLayout = ({
     activitiesQuery.loading
 
   return (
-    <BasicLayout marketplace={marketplace}>
+    <BasicLayout marketplace={marketplace} active={NavigationLink.Activity}>
       <Head>
         <title>{metaTitle}</title>
         <link rel="icon" href={marketplace.logoUrl} />

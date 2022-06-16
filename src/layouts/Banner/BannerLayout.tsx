@@ -52,6 +52,11 @@ export const BannerLayout = ({ marketplace, children }: BannerLayoutProps) => {
                 Creators
               </a>
             </Link>
+            <Link href="/analytics" passHref>
+              <a className="text-sm cursor-pointer mr-6 hover:underline">
+                Activity
+              </a>
+            </Link>
             <div className="mr-2">
               <DialectNotificationsButton />
             </div>

@@ -15,6 +15,7 @@ interface BasicLayoutProps {
 
 export enum NavigationLink {
   Creators,
+  Activity,
   Admin,
 }
 
@@ -48,6 +49,15 @@ export const BasicLayout = ({
                 })}
               >
                 Creators
+              </a>
+            </Link>
+            <Link href="/analytics" passHref>
+              <a
+                className={cx('text-sm cursor-pointer mr-6 hover:underline', {
+                  underline: active === NavigationLink.Activity,
+                })}
+              >
+                Activity
               </a>
             </Link>
             {equals(
