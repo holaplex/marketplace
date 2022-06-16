@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect, useState } from 'react'
+import React, { ReactElement, useState } from 'react'
 import { gql, useQuery, QueryResult, OperationVariables } from '@apollo/client'
 import Head from 'next/head'
 import { PublicKey } from '@solana/web3.js'
@@ -6,12 +6,14 @@ import {
   always,
   and,
   equals,
+  find,
   gt,
   ifElse,
   isNil,
   length,
   not,
   pipe,
+  prop,
   when,
 } from 'ramda'
 import Link from 'next/link'
@@ -23,12 +25,13 @@ import {
   GetActivities,
   GetPriceChartData,
   MintStats,
+  AuctionHouse,
 } from '@holaplex/marketplace-js-sdk'
 import { format } from 'timeago.js'
 import cx from 'classnames'
 import { BasicLayout, NavigationLink } from '../Basic'
 import Chart from './../../components/Chart'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import Select from 'react-select'
 import { TokenInfo } from '@solana/spl-token-registry'
 import { useTokenList } from '../../hooks/tokenList'
@@ -113,35 +116,21 @@ export const AnalyticsLayout = ({
       subdomain: marketplace.subdomain,
     },
   })
-  const [tokenMap, loadingTokens] = useTokenList()
+  const [tokenMap, _loadingTokens] = useTokenList()
   const marketplaceData = marketplaceQuery.data?.marketplace
 
   const tokens = marketplaceData?.auctionHouses?.map(({ treasuryMint }) =>
     tokenMap.get(treasuryMint)
   )
 
-  // DUMMY TOKENS FOR TESTING
-  // const tokens = [
-  //   tokenMap.get('So11111111111111111111111111111111111111112'),
-  //   tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  // ]
+  const { control, getValues } = useForm<TokenFilter>()
+  useWatch({ name: 'token', control })
 
-  const [selectedToken, setSelectedToken] = useState<TokenInfo>()
-  const { control, setValue } = useForm<TokenFilter>()
+  const selectedToken = getValues().token
 
-  useEffect(() => {
-    if (!selectedToken && tokens && tokens[0]) {
-      setSelectedToken(tokens[0])
-      setValue('token', {
-        value: tokens[0].address,
-        label: tokens[0].symbol,
-      })
-    }
-  }, [setValue, selectedToken, tokens])
-
-  const selectedAuctionHouse = marketplaceData?.auctionHouses?.filter(
-    (ah) => ah.treasuryMint === selectedToken?.address
-  )[0]
+  const selectedAuctionHouse = find(
+    pipe(prop('treasuryMint'), equals(selectedToken.value))
+  )(marketplaceData?.auctionHouses || []) as AuctionHouse
 
   const [stats, setStats] = useState<MintStats | undefined>(
     selectedAuctionHouse?.stats
@@ -186,21 +175,17 @@ export const AnalyticsLayout = ({
                 render={({ field }) => {
                   return (
                     <Select
-                      {...field}
                       className="select-base-theme"
                       classNamePrefix="base"
-                      value={{
-                        value: selectedToken?.address,
-                        label: selectedToken?.symbol,
-                      }}
+                      value={field.value}
                       options={
-                        tokens.map((token) => ({
+                        tokens?.map((token) => ({
                           value: token?.address,
                           label: token?.symbol,
                         })) as OptionsType<OptionType>
                       }
                       onChange={(next: ValueType<OptionType>) => {
-                        setSelectedToken(tokenMap.get(next.value))
+                        field.onChange(next)
                       }}
                     />
                   )
@@ -212,28 +197,28 @@ export const AnalyticsLayout = ({
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 py-12">
         <PriceData
-          token={selectedToken}
+          token={tokenMap.get(selectedToken.value)}
           price={stats?.floor.toNumber() || 0}
           priceType="Floor Price"
           loading={loading}
         />
 
         <PriceData
-          token={selectedToken}
+          token={tokenMap.get(selectedToken.value)}
           price={stats?.average.toNumber() || 0}
           priceType="Avg Price"
           loading={loading}
         />
 
         <PriceData
-          token={selectedToken}
+          token={tokenMap.get(selectedToken.value)}
           price={stats?.volume24hr.toNumber() || 0}
           priceType="Vol Last 24h"
           loading={loading}
         />
 
         <PriceData
-          token={selectedToken}
+          token={tokenMap.get(selectedToken.value)}
           price={stats?.volumeTotal.toNumber() || 0}
           priceType="Vol All Time"
           loading={loading}

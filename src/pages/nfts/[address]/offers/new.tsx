@@ -1,8 +1,19 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { any, map, intersection, or, isEmpty, isNil, pipe, prop } from 'ramda'
+import React, { useEffect, useMemo } from 'react'
+import {
+  any,
+  map,
+  intersection,
+  or,
+  isEmpty,
+  isNil,
+  pipe,
+  prop,
+  find,
+  equals,
+} from 'ramda'
 import { NextPageContext } from 'next'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import { gql } from '@apollo/client'
 import { useQuery } from '@apollo/client'
@@ -17,6 +28,7 @@ import {
   Marketplace,
   Nft,
   GetNftData,
+  AuctionHouse,
 } from '@holaplex/marketplace-js-sdk'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { Modal } from 'src/layouts/Modal'
@@ -24,7 +36,6 @@ import { NftPreview } from 'src/components/NftPreview'
 import { isSol } from 'src/modules/sol'
 import cx from 'classnames'
 import Select from 'react-select'
-import { TokenInfo } from '@solana/spl-token-registry'
 import { useTokenList } from './../../../../hooks/tokenList'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -229,10 +240,13 @@ interface OfferProps {
 const OfferNew = ({ nft, marketplace }: OfferProps) => {
   const {
     control,
-    setValue,
     handleSubmit,
+    getValues,
     formState: { isSubmitting },
   } = useForm<OfferForm>({})
+
+  useWatch({ name: 'token', control })
+
   const wallet = useWallet()
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
@@ -242,29 +256,17 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
   )
-  const [tokenMap, loadingTokens] = useTokenList()
+  const [tokenMap, _loadingTokens] = useTokenList()
 
   const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
     tokenMap.get(treasuryMint)
   )
 
-  // DUMMY TOKENS FOR TESTING
-  // const tokens = [
-  //   tokenMap.get('So11111111111111111111111111111111111111112'),
-  //   tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  // ]
+  const selectedToken = getValues().token
 
-  const [selectedToken, setSelectedToken] = useState<TokenInfo>()
-
-  useEffect(() => {
-    if (!selectedToken && tokens[0]) {
-      setSelectedToken(tokens[0])
-      setValue('token', {
-        value: tokens[0].address,
-        label: tokens[0].symbol,
-      })
-    }
-  }, [setValue, selectedToken, tokens])
+  const selectedAuctionHouse = find(
+    pipe(prop('treasuryMint'), equals(selectedToken?.value))
+  )(marketplace.auctionHouses || []) as AuctionHouse
 
   const goBack = () => {
     router.push(`/nfts/${nft.address}`)
@@ -285,16 +287,10 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
       await sdk
         .transaction()
         .add(
-          sdk
-            .offers(
-              marketplace.auctionHouses.filter(
-                (ah) => ah.treasuryMint === selectedToken?.address
-              )[0]
-            )
-            .make({
-              amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
-              nft: nft,
-            })
+          sdk.offers(selectedAuctionHouse).make({
+            amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
+            nft: nft,
+          })
         )
         .send()
       toast.success('The transaction was confirmed.')
@@ -342,7 +338,7 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
                     <>
                       <div
                         className={cx('mb-4', {
-                          'sol-input': isSol(selectedToken?.address || ''),
+                          'sol-input': isSol(selectedToken?.value || ''),
                         })}
                       >
                         <input
@@ -365,17 +361,12 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
               <Controller
                 control={control}
                 name="token"
-                defaultValue={selectedToken?.address}
                 render={({ field }) => {
                   return (
                     <Select
-                      {...field}
                       className="select-base-theme w-full"
                       classNamePrefix="base"
-                      value={{
-                        value: selectedToken?.address,
-                        label: selectedToken?.symbol,
-                      }}
+                      value={field.value}
                       options={
                         tokens.map((token) => ({
                           value: token?.address,
@@ -383,7 +374,7 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
                         })) as OptionsType<OptionType>
                       }
                       onChange={(next: ValueType<OptionType>) => {
-                        setSelectedToken(tokenMap.get(next.value))
+                        field.onChange(next)
                       }}
                     />
                   )
