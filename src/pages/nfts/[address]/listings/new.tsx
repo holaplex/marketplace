@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
@@ -229,7 +229,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
 
 interface SellNftForm {
   amount: string
-  token: OptionsType<OptionType>
+  token: ValueType<OptionType>
 }
 
 interface SellNftProps {
@@ -238,15 +238,6 @@ interface SellNftProps {
 }
 
 const ListingNew = ({ nft, marketplace }: SellNftProps) => {
-  const {
-    control,
-    setValue,
-    handleSubmit,
-    getValues,
-    getFieldState,
-    formState: { isSubmitting },
-  } = useForm<SellNftForm>({})
-  useWatch({ name: 'token', control })
   const wallet = useWallet()
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
@@ -259,6 +250,17 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
   const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
     tokenMap.get(treasuryMint)
   )
+  const defaultToken = tokens?.filter((token) => isSol(token?.address || ''))[0]
+
+  const {
+    control,
+    setValue,
+    handleSubmit,
+    getValues,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<SellNftForm>({})
+  useWatch({ name: 'token', control })
   const selectedToken = getValues().token
   const auctionHouse = find(
     pipe(prop('treasuryMint'), equals(selectedToken?.value))
@@ -331,6 +333,21 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     }
   }
 
+  useEffect(() => {
+    if (!selectedToken && tokens && tokens[0]) {
+      setValue('token', {
+        value: tokens[0].address,
+        label: tokens[0].symbol,
+      })
+    }
+  }, [setValue, selectedToken, tokens])
+
+  useEffect(() => {
+    reset({
+      token: { value: defaultToken?.address, label: defaultToken?.symbol },
+    })
+  }, [defaultToken, reset])
+
   return (
     <>
       <Modal title={'List NFT for sale'} open={true} setOpen={goBack}>
@@ -365,7 +382,6 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
                   if (!nft) {
                     return <></>
                   }
-
                   return (
                     <>
                       <div

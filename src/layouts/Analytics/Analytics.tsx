@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from 'react'
+import React, { ReactElement, useEffect, useState } from 'react'
 import { gql, useQuery, QueryResult, OperationVariables } from '@apollo/client'
 import Head from 'next/head'
 import { PublicKey } from '@solana/web3.js'
@@ -36,6 +36,7 @@ import Select from 'react-select'
 import { TokenInfo } from '@solana/spl-token-registry'
 import { useTokenList } from '../../hooks/tokenList'
 import Price from '../../components/Price'
+import { isSol } from '../../modules/sol'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
 
@@ -76,7 +77,7 @@ interface AnalyticsLayoutProps {
 }
 
 interface TokenFilter {
-  token: OptionsType<OptionType>
+  token: ValueType<OptionType>
 }
 
 type OptionType = { label: string; value: number }
@@ -116,20 +117,19 @@ export const AnalyticsLayout = ({
       subdomain: marketplace.subdomain,
     },
   })
-  const [tokenMap, _loadingTokens] = useTokenList()
   const marketplaceData = marketplaceQuery.data?.marketplace
 
-  const tokens = marketplaceData?.auctionHouses?.map(({ treasuryMint }) =>
+  const [tokenMap, _loadingTokens] = useTokenList()
+  const tokens = marketplaceData?.auctionHouses.map(({ treasuryMint }) =>
     tokenMap.get(treasuryMint)
   )
+  const defaultToken = tokens?.filter((token) => isSol(token?.address || ''))[0]
 
-  const { control, getValues } = useForm<TokenFilter>()
+  const { control, getValues, reset } = useForm<TokenFilter>()
   useWatch({ name: 'token', control })
-
   const selectedToken = getValues().token
-
   const selectedAuctionHouse = find(
-    pipe(prop('treasuryMint'), equals(selectedToken.value))
+    pipe(prop('treasuryMint'), equals(selectedToken?.value))
   )(marketplaceData?.auctionHouses || []) as AuctionHouse
 
   const [stats, setStats] = useState<MintStats | undefined>(
@@ -142,6 +142,12 @@ export const AnalyticsLayout = ({
     marketplaceQuery.loading ||
     priceChartQuery.loading ||
     activitiesQuery.loading
+
+  useEffect(() => {
+    reset({
+      token: { value: defaultToken?.address, label: defaultToken?.symbol },
+    })
+  }, [defaultToken, reset])
 
   return (
     <BasicLayout marketplace={marketplace} active={NavigationLink.Activity}>
@@ -197,28 +203,28 @@ export const AnalyticsLayout = ({
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 py-12">
         <PriceData
-          token={tokenMap.get(selectedToken.value)}
+          token={tokenMap.get(selectedToken?.value)}
           price={stats?.floor.toNumber() || 0}
           priceType="Floor Price"
           loading={loading}
         />
 
         <PriceData
-          token={tokenMap.get(selectedToken.value)}
+          token={tokenMap.get(selectedToken?.value)}
           price={stats?.average.toNumber() || 0}
           priceType="Avg Price"
           loading={loading}
         />
 
         <PriceData
-          token={tokenMap.get(selectedToken.value)}
+          token={tokenMap.get(selectedToken?.value)}
           price={stats?.volume24hr.toNumber() || 0}
           priceType="Vol Last 24h"
           loading={loading}
         />
 
         <PriceData
-          token={tokenMap.get(selectedToken.value)}
+          token={tokenMap.get(selectedToken?.value)}
           price={stats?.volumeTotal.toNumber() || 0}
           priceType="Vol All Time"
           loading={loading}

@@ -229,7 +229,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
 
 interface OfferForm {
   amount: string
-  token: OptionsType<OptionType>
+  token: ValueType<OptionType>
 }
 
 interface OfferProps {
@@ -238,15 +238,6 @@ interface OfferProps {
 }
 
 const OfferNew = ({ nft, marketplace }: OfferProps) => {
-  const {
-    control,
-    handleSubmit,
-    getValues,
-    formState: { isSubmitting },
-  } = useForm<OfferForm>({})
-
-  useWatch({ name: 'token', control })
-
   const wallet = useWallet()
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
@@ -257,13 +248,21 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
     [connection, wallet]
   )
   const [tokenMap, _loadingTokens] = useTokenList()
-
   const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
     tokenMap.get(treasuryMint)
   )
+  const defaultToken = tokens?.filter((token) => isSol(token?.address || ''))[0]
+
+  const {
+    control,
+    handleSubmit,
+    getValues,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<OfferForm>({})
+  useWatch({ name: 'token', control })
 
   const selectedToken = getValues().token
-
   const selectedAuctionHouse = find(
     pipe(prop('treasuryMint'), equals(selectedToken?.value))
   )(marketplace.auctionHouses || []) as AuctionHouse
@@ -312,6 +311,12 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
       return
     }
   }, [publicKey, nft, router])
+
+  useEffect(() => {
+    reset({
+      token: { value: defaultToken?.address, label: defaultToken?.symbol },
+    })
+  }, [defaultToken, reset])
 
   return (
     <>
