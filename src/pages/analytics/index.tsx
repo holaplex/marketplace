@@ -10,6 +10,7 @@ import {
   GetActivities,
   GetPriceChartData,
 } from '@holaplex/marketplace-js-sdk'
+import { isSol } from '../../modules/sol'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -127,11 +128,13 @@ const startDate = subDays(new Date(), 6).toISOString()
 const endDate = new Date().toISOString()
 
 const Analytics: NextPage<AnalyticsProps> = ({ marketplace }) => {
-  const auctionHouses = map(prop('address'))(marketplace.auctionHouses || [])
+  const solAH =
+    marketplace.auctionHouses.filter((ah) => isSol(ah.treasuryMint))[0]
+      .address || ''
+
   const priceChartQuery = useQuery<GetPriceChartData>(GET_PRICE_CHART_DATA, {
-    fetchPolicy: 'network-only',
     variables: {
-      auctionHouses: auctionHouses,
+      auctionHouses: [solAH],
       startDate,
       endDate,
     },
@@ -139,7 +142,7 @@ const Analytics: NextPage<AnalyticsProps> = ({ marketplace }) => {
 
   const activitiesQuery = useQuery<GetActivities>(GET_ACTIVITIES, {
     variables: {
-      auctionHouses: auctionHouses,
+      auctionHouses: [solAH],
     },
   })
 

@@ -26,6 +26,7 @@ import {
   GetPriceChartData,
   MintStats,
   AuctionHouse,
+  PriceChart,
 } from '@holaplex/marketplace-js-sdk'
 import { format } from 'timeago.js'
 import cx from 'classnames'
@@ -37,6 +38,7 @@ import { TokenInfo } from '@solana/spl-token-registry'
 import { useTokenList } from '../../hooks/tokenList'
 import Price from '../../components/Price'
 import { isSol } from '../../modules/sol'
+import { subDays } from 'date-fns'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
 
@@ -125,7 +127,7 @@ export const AnalyticsLayout = ({
   )
   const defaultToken = tokens?.filter((token) => isSol(token?.address || ''))[0]
 
-  const { control, getValues, reset } = useForm<TokenFilter>()
+  const { control, getValues, reset, watch } = useForm<TokenFilter>()
   useWatch({ name: 'token', control })
   const selectedToken = getValues().token
   const selectedAuctionHouse = find(
@@ -136,12 +138,58 @@ export const AnalyticsLayout = ({
     selectedAuctionHouse?.stats
   )
 
-  let activities: Activity[] = activitiesQuery.data?.activities || []
+  let {
+    data: activitiesData,
+    loading: activitiesLoading,
+    refetch: activitiesRefetch,
+  } = activitiesQuery
+  let [activities, setActivities] = useState<Activity[]>(
+    activitiesData?.activities || []
+  )
+
+  const startDate = subDays(new Date(), 6).toISOString()
+  const endDate = new Date().toISOString()
+  let {
+    data: priceChartsData,
+    loading: priceChartsLoading,
+    refetch: priceChartsRefetch,
+  } = priceChartQuery
+  let [priceCharts, setPriceCharts] = useState<PriceChart>(
+    priceChartsData?.charts!
+  )
 
   const loading =
-    marketplaceQuery.loading ||
-    priceChartQuery.loading ||
-    activitiesQuery.loading
+    marketplaceQuery.loading || priceChartsLoading || activitiesLoading
+
+  useEffect(() => {
+    const subscription = watch(({ token }) => {
+      if (token) {
+        const ah = find(pipe(prop('treasuryMint'), equals(token.value)))(
+          marketplaceData?.auctionHouses || []
+        ) as AuctionHouse
+
+        activitiesRefetch({
+          auctionHouses: [ah?.address || ''],
+        }).then(({ data }) => {
+          setActivities(data?.activities || [])
+        })
+
+        priceChartsRefetch({
+          auctionHouses: [ah?.address || ''],
+          startDate,
+          endDate,
+        }).then(({ data }) => {
+          setPriceCharts(data?.charts || {})
+        })
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [
+    activitiesRefetch,
+    marketplaceData?.auctionHouses,
+    priceChartsRefetch,
+    watch,
+  ])
 
   useEffect(() => {
     reset({
@@ -238,10 +286,7 @@ export const AnalyticsLayout = ({
           {loading ? (
             <div className="w-full h-[200px] bg-gray-800 rounded-md" />
           ) : (
-            <Chart
-              height={200}
-              chartData={priceChartQuery.data?.charts.listingFloor}
-            />
+            <Chart height={200} chartData={priceCharts.listingFloor} />
           )}
         </div>
         <div className="flex flex-col w-full">
@@ -251,10 +296,7 @@ export const AnalyticsLayout = ({
           {loading ? (
             <div className="w-full h-[200px] bg-gray-800 rounded-md" />
           ) : (
-            <Chart
-              height={200}
-              chartData={priceChartQuery.data?.charts.salesAverage}
-            />
+            <Chart height={200} chartData={priceCharts.salesAverage} />
           )}
         </div>
       </div>

@@ -2,6 +2,7 @@ import { format, parseISO } from 'date-fns'
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { toSOL } from '../../modules/sol'
 import { PricePoint } from '@holaplex/marketplace-js-sdk'
+import BN from 'bn.js'
 
 interface ChartProps {
   height?: number
@@ -19,9 +20,10 @@ const Chart = ({
   const actualData: any[] | undefined = []
   chartData &&
     chartData.forEach((cd) => {
+      const price = new BN(cd.price)
       actualData.push({
         date: cd.date.substr(0, 10),
-        price: toSOL(cd.price.toNumber()), // 1 + Math.random()
+        price: toSOL(price.toNumber()), // 1 + Math.random()
       })
     })
 
