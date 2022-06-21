@@ -56,6 +56,11 @@ const CancelOfferForm = ({
             offer,
           })
         )
+        .add(
+          sdk.escrow(offer.auctionHouse).withdraw({
+            amount: offer.price.toNumber(),
+          })
+        )
         .send()
 
       await refetch()

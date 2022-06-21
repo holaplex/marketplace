@@ -39,6 +39,7 @@ import { useTokenList } from '../../hooks/tokenList'
 import Price from '../../components/Price'
 import { isSol } from '../../modules/sol'
 import { subDays } from 'date-fns'
+import { NATIVE_MINT_ADDRESS } from './../../modules/sol'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
 
@@ -121,7 +122,7 @@ export const AnalyticsLayout = ({
   })
   const marketplaceData = marketplaceQuery.data?.marketplace
 
-  const [tokenMap, _loadingTokens] = useTokenList()
+  const [tokenMap, loadingTokens] = useTokenList()
   const tokens = marketplaceData?.auctionHouses.map(({ treasuryMint }) =>
     tokenMap.get(treasuryMint)
   )
@@ -134,9 +135,7 @@ export const AnalyticsLayout = ({
     pipe(prop('treasuryMint'), equals(selectedToken?.value))
   )(marketplaceData?.auctionHouses || []) as AuctionHouse
 
-  const [stats, setStats] = useState<MintStats | undefined>(
-    selectedAuctionHouse?.stats
-  )
+  const stats = selectedAuctionHouse?.stats
 
   let {
     data: activitiesData,
@@ -159,7 +158,10 @@ export const AnalyticsLayout = ({
   )
 
   const loading =
-    marketplaceQuery.loading || priceChartsLoading || activitiesLoading
+    marketplaceQuery.loading ||
+    priceChartsLoading ||
+    activitiesLoading ||
+    loadingTokens
 
   useEffect(() => {
     const subscription = watch(({ token }) => {

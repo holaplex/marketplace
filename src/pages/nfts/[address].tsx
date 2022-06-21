@@ -262,6 +262,12 @@ const NftShow: NextPage<NftPageProps> = ({
       await sdk
         .transaction()
         .add(
+          sdk.offers(listing.auctionHouse).make({
+            amount: listing.price.toNumber(),
+            nft,
+          })
+        )
+        .add(
           sdk.listings(listing.auctionHouse).buy({
             listing,
             nft,
@@ -286,7 +292,7 @@ const NftShow: NextPage<NftPageProps> = ({
     if (!listing || !isOwner) {
       return
     }
-    debugger
+
     try {
       toast('Sending the transaction to Solana.')
 

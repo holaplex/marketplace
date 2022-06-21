@@ -6,7 +6,6 @@ import client from '../../client'
 import { AnalyticsLayout } from './../../layouts/Analytics'
 import {
   Marketplace,
-  PriceChart,
   GetActivities,
   GetPriceChartData,
 } from '@holaplex/marketplace-js-sdk'
@@ -110,10 +109,6 @@ export async function getServerSideProps({ req }: NextPageContext) {
       marketplace,
     },
   }
-}
-
-interface GetMarketplaceInfo {
-  marketplace: Marketplace
 }
 
 interface GetMarketplace {

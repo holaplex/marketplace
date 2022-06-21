@@ -281,13 +281,21 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
       return
     }
 
+    let adjustedAmount = isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount
+
     try {
       toast('Sending the transaction to Solana.')
+
       await sdk
         .transaction()
         .add(
+          sdk.escrow(selectedAuctionHouse).desposit({
+            amount: adjustedAmount,
+          })
+        )
+        .add(
           sdk.offers(selectedAuctionHouse).make({
-            amount: isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount,
+            amount: adjustedAmount,
             nft: nft,
           })
         )

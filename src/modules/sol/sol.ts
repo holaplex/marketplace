@@ -8,4 +8,6 @@ export const toSOL = (lamports: number, precision: number = 5) => {
   return Math.round((lamports / LAMPORTS_PER_SOL) * multiplier) / multiplier
 }
 
-export const isSol = equals('So11111111111111111111111111111111111111112')
+export const NATIVE_MINT_ADDRESS = 'So11111111111111111111111111111111111111112'
+
+export const isSol = equals(NATIVE_MINT_ADDRESS)
