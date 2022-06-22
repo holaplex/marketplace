@@ -20,10 +20,10 @@ spec:
     spec:
       containers:
       - name: marketplace
-        image: 011737333588.dkr.ecr.us-east-1.amazonaws.com/marketplace:dev-9287346
+        image: 011737333588.dkr.ecr.us-east-1.amazonaws.com/marketplace:canary-9287346
         env:
         - name: NEXT_PUBLIC_GRAPHQL_ENDPOINT
-          value: https://graph-test.holaplex.com/v1
+          value: https://graph-test.holaplex.tools/v1
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000
@@ -55,7 +55,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: dev.holaplex.market
+  - host: canary.holaplex.market
     http:
       paths:
       - path: /
@@ -65,7 +65,7 @@ spec:
             name: app-marketplace
             port:
               number: 3000
-  - host: "*.dev.holaplex.market"
+  - host: "*.canary.holaplex.market"
     http:
       paths:
       - path: /
@@ -77,5 +77,5 @@ spec:
               number: 3000
   tls:
   - hosts:
-    - "*.dev.holaplex.market"
-    - dev.holaplex.market
+    - "*.canary.holaplex.market"
+    - canary.holaplex.market
