@@ -1,6 +1,7 @@
 import { isSol, toSOL } from 'src/modules/sol'
 import cx from 'classnames'
 import { TokenInfo } from '@solana/spl-token-registry'
+import { getPrice } from '../../modules/token'
 
 interface PriceProps {
   price: number
@@ -17,7 +18,7 @@ const Price = ({ price, token, style }: PriceProps) => (
             'sol-amount': isSol(token.address),
           })}
         >
-          {isSol(token.address) ? toSOL(price) : price}
+          {getPrice(price, token)}
         </span>
         {!isSol(token.address) && (
           <span className="text-sm">{token.symbol}</span>

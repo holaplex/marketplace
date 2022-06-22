@@ -1,4 +1,3 @@
-import { TokenInfo } from '@solana/spl-token-registry'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { equals } from 'ramda'
 

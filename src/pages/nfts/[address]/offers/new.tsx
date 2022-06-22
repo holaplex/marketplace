@@ -30,13 +30,13 @@ import {
   GetNftData,
   AuctionHouse,
 } from '@holaplex/marketplace-js-sdk'
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { Modal } from 'src/layouts/Modal'
 import { NftPreview } from 'src/components/NftPreview'
 import { isSol } from 'src/modules/sol'
 import cx from 'classnames'
 import Select from 'react-select'
 import { useTokenList } from './../../../../hooks/tokenList'
+import { getPriceWithMantissa } from '../../../../modules/token'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -281,8 +281,10 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
       return
     }
 
-    let adjustedAmount = isSol(token) ? +amount * LAMPORTS_PER_SOL : +amount
-
+    let adjustedAmount = getPriceWithMantissa(
+      +amount,
+      tokenMap.get(token.value)!
+    )
     try {
       toast('Sending the transaction to Solana.')
 
@@ -358,7 +360,6 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
                           autoFocus
                           value={value}
                           className="input"
-                          type="number"
                           onChange={(e: any) => {
                             onChange(e.target.value)
                           }}

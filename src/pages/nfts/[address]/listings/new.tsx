@@ -37,6 +37,8 @@ import { isSol } from './../../../../modules/sol'
 import { NftPreview } from './../../../../components/NftPreview'
 import { useTokenList } from './../../../../hooks/tokenList'
 import Price from './../../../../components/Price'
+import { getPriceWithMantissa } from '../../../../modules/token'
+import BN from 'bn.js'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -314,12 +316,11 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
 
     try {
       toast('Sending the transaction to Solana.')
-
       await sdk
         .transaction()
         .add(
           sdk.listings(auctionHouse).post({
-            amount: isSol(token.value) ? +amount * LAMPORTS_PER_SOL : +amount,
+            amount: getPriceWithMantissa(+amount, tokenMap.get(token.value)!),
             nft,
           })
         )
@@ -359,7 +360,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
             <div className="flex-col gap-2">
               <div className="text-gray-300">Highest offer</div>
               <Price
-                price={highestOffer.price.toNumber()}
+                price={new BN(highestOffer.price).toNumber()}
                 token={tokenMap.get(highestOffer.auctionHouse.treasuryMint)}
               />
             </div>
