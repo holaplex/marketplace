@@ -14,6 +14,7 @@ import {
 } from '@solana/wallet-adapter-react'
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 import {
+  GlowWalletAdapter,
   LedgerWalletAdapter,
   PhantomWalletAdapter,
   SlopeWalletAdapter,
@@ -49,6 +50,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
   const endpoint = useMemo(() => clusterApiUrl(network), [])
   const wallets = useMemo(
     () => [
+      new GlowWalletAdapter(),
       new PhantomWalletAdapter(),
       new SlopeWalletAdapter(),
       new SolflareWalletAdapter(),
