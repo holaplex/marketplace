@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { useContext, useEffect, useMemo } from 'react'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
@@ -39,6 +39,7 @@ import { useTokenList } from './../../../../hooks/tokenList'
 import Price from './../../../../components/Price'
 import { getPriceWithMantissa } from '../../../../modules/token'
 import BN from 'bn.js'
+import { Action, MultiTransactionContext } from '@holaplex/ui'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -248,6 +249,8 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
   )
+  const { runActions } = useContext(MultiTransactionContext)
+
   const [tokenMap, _loadingTokens] = useTokenList()
   const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
     tokenMap.get(treasuryMint)
@@ -283,14 +286,9 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     router.push(`/nfts/${nft.address}`)
   }
 
-  const acceptOffer = async () => {
-    if (!publicKey || !signTransaction) {
-      return
-    }
-
-    try {
+  const onAcceptOffer = async () => {
+    if (highestOffer) {
       toast('Sending the transaction to Solana.')
-
       await sdk
         .transaction()
         .add(
@@ -300,13 +298,35 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
           })
         )
         .send()
-
-      toast.success('The transaction was confirmed.')
-    } catch (e: any) {
-      toast.error(e.message)
-    } finally {
-      router.push(`/nfts/${nft.address}`)
     }
+  }
+
+  const acceptOffer = async () => {
+    if (!publicKey || !signTransaction) {
+      return
+    }
+
+    const newActions: Action[] = [
+      {
+        name: 'Accepting offer...',
+        id: 'acceptOffer',
+        action: onAcceptOffer,
+        param: undefined,
+      },
+    ]
+
+    await runActions(newActions, {
+      onActionSuccess: async () => {
+        toast.success('The transaction was confirmed.')
+        router.push(`/nfts/${nft.address}`)
+      },
+      onComplete: async () => {
+        router.push(`/nfts/${nft.address}`)
+      },
+      onActionFailure: async (err) => {
+        toast.error(err.message)
+      },
+    })
   }
 
   const sellNftTransaction = async ({ amount, token }: SellNftForm) => {

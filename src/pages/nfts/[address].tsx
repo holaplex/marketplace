@@ -12,7 +12,7 @@ import client from '../../client'
 import Button, { ButtonType } from '../../components/Button'
 import { useLogin } from '../../hooks/login'
 import { Marketplace, Offer } from '@holaplex/marketplace-js-sdk'
-import { ReactElement, useMemo } from 'react'
+import { ReactElement, useContext, useMemo } from 'react'
 import { Wallet } from '@metaplex/js'
 import {
   Nft,
@@ -20,6 +20,7 @@ import {
   initMarketplaceSDK,
   GetNftData,
 } from '@holaplex/marketplace-js-sdk'
+import { Action, MultiTransactionContext } from '@holaplex/ui'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -245,18 +246,10 @@ const NftShow: NextPage<NftPageProps> = ({
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
   )
+  const { runActions, hasActionPending } = useContext(MultiTransactionContext)
 
-  const buyNftTransaction = async () => {
-    if (!publicKey || !signTransaction) {
-      login()
-      return
-    }
-
-    if (!listing || isOwner) {
-      return
-    }
-
-    try {
+  const onBuy = async () => {
+    if (listing && !isOwner && nft) {
       toast('Sending the transaction to Solana.')
 
       await sdk
@@ -274,13 +267,40 @@ const NftShow: NextPage<NftPageProps> = ({
           })
         )
         .send()
-
-      toast.success('The transaction was confirmed.')
-
-      nftQuery.refetch()
-    } catch (e: any) {
-      toast.error(e.message)
     }
+  }
+
+  const buyNftTransaction = async () => {
+    if (!publicKey || !signTransaction) {
+      login()
+      return
+    }
+    if (!listing || isOwner) {
+      return
+    }
+
+    const newActions: Action[] = [
+      {
+        name: `Buying ${nft.name}...`,
+        id: 'buyNFT',
+        action: onBuy,
+        param: undefined,
+      },
+    ]
+
+    await runActions(newActions, {
+      onActionSuccess: async () => {
+        await nftQuery.refetch()
+        toast.success('The transaction was confirmed.')
+      },
+      onComplete: async () => {
+        await nftQuery.refetch()
+      },
+      onActionFailure: async (err) => {
+        await nftQuery.refetch()
+        toast.error(err.message)
+      },
+    })
   }
 
   const cancelListingTransaction = async () => {

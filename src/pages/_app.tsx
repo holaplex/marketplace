@@ -29,6 +29,7 @@ import { Cluster } from '@solana/web3.js'
 import client from '../client'
 import { ToastContainer } from 'react-toastify'
 import { ViewerProvider } from './../providers/Viewer'
+import { MultiTransactionProvider } from '@holaplex/ui'
 import 'react-toastify/dist/ReactToastify.css'
 
 const network = WalletAdapterNetwork.Mainnet
@@ -70,18 +71,20 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
       >
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider className="wallet-modal-theme">
-            <ViewerProvider>
-              <ToastContainer
-                theme="dark"
-                hideProgressBar={true}
-                position="bottom-center"
-                className="w-full max-w-full font-sans text-sm text-white bottom-4 sm:right-4 sm:left-auto sm:w-96 sm:translate-x-0"
-                toastClassName="bg-gray-900 bg-opacity-80 rounded-lg items-center"
-              />
-              <Layout {...pageProps}>
-                <Component {...pageProps} />
-              </Layout>
-            </ViewerProvider>
+            <MultiTransactionProvider>
+              <ViewerProvider>
+                <ToastContainer
+                  theme="dark"
+                  hideProgressBar={true}
+                  position="bottom-center"
+                  className="w-full max-w-full font-sans text-sm text-white bottom-4 sm:right-4 sm:left-auto sm:w-96 sm:translate-x-0"
+                  toastClassName="bg-gray-900 bg-opacity-80 rounded-lg items-center"
+                />
+                <Layout {...pageProps}>
+                  <Component {...pageProps} />
+                </Layout>
+              </ViewerProvider>
+            </MultiTransactionProvider>
           </WalletModalProvider>
         </WalletProvider>
       </ConnectionProvider>

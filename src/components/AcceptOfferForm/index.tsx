@@ -9,9 +9,9 @@ import {
   Listing,
   Nft,
   Offer,
-  Marketplace,
 } from '@holaplex/marketplace-js-sdk'
-import { useMemo } from 'react'
+import { useContext, useMemo } from 'react'
+import { Action, MultiTransactionContext } from '@holaplex/ui'
 
 interface AcceptOfferFormProps {
   offer: Offer
@@ -35,18 +35,15 @@ const AcceptOfferForm = ({
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
   )
+  const { runActions } = useContext(MultiTransactionContext)
 
   const {
     formState: { isSubmitting },
     handleSubmit,
   } = useForm()
 
-  const acceptOfferTransaction = async () => {
-    if (!publicKey || !signTransaction || !offer || !nft) {
-      return
-    }
-
-    try {
+  const onAcceptOffer = async () => {
+    if (offer) {
       toast('Sending the transaction to Solana.')
       await sdk
         .transaction()
@@ -58,13 +55,35 @@ const AcceptOfferForm = ({
           })
         )
         .send()
-
-      await refetch()
-
-      toast.success('The transaction was confirmed.')
-    } catch (e: any) {
-      toast.error(e.message)
     }
+  }
+
+  const acceptOfferTransaction = async () => {
+    if (!publicKey || !signTransaction || !offer || !nft) {
+      return
+    }
+    const newActions: Action[] = [
+      {
+        name: 'Accepting offer...',
+        id: 'acceptOffer',
+        action: onAcceptOffer,
+        param: undefined,
+      },
+    ]
+
+    await runActions(newActions, {
+      onActionSuccess: async () => {
+        await refetch()
+        toast.success('The transaction was confirmed.')
+      },
+      onComplete: async () => {
+        await refetch()
+      },
+      onActionFailure: async (err) => {
+        await refetch()
+        toast.error(err.message)
+      },
+    })
   }
 
   return (
