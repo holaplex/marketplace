@@ -39,7 +39,7 @@ import { useTokenList } from './../../../../hooks/tokenList'
 import Price from './../../../../components/Price'
 import { getPriceWithMantissa } from '../../../../modules/token'
 import BN from 'bn.js'
-import { Action, MultiTransactionContext } from '@holaplex/ui'
+import { Action, MultiTransactionContext } from '@holaplex/ui-library'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 

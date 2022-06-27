@@ -20,7 +20,7 @@ import {
   initMarketplaceSDK,
   GetNftData,
 } from '@holaplex/marketplace-js-sdk'
-import { Action, MultiTransactionContext } from '@holaplex/ui'
+import { Action, MultiTransactionContext } from '@holaplex/ui-library'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 

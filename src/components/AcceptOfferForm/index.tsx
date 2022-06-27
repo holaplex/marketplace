@@ -11,7 +11,7 @@ import {
   Offer,
 } from '@holaplex/marketplace-js-sdk'
 import { useContext, useMemo } from 'react'
-import { Action, MultiTransactionContext } from '@holaplex/ui'
+import { Action, MultiTransactionContext } from '@holaplex/ui-library'
 
 interface AcceptOfferFormProps {
   offer: Offer
