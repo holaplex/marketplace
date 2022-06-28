@@ -29,7 +29,7 @@ import { Cluster } from '@solana/web3.js'
 import client from '../client'
 import { ToastContainer } from 'react-toastify'
 import { ViewerProvider } from './../providers/Viewer'
-import { MultiTransactionProvider } from '@holaplex/ui'
+import { MultiTransactionProvider } from '@holaplex/ui-library'
 import 'react-toastify/dist/ReactToastify.css'
 
 const network = WalletAdapterNetwork.Mainnet
