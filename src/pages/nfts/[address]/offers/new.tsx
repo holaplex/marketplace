@@ -77,7 +77,7 @@ const GET_NFT = gql`
         }
       }
       offers {
-        address
+        id
         tradeState
         price
         buyer
@@ -118,18 +118,16 @@ const GET_NFT = gql`
         activityType
       }
       listings {
-        address
+        id
         auctionHouse {
           address
           treasuryMint
         }
-        bookkeeper
         seller
         metadata
         purchaseReceipt
         price
         tokenSize
-        bump
         tradeState
         tradeStateBump
         createdAt

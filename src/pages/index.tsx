@@ -45,7 +45,6 @@ import {
   GetPriceChartData,
   NftCount,
   Wallet,
-  MintStats,
 } from '@holaplex/marketplace-js-sdk'
 import { List } from './../components/List'
 import { NftCard } from './../components/NftCard'
@@ -98,10 +97,10 @@ const GET_NFTS = gql`
         }
       }
       offers {
-        address
+        id
       }
       listings {
-        address
+        id
         auctionHouse {
           address
           treasuryMint

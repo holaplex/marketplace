@@ -111,10 +111,10 @@ const GET_NFTS = gql`
         }
       }
       offers {
-        address
+        id
       }
       listings {
-        address
+        id
         auctionHouse {
           address
           treasuryMint

@@ -66,7 +66,7 @@ const GET_NFT = gql`
         }
       }
       offers {
-        address
+        id
         tradeState
         price
         buyer
@@ -107,7 +107,7 @@ const GET_NFT = gql`
         activityType
       }
       listings {
-        address
+        id
         auctionHouse {
           address
           treasuryMint
@@ -124,7 +124,6 @@ const GET_NFT = gql`
           requiresSignOff
           canChangeSalePrice
         }
-        bookkeeper
         seller
         metadata
         purchaseReceipt
