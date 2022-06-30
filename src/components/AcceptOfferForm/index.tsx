@@ -6,16 +6,19 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { Wallet } from '@metaplex/js'
 import {
   initMarketplaceSDK,
-  Listing,
+  AhListing,
   Nft,
   Offer,
 } from '@holaplex/marketplace-js-sdk'
 import { useContext, useMemo } from 'react'
-import { Action, MultiTransactionContext } from '@holaplex/ui-library'
+import {
+  Action,
+  MultiTransactionContext,
+} from '../../modules/multi_transaction'
 
 interface AcceptOfferFormProps {
   offer: Offer
-  listing?: Listing
+  listing?: AhListing
   nft?: Nft
   refetch: (
     variables?: Partial<OperationVariables> | undefined

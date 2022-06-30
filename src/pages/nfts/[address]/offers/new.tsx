@@ -125,7 +125,6 @@ const GET_NFT = gql`
         }
         seller
         metadata
-        purchaseReceipt
         price
         tokenSize
         tradeState

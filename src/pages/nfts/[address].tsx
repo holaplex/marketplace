@@ -16,11 +16,14 @@ import { ReactElement, useContext, useMemo } from 'react'
 import { Wallet } from '@metaplex/js'
 import {
   Nft,
-  Listing,
+  AhListing,
   initMarketplaceSDK,
   GetNftData,
 } from '@holaplex/marketplace-js-sdk'
-import { Action, MultiTransactionContext } from '@holaplex/ui-library'
+import {
+  Action,
+  MultiTransactionContext,
+} from '../../modules/multi_transaction'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -126,10 +129,8 @@ const GET_NFT = gql`
         }
         seller
         metadata
-        purchaseReceipt
         price
         tokenSize
-        bump
         tradeState
         tradeStateBump
         createdAt
@@ -223,7 +224,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
 interface NftPageProps extends AppProps {
   isOwner: boolean
   offer: Offer
-  listing: Listing
+  listing: AhListing
   nft: Nft
   nftQuery: QueryResult<GetNftData, OperationVariables>
 }
@@ -318,7 +319,7 @@ const NftShow: NextPage<NftPageProps> = ({
       await sdk
         .transaction()
         .add(
-          await sdk.listings(listing.auctionHouse).cancel({
+          sdk.listings(listing.auctionHouse).cancel({
             listing,
             nft,
           })

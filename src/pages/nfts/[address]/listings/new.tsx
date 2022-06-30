@@ -39,7 +39,10 @@ import { useTokenList } from './../../../../hooks/tokenList'
 import Price from './../../../../components/Price'
 import { getPriceWithMantissa } from '../../../../modules/token'
 import BN from 'bn.js'
-import { Action, MultiTransactionContext } from '@holaplex/ui-library'
+import {
+  Action,
+  MultiTransactionContext,
+} from '../../../../modules/multi_transaction'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -123,7 +126,6 @@ const GET_NFT = gql`
         }
         seller
         metadata
-        purchaseReceipt
         price
         tokenSize
         tradeState
@@ -346,6 +348,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
 
       toast.success('The transaction was confirmed.')
     } catch (e: any) {
+      console.log('sell nft txn error', e)
       toast.error(e.message)
     } finally {
       router.push(`/nfts/${nft.address}`)

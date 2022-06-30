@@ -12,7 +12,6 @@ interface IpfsSender {
 const ipfsSDK = {
   uploadFile: async (file) => {
     const body = new FormData()
-    console.log('file', file)
     body.append(file.name, file, file.name)
     try {
       const resp = await fetch('https://www.holaplex.com/api/ipfs/upload', {
