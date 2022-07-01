@@ -301,8 +301,8 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
         .send()
       toast.success('The transaction was confirmed.')
     } catch (e: any) {
+      console.log('Place Offer Error', e)
       toast.error(e.message)
-      console.log(e)
     } finally {
       router.push(`/nfts/${nft.address}`)
     }

@@ -21,7 +21,7 @@ const Price = ({ price, token, style }: PriceProps) => (
           {getPrice(price, token)}
         </span>
         {!isSol(token.address) && (
-          <span className="text-sm">{token.symbol}</span>
+          <span className="text-sm mb-1">{token.symbol}</span>
         )}
       </div>
     ) : (

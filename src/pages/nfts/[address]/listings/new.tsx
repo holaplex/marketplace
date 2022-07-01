@@ -38,11 +38,11 @@ import { NftPreview } from './../../../../components/NftPreview'
 import { useTokenList } from './../../../../hooks/tokenList'
 import Price from './../../../../components/Price'
 import { getPriceWithMantissa } from '../../../../modules/token'
-import BN from 'bn.js'
 import {
   Action,
   MultiTransactionContext,
 } from '../../../../modules/multi_transaction'
+import BN from 'bn.js'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 

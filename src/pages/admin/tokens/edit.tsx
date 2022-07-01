@@ -19,6 +19,7 @@ import { initMarketplaceSDK, Marketplace } from '@holaplex/marketplace-js-sdk'
 import { createCreateAuctionHouseInstruction } from '@metaplex-foundation/mpl-auction-house/dist/src/generated/instructions'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { useTokenList } from './../../../hooks/tokenList'
+import { PendingTransaction } from '@holaplex/marketplace-js-sdk/dist/transaction'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -303,7 +304,11 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
 
       await sdk
         .transaction()
-        .add(transaction)
+        .add(
+          new Promise((resolve, _reject) => {
+            resolve([transaction, []])
+          })
+        )
         .add(sdk.update(settings, transactionFee))
         .send()
 
@@ -315,6 +320,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
         { autoClose: 5000 }
       )
     } catch (e: any) {
+      console.log('Update Tokens Error:', e)
       toast.error(e.message)
     }
   }

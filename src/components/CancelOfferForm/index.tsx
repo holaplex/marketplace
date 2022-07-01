@@ -47,7 +47,6 @@ const CancelOfferForm = ({
 
     try {
       toast('Sending the transaction to Solana.')
-
       await sdk
         .transaction()
         .add(
@@ -67,6 +66,7 @@ const CancelOfferForm = ({
 
       toast.success('The transaction was confirmed.')
     } catch (e: any) {
+      console.log('Cancel Offer Error', e)
       toast.error(e.message)
     }
   }
