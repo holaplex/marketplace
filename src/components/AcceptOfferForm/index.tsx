@@ -46,26 +46,37 @@ const AcceptOfferForm = ({
   } = useForm()
 
   const onAcceptOffer = async () => {
-    if (offer) {
-      toast('Sending the transaction to Solana.')
-      await sdk
-        .transaction()
-        .add(
-          sdk.offers(offer.auctionHouse).accept({
-            cancel: listing ? [listing] : [],
-            nft,
-            offer,
-          })
-        )
-        .send()
+    if (!offer || !nft) {
+      return
     }
+    toast('Sending the transaction to Solana.')
+    await sdk
+      .transaction()
+      .add(
+        sdk.offers(offer.auctionHouse).accept({
+          nft,
+          offer,
+        })
+      )
+      .send()
+  }
+
+  const onCancelListing = async () => {
+    if (!listing || !nft) {
+      return
+    }
+
+    await sdk
+      .transaction()
+      .add(sdk.listings(offer.auctionHouse).cancel({ listing, nft }))
+      .send()
   }
 
   const acceptOfferTransaction = async () => {
     if (!publicKey || !signTransaction || !offer || !nft) {
       return
     }
-    const newActions: Action[] = [
+    let newActions: Action[] = [
       {
         name: 'Accepting offer...',
         id: 'acceptOffer',
@@ -73,6 +84,18 @@ const AcceptOfferForm = ({
         param: undefined,
       },
     ]
+
+    if (listing) {
+      newActions = [
+        ...newActions,
+        {
+          name: 'Cancel previous listing...',
+          id: 'cancelListing',
+          action: onCancelListing,
+          param: undefined,
+        },
+      ]
+    }
 
     await runActions(newActions, {
       onActionSuccess: async () => {
