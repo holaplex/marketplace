@@ -2,7 +2,7 @@ import React, { ReactElement } from 'react'
 import { equals } from 'ramda'
 import cx from 'classnames'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { Marketplace } from '../../types'
+import { Marketplace } from '@holaplex/marketplace-js-sdk'
 import { useSidebar } from '../../hooks/sidebar'
 import Link from 'next/link'
 import WalletPortal from '../../components/WalletPortal'
@@ -39,7 +39,7 @@ export const BannerLayout = ({ marketplace, children }: BannerLayoutProps) => {
           <div className="flex items-center justify-end">
             {equals(
               publicKey?.toBase58(),
-              marketplace.auctionHouse.authority
+              marketplace.auctionHouses[0].authority
             ) && (
               <Link href="/admin/marketplace/edit" passHref>
                 <a className="text-sm cursor-pointer mr-6 hover:underline ">
@@ -50,6 +50,11 @@ export const BannerLayout = ({ marketplace, children }: BannerLayoutProps) => {
             <Link href="/creators" passHref>
               <a className="text-sm cursor-pointer mr-6 hover:underline">
                 Creators
+              </a>
+            </Link>
+            <Link href="/analytics" passHref>
+              <a className="text-sm cursor-pointer mr-6 hover:underline">
+                Activity
               </a>
             </Link>
             <div className="mr-2">

@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react'
-import { KeyType } from '../../types'
+import React from 'react'
+import { KeyType } from '@holaplex/marketplace-js-sdk'
 import { isEmpty, range, map } from 'ramda'
 import { InView } from 'react-intersection-observer'
 

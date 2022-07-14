@@ -9,12 +9,12 @@ import client from './../../../client'
 import UploadFile from './../../../../src/components/UploadFile'
 import Link from 'next/link'
 import Button, { ButtonSize, ButtonType } from '../../../components/Button'
-import { Marketplace } from './../../../types.d'
 import { useLogin } from '../../../hooks/login'
-import { initMarketplaceSDK } from './../../../modules/marketplace'
-import { ReactElement } from 'react'
 import { AdminLayout } from 'src/layouts/Admin'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
+import { ReactElement, useMemo } from 'react'
+import { Wallet } from '@metaplex/js'
+import { initMarketplaceSDK, Marketplace } from '@holaplex/marketplace-js-sdk'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -42,7 +42,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             address
             treasuryMint
             auctionHouseTreasury
@@ -99,7 +99,13 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
   const login = useLogin()
-
+  const auctionHouses = marketplace.auctionHouses?.map(({ address }) => ({
+    address: address,
+  }))
+  const sdk = useMemo(
+    () => initMarketplaceSDK(connection, wallet as Wallet),
+    [connection, wallet]
+  )
   const {
     register,
     control,
@@ -113,10 +119,10 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
       subdomain: marketplace.subdomain,
       name: marketplace.name,
       description: marketplace.description,
-      creators: marketplace.creators.map(({ creatorAddress }) => ({
+      creators: marketplace.creators?.map(({ creatorAddress }) => ({
         address: creatorAddress,
       })),
-      transactionFee: marketplace.auctionHouse.sellerFeeBasisPoints,
+      transactionFee: marketplace.auctionHouses[0].sellerFeeBasisPoints,
     },
   })
 
@@ -135,8 +141,6 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
 
       return
     }
-
-    const client = initMarketplaceSDK(connection, wallet)
 
     toast('Saving changes...')
 
@@ -159,13 +163,12 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
       },
       creators,
       subdomain: marketplace.subdomain,
-      address: {
-        auctionHouse: marketplace.auctionHouse.address,
-      },
+      address: {},
+      auctionHouses: auctionHouses,
     }
 
     try {
-      await client.update(settings, transactionFee)
+      await sdk.transaction().add(sdk.update(settings, transactionFee)).send()
 
       toast.success(
         <>
@@ -219,6 +222,7 @@ const AdminEditMarketplace = ({ marketplace }: AdminEditMarketplaceProps) => {
             }}
           />
         </div>
+
         <div className="flex flex-col md:flex-row">
           <div className="flex-col space-y-2 md:mr-10 md:w-80 sm:block">
             <div className="sticky top-0 max-h-screen py-4 overflow-auto">

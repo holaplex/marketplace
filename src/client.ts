@@ -78,16 +78,16 @@ const client = new ApolloClient({
       NftOwner: {
         keyFields: ['address'],
       },
-      PurchaseReceipt: {
-        keyFields: ['address'],
+      Purchase: {
+        keyFields: ['id'],
         fields: {
           price: {
             read: asBN,
           },
         },
       },
-      ListingReceipt: {
-        keyFields: ['address'],
+      AhListing: {
+        keyFields: ['id'],
         fields: {
           price: {
             read: asBN,
@@ -102,8 +102,8 @@ const client = new ApolloClient({
           },
         },
       },
-      BidReceipt: {
-        keyFields: ['address'],
+      Offer: {
+        keyFields: ['id'],
         fields: {
           price: {
             read: asBN,

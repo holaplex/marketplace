@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ReactElement } from 'react'
 import WalletPortal from '../../components/WalletPortal'
-import { Marketplace } from '../../types'
+import { Marketplace } from '@holaplex/marketplace-js-sdk'
 
 interface AdminLayoutProps {
   marketplace: Marketplace

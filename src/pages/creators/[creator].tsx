@@ -1,4 +1,10 @@
-import { gql, useQuery, useLazyQuery } from '@apollo/client'
+import {
+  gql,
+  useQuery,
+  useLazyQuery,
+  QueryResult,
+  OperationVariables,
+} from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import cx from 'classnames'
 import { subDays } from 'date-fns'
@@ -30,11 +36,12 @@ import { Filter } from 'react-feather'
 import { Controller, useForm } from 'react-hook-form'
 import Link from 'next/link'
 import Select from 'react-select'
-import { toSOL } from './../../modules/lamports'
+import { toSOL } from '../../modules/sol'
 import { BannerLayout } from './../../layouts/Banner'
 import {
   GetNftCounts,
   GetWalletCounts,
+  GET_LISTED_TOKEN_NFT_COUNT,
   GET_NFT_COUNTS,
   GET_WALLET_COUNTS,
 } from '..'
@@ -51,8 +58,9 @@ import {
   Marketplace,
   Nft,
   PresetNftFilter,
-  PriceChart,
-} from './../../types.d'
+  GetPriceChartData,
+} from '@holaplex/marketplace-js-sdk'
+import { useTokenList } from 'src/hooks/tokenList'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -103,11 +111,14 @@ const GET_NFTS = gql`
         }
       }
       offers {
-        address
+        id
       }
       listings {
-        address
-        auctionHouse
+        id
+        auctionHouse {
+          address
+          treasuryMint
+        }
         price
       }
     }
@@ -119,7 +130,10 @@ const GET_COLLECTION_INFO = gql`
     creator(address: $creator) {
       address
       stats(auctionHouses: $auctionHouses) {
-        auctionHouse
+        auctionHouse {
+          address
+          treasuryMint
+        }
         volume24hr
         average
         floor
@@ -179,21 +193,10 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             address
             treasuryMint
-            auctionHouseTreasury
-            treasuryWithdrawalDestination
-            feeWithdrawalDestination
             authority
-            creator
-            auctionHouseFeeAccount
-            bump
-            treasuryBump
-            feePayerBump
-            sellerFeeBasisPoints
-            requiresSignOff
-            canChangeSalePrice
           }
         }
         creator(address: $creator) {
@@ -247,10 +250,7 @@ interface CreatorPageProps extends AppProps {
 interface NftFilterForm {
   attributes: AttributeFilter[]
   preset: PresetNftFilter
-}
-
-export interface GetPriceChartData {
-  charts: PriceChart
+  tokens: string[]
 }
 
 const startDate = subDays(new Date(), 6).toISOString()
@@ -262,6 +262,8 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const [hasMore, setHasMore] = useState(true)
   const { sidebarOpen, toggleSidebar } = useSidebar()
   const router = useRouter()
+  const auctionHouses = map(prop('address'))(marketplace.auctionHouses || [])
+
   const {
     data,
     loading: loadingNfts,
@@ -272,16 +274,15 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     fetchPolicy: 'network-only',
     variables: {
       creators: [router.query.creator],
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: auctionHouses,
       offset: 0,
       limit: 24,
     },
   })
-
   const collectionQuery = useQuery<GetCollectionInfo>(GET_COLLECTION_INFO, {
     variables: {
       creator: router.query.creator,
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: auctionHouses,
     },
   })
 
@@ -289,8 +290,24 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     fetchPolicy: 'network-only',
     variables: {
       creators: [router.query.creator],
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: auctionHouses,
     },
+  })
+
+  const listedCountQueryMap = new Map<
+    String,
+    QueryResult<GetNftCounts, OperationVariables>
+  >()
+
+  marketplace.auctionHouses?.forEach((auctionHouse) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const query = useQuery<GetNftCounts>(GET_LISTED_TOKEN_NFT_COUNT, {
+      variables: {
+        creators: [router.query.creator],
+        auctionHouse: auctionHouse.address,
+      },
+    })
+    listedCountQueryMap.set(auctionHouse.treasuryMint, query)
   })
 
   const [getWalletCounts, walletCountsQuery] = useLazyQuery<GetWalletCounts>(
@@ -299,7 +316,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
       variables: {
         address: publicKey?.toBase58(),
         creators: [router.query.creator],
-        auctionHouses: [marketplace.auctionHouse.address],
+        auctionHouses: auctionHouses,
       },
     }
   )
@@ -309,7 +326,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     {
       fetchPolicy: 'network-only',
       variables: {
-        auctionHouses: [marketplace.auctionHouse.address],
+        auctionHouses: auctionHouses,
         creators: [router.query.creator],
         startDate: startDate,
         endDate: endDate,
@@ -317,15 +334,21 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     }
   )
 
-  const { control, watch } = useForm<NftFilterForm>({
-    defaultValues: { preset: PresetNftFilter.All },
+  const { watch, control, getValues } = useForm<NftFilterForm>({
+    defaultValues: { preset: PresetNftFilter.All, tokens: [] },
   })
+  const [tokenMap, loadingTokens] = useTokenList()
+
+  const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
+    tokenMap.get(treasuryMint)
+  )
 
   const loading =
     loadingNfts ||
     collectionQuery.loading ||
     nftCountsQuery.loading ||
-    walletCountsQuery.loading
+    walletCountsQuery.loading ||
+    loadingTokens
 
   useEffect(() => {
     if (publicKey) {
@@ -334,12 +357,24 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   }, [publicKey, getWalletCounts])
 
   useEffect(() => {
-    const subscription = watch(({ attributes, preset }) => {
+    const subscription = watch(({ attributes, preset, tokens }) => {
+      let selectedAuctionHouses = auctionHouses
+      if (
+        preset === PresetNftFilter.Listed &&
+        tokens?.some((t) => t !== undefined)
+      ) {
+        selectedAuctionHouses = marketplace.auctionHouses
+          ?.filter(({ treasuryMint }) => tokens?.includes(treasuryMint))
+          .map(({ address }) => address) as string[]
+      }
+
       const pubkey = publicKey?.toBase58()
-      const nextAttributes = pipe(
-        filter(pipe(prop('values'), isEmpty, not)),
-        map(modify('values', map(prop('value'))))
-      )(attributes)
+      const nextAttributes = attributes
+        ? pipe(
+            filter(pipe(prop('values'), isEmpty, not)),
+            map(modify('values', map(prop('value'))))
+          )(attributes)
+        : undefined
 
       const owners = ifElse(
         equals(PresetNftFilter.Owned),
@@ -361,7 +396,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
 
       refetch({
         creators: [router.query.creator],
-        auctionHouses: [marketplace.auctionHouse.address],
+        auctionHouses: selectedAuctionHouses,
         attributes: nextAttributes,
         owners,
         offerers,
@@ -536,7 +571,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                   <Controller
                     control={control}
                     name="preset"
-                    render={({ field: { value, onChange } }) => (
+                    render={({ field: { onChange } }) => (
                       <label
                         htmlFor="preset-listed"
                         className={cx(
@@ -572,13 +607,63 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                     )}
                   />
                 </li>
+                {getValues().preset === PresetNftFilter.Listed &&
+                  tokens.map((token, index) => (
+                    <li key={token?.address}>
+                      <Controller
+                        control={control}
+                        name={`tokens[${index}]`}
+                        render={({ field: { value, onChange } }) => (
+                          <label
+                            htmlFor={token?.address}
+                            className={cx(
+                              'flex items-center w-full px-4 py-2 rounded-md cursor-pointer hover:bg-gray-800',
+                              {
+                                'bg-gray-800': loading,
+                              }
+                            )}
+                          >
+                            <input
+                              onChange={(event) => {
+                                onChange(
+                                  event.target.checked
+                                    ? token?.address
+                                    : undefined
+                                )
+                              }}
+                              className="ml-4 mr-3 appearance-none rounded-sm h-3 w-3 focus:outline-none 
+                                border border-gray-100 bg-no-repeat bg-center bg-contain bg-gray-700 
+                                checked:bg-gray-100"
+                              disabled={loading}
+                              hidden={loading}
+                              type="checkbox"
+                              checked={value === token?.address}
+                              value={token?.address}
+                              id={token?.address}
+                            />
+                            {loading ? (
+                              <div className="h-6 w-full" />
+                            ) : (
+                              <div className="w-full flex justify-between">
+                                <div>{token?.name}</div>
+                                <div className="text-gray-300">
+                                  {listedCountQueryMap.get(token?.address ?? '')
+                                    ?.data?.nftCounts.listed ?? 0}
+                                </div>
+                              </div>
+                            )}
+                          </label>
+                        )}
+                      />
+                    </li>
+                  ))}
                 {connected && (
                   <>
                     <li>
                       <Controller
                         control={control}
                         name="preset"
-                        render={({ field: { value, onChange } }) => (
+                        render={({ field: { onChange } }) => (
                           <label
                             htmlFor="preset-owned"
                             className={cx(
@@ -621,7 +706,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                       <Controller
                         control={control}
                         name="preset"
-                        render={({ field: { value, onChange } }) => (
+                        render={({ field: { onChange } }) => (
                           <label
                             htmlFor="preset-open"
                             className={cx(
@@ -757,7 +842,11 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
               return (
                 <Link href={`/nfts/${nft.address}`} key={nft.address} passHref>
                   <a>
-                    <NftCard nft={nft} marketplace={marketplace} />
+                    <NftCard
+                      nft={nft}
+                      marketplace={marketplace}
+                      tokenMap={tokenMap}
+                    />
                   </a>
                 </Link>
               )
@@ -784,7 +873,6 @@ interface CreatorShowLayoutProps {
 
 CreatorShow.getLayout = function GetLayout({
   marketplace,
-  nft,
   children,
 }: CreatorShowLayoutProps): ReactElement {
   return <BannerLayout marketplace={marketplace}>{children}</BannerLayout>
