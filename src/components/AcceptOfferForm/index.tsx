@@ -14,7 +14,7 @@ import { useContext, useMemo } from 'react'
 import {
   Action,
   MultiTransactionContext,
-} from '../../modules/multi_transaction'
+} from '../../modules/multi-transaction'
 
 interface AcceptOfferFormProps {
   offer: Offer
@@ -61,7 +61,7 @@ const AcceptOfferForm = ({
       .send()
   }
 
-  const onCancelListing = async () => {
+  const onCancelListing = (listing: AhListing) => async () => {
     if (!listing || !nft) {
       return
     }
@@ -91,7 +91,7 @@ const AcceptOfferForm = ({
         {
           name: 'Cancel previous listing...',
           id: 'cancelListing',
-          action: onCancelListing,
+          action: onCancelListing(listing),
           param: undefined,
         },
       ]
@@ -99,7 +99,6 @@ const AcceptOfferForm = ({
 
     await runActions(newActions, {
       onActionSuccess: async () => {
-        await refetch()
         toast.success('The transaction was confirmed.')
       },
       onComplete: async () => {

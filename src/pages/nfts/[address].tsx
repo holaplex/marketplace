@@ -23,7 +23,7 @@ import {
 import {
   Action,
   MultiTransactionContext,
-} from '../../modules/multi_transaction'
+} from '../../modules/multi-transaction'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -246,20 +246,35 @@ const NftShow: NextPage<NftPageProps> = ({
     () => initMarketplaceSDK(connection, wallet as Wallet),
     [connection, wallet]
   )
-  const { runActions, hasActionPending } = useContext(MultiTransactionContext)
+  const { runActions } = useContext(MultiTransactionContext)
 
-  const onBuy = async () => {
-    if (listing && !isOwner && nft) {
+  const onMakeOffer = async () => {
+    if (listing && nft) {
       toast('Sending the transaction to Solana.')
 
       await sdk
         .transaction()
+        .add(
+          sdk
+            .escrow(listing.auctionHouse)
+            .desposit({ amount: listing.price.toNumber() })
+        )
         .add(
           sdk.offers(listing.auctionHouse).make({
             amount: listing.price.toNumber(),
             nft,
           })
         )
+        .send()
+    }
+  }
+
+  const onBuy = async () => {
+    if (listing && nft) {
+      toast('Sending the transaction to Solana.')
+
+      await sdk
+        .transaction()
         .add(
           sdk.listings(listing.auctionHouse).buy({
             listing,
@@ -281,6 +296,12 @@ const NftShow: NextPage<NftPageProps> = ({
 
     const newActions: Action[] = [
       {
+        name: `Funding escrow...`,
+        id: 'offerNFT',
+        action: onMakeOffer,
+        param: undefined,
+      },
+      {
         name: `Buying ${nft.name}...`,
         id: 'buyNFT',
         action: onBuy,
@@ -290,14 +311,12 @@ const NftShow: NextPage<NftPageProps> = ({
 
     await runActions(newActions, {
       onActionSuccess: async () => {
-        await nftQuery.refetch()
         toast.success('The transaction was confirmed.')
       },
       onComplete: async () => {
         await nftQuery.refetch()
       },
       onActionFailure: async (err) => {
-        await nftQuery.refetch()
         toast.error(err.message)
       },
     })
@@ -327,7 +346,7 @@ const NftShow: NextPage<NftPageProps> = ({
         .send()
 
       toast.success('The transaction was confirmed.')
-      nftQuery.refetch()
+      await nftQuery.refetch()
     } catch (e: any) {
       toast.error(e.message)
     }

@@ -130,7 +130,10 @@ const GET_COLLECTION_INFO = gql`
     creator(address: $creator) {
       address
       stats(auctionHouses: $auctionHouses) {
-        auctionHouse
+        auctionHouse {
+          address
+          treasuryMint
+        }
         volume24hr
         average
         floor
@@ -340,17 +343,12 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     tokenMap.get(treasuryMint)
   )
 
-  // DUMMY TOKENS FOR TESTING
-  // const tokens = [
-  //   tokenMap.get('So11111111111111111111111111111111111111112'),
-  //   tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  // ]
-
   const loading =
     loadingNfts ||
     collectionQuery.loading ||
     nftCountsQuery.loading ||
-    walletCountsQuery.loading
+    walletCountsQuery.loading ||
+    loadingTokens
 
   useEffect(() => {
     if (publicKey) {
@@ -844,7 +842,11 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
               return (
                 <Link href={`/nfts/${nft.address}`} key={nft.address} passHref>
                   <a>
-                    <NftCard nft={nft} marketplace={marketplace} />
+                    <NftCard
+                      nft={nft}
+                      marketplace={marketplace}
+                      tokenMap={tokenMap}
+                    />
                   </a>
                 </Link>
               )

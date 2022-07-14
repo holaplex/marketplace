@@ -35,7 +35,7 @@ import { BasicLayout } from '../Basic'
 import { truncateAddress, addressAvatar } from '../../modules/address'
 import {
   Activity,
-  Listing,
+  AhListing,
   Marketplace,
   Nft,
   Offer,
@@ -74,7 +74,7 @@ export const NftLayout = ({
     marketplaceAuctionHouseAddresses
   )
   const isOwner = equals(data?.nft.owner.address, publicKey?.toBase58()) || null
-  const listing = find<Listing>(
+  const listing = find<AhListing>(
     pipe(pickAuctionHouseAddress, isMarketplaceAuctionHouse)
   )(data?.nft.listings || [])
   const offers = filter<Offer>(
@@ -130,7 +130,7 @@ export const NftLayout = ({
                 controlsList="nodownload"
                 loop={true}
                 poster={data?.nft.image}
-                src={data?.nft.files.at(-1)?.uri}
+                src={data?.nft.files?.at(-1)?.uri}
               ></video>
             ) : data?.nft.category === 'image' ? (
               <img
@@ -143,7 +143,7 @@ export const NftLayout = ({
                 sandbox=""
                 referrerPolicy="no-referrer"
                 frameBorder="0"
-                src={data?.nft.files.at(-1)?.uri}
+                src={data?.nft.files?.at(-1)?.uri}
               ></iframe>
             ) : (
               <></>
@@ -190,7 +190,9 @@ export const NftLayout = ({
                                 always(
                                   addressAvatar(new PublicKey(creator.address))
                                 )
-                              )(creator.profile?.profileImageUrl) as string
+                              )(
+                                creator.profile?.profileImageUrlLowres
+                              ) as string
                             }
                           />
                         </a>
@@ -200,51 +202,44 @@ export const NftLayout = ({
                 </div>
               </div>
               <div>
-                {data?.nft.primarySaleHappened && (
-                  <>
-                    <div className="flex justify-end mb-1 label">
-                      {loading ? (
-                        <div className="h-4 bg-gray-800 rounded w-14" />
-                      ) : (
-                        <span className="text-sm text-gray-300">
-                          Collected by
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex justify-end">
-                      {loading ? (
-                        <div className="w-20 h-6 bg-gray-800 rounded" />
-                      ) : (
-                        <a
-                          href={`https://holaplex.com/profiles/${data?.nft.owner.address}`}
-                          rel="noreferrer"
-                          target="_blank"
-                          className="flex gap-1 items-center transition-transform hover:scale-[1.2]"
-                        >
-                          <img
-                            className="object-cover w-6 h-6 border-2 border-gray-900 rounded-full user-avatar"
-                            src={
-                              when(
-                                isNil,
-                                always(
-                                  addressAvatar(
-                                    new PublicKey(data?.nft.owner.address)
-                                  )
-                                )
-                              )(
-                                data?.nft.owner.profile?.profileImageUrl
-                              ) as string
-                            }
-                          />
-
-                          {data.nft.owner?.twitterHandle
-                            ? `@${data.nft.owner.twitterHandle}`
-                            : truncateAddress(data?.nft.owner.address)}
-                        </a>
-                      )}
-                    </div>
-                  </>
-                )}
+                <div className="flex justify-end mb-1 label">
+                  {loading ? (
+                    <div className="h-4 bg-gray-800 rounded w-14" />
+                  ) : (
+                    <span className="text-sm text-gray-300">Collected by</span>
+                  )}
+                </div>
+                <div className="flex justify-end">
+                  {loading ? (
+                    <div className="w-20 h-6 bg-gray-800 rounded" />
+                  ) : (
+                    <a
+                      href={`https://holaplex.com/profiles/${data?.nft.owner.address}`}
+                      rel="noreferrer"
+                      target="_blank"
+                      className="flex gap-1 items-center transition-transform hover:scale-[1.2]"
+                    >
+                      <img
+                        className="object-cover w-6 h-6 border-2 border-gray-900 rounded-full user-avatar"
+                        src={
+                          when(
+                            isNil,
+                            always(
+                              addressAvatar(
+                                new PublicKey(data?.nft.owner.address)
+                              )
+                            )
+                          )(
+                            data?.nft.owner.profile?.profileImageUrlLowres
+                          ) as string
+                        }
+                      />
+                      {data.nft.owner?.twitterHandle
+                        ? `@${data.nft.owner.twitterHandle}`
+                        : truncateAddress(data?.nft.owner.address || '')}
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
             {any(identity)([isOwner, listing, not(offer)]) && (
@@ -289,7 +284,7 @@ export const NftLayout = ({
                   <div className="h-16 bg-gray-800 rounded" />
                 </>
               ) : (
-                data?.nft.attributes.map((a) => (
+                data?.nft.attributes?.map((a) => (
                   <div
                     key={a.traitType}
                     className="p-3 border border-gray-700 rounded"

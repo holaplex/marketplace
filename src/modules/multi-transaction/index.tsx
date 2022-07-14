@@ -12,9 +12,9 @@ export type Action = {
 }
 
 interface ActionSettings {
-  onComplete?: () => void
-  onActionSuccess?: (txName: string) => void
-  onActionFailure?: (err: any) => void
+  onComplete?: () => Promise<void>
+  onActionSuccess?: (txName: string) => Promise<void>
+  onActionFailure?: (err: any) => Promise<void>
 }
 
 interface MultiTransactionState {
@@ -24,8 +24,8 @@ interface MultiTransactionState {
   runActions: (actions: Action[], settings?: ActionSettings) => Promise<void>
   retryActions: (settings?: ActionSettings) => Promise<void>
   clearActions: () => void
-  onFinished?: () => void
-  onStart?: () => void
+  onFinished?: () => Promise<void>
+  onStart?: () => Promise<void>
 }
 
 const defaultState: MultiTransactionState = {
@@ -79,7 +79,7 @@ export const MultiTransactionProvider: React.FC<Props> = ({ children }) => {
         for (const action of actions) {
           setMessage(action.name)
           await action.action(action.param)
-          settings?.onActionSuccess?.(action.id)
+          await settings?.onActionSuccess?.(action.id)
           // clear action
           filtered = filtered.filter((x) => x.id !== action.id)
           setActions(filtered)
@@ -98,11 +98,11 @@ export const MultiTransactionProvider: React.FC<Props> = ({ children }) => {
         } else {
           setHasError(true)
         }
-        settings?.onActionFailure?.(err)
+        await settings?.onActionFailure?.(err)
         setHasActionPending(false)
       } finally {
         setHasActionPending(false)
-        settings?.onComplete?.()
+        await settings?.onComplete?.()
       }
     }
   }
@@ -138,7 +138,7 @@ export const MultiTransactionProvider: React.FC<Props> = ({ children }) => {
         for (const action of newActionsWithIds) {
           setMessage(action.name)
           await action.action(action.param)
-          settings?.onActionSuccess?.(action.id)
+          await settings?.onActionSuccess?.(action.id)
           // clear action
           filtered = filtered.filter((x) => x.id !== action.id)
           setActions(filtered)
@@ -156,11 +156,11 @@ export const MultiTransactionProvider: React.FC<Props> = ({ children }) => {
         } else {
           setHasError(true)
         }
-        settings?.onActionFailure?.(errorCodeHelper(err.message))
+        await settings?.onActionFailure?.(errorCodeHelper(err.message))
         setHasActionPending(false)
       } finally {
         setHasActionPending(false)
-        settings?.onComplete?.()
+        await settings?.onComplete?.()
       }
     }
   }

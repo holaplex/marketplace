@@ -16,7 +16,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import { gql } from '@apollo/client'
-import { useQuery } from '@apollo/client'
+import { useQuery, QueryResult, OperationVariables } from '@apollo/client'
 import { toast } from 'react-toastify'
 import client from './../../../../client'
 import Button from './../../../../components/Button'
@@ -232,9 +232,10 @@ interface OfferForm {
 interface OfferProps {
   nft: Nft
   marketplace: Marketplace
+  nftQuery: QueryResult<GetNftData, OperationVariables>
 }
 
-const OfferNew = ({ nft, marketplace }: OfferProps) => {
+const OfferNew = ({ nft, marketplace, nftQuery }: OfferProps) => {
   const wallet = useWallet()
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
@@ -282,6 +283,7 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
       +amount,
       tokenMap.get(token.value)!
     )
+
     try {
       toast('Sending the transaction to Solana.')
 
@@ -304,6 +306,7 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
       console.log('Place Offer Error', e)
       toast.error(e.message)
     } finally {
+      await nftQuery.refetch()
       router.push(`/nfts/${nft.address}`)
     }
   }

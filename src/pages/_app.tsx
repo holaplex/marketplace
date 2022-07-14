@@ -31,7 +31,7 @@ import client from '../client'
 import { ToastContainer } from 'react-toastify'
 import { ViewerProvider } from './../providers/Viewer'
 import 'react-toastify/dist/ReactToastify.css'
-import { MultiTransactionProvider } from '../modules/multi_transaction'
+import { MultiTransactionProvider } from '../modules/multi-transaction'
 
 const network = WalletAdapterNetwork.Mainnet
 

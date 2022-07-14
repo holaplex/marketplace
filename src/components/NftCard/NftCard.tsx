@@ -12,11 +12,15 @@ import {
   map,
   isEmpty,
   ifElse,
+  view,
+  flip,
+  includes,
+  lensPath,
 } from 'ramda'
 import React from 'react'
 import Link from 'next/link'
 import { addressAvatar } from '../../modules/address'
-import { Listing, Marketplace, Nft } from '@holaplex/marketplace-js-sdk'
+import { AhListing, Marketplace, Nft } from '@holaplex/marketplace-js-sdk'
 import Price from '../Price'
 import { TokenInfo } from '@solana/spl-token-registry'
 
@@ -28,13 +32,16 @@ interface NftCardProps {
 
 export const NftCard = ({ nft, marketplace, tokenMap }: NftCardProps) => {
   const { publicKey } = useWallet()
+  const marketplaceAuctionHouseAddresses = map(prop('address'))(
+    marketplace.auctionHouses
+  )
   const listing = ifElse(
     isEmpty,
     always(null),
-    find<Listing>(
+    find<AhListing>(
       pipe(
-        prop('auctionHouse.address'),
-        equals(map(prop('address'))(marketplace.auctionHouses))
+        view(lensPath(['auctionHouse', 'address'])),
+        flip(includes)(marketplaceAuctionHouseAddresses)
       )
     )
   )(nft.listings || [])
@@ -71,7 +78,7 @@ export const NftCard = ({ nft, marketplace, tokenMap }: NftCardProps) => {
                       when(
                         isNil,
                         always(addressAvatar(new PublicKey(creator.address)))
-                      )(creator.profile?.profileImageUrl) as string
+                      )(creator.profile?.profileImageUrlLowres) as string
                     }
                   />
                 </div>

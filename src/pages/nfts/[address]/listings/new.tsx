@@ -16,7 +16,7 @@ import {
   equals,
 } from 'ramda'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
-import { gql, useQuery } from '@apollo/client'
+import { gql, useQuery, QueryResult, OperationVariables } from '@apollo/client'
 import client from './../../../../client'
 import Button from './../../../../components/Button'
 import { NftLayout } from './../../../../layouts/Nft'
@@ -41,7 +41,7 @@ import { getPriceWithMantissa } from '../../../../modules/token'
 import {
   Action,
   MultiTransactionContext,
-} from '../../../../modules/multi_transaction'
+} from '../../../../modules/multi-transaction'
 import BN from 'bn.js'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
@@ -51,6 +51,7 @@ type OptionType = { label: string; value: number }
 interface GetNftPage {
   marketplace: Marketplace | null
   nft: Nft | null
+  nftQuery: QueryResult<GetNftData, OperationVariables>
 }
 
 const GET_NFT = gql`
@@ -240,7 +241,7 @@ interface SellNftProps {
   marketplace: Marketplace
 }
 
-const ListingNew = ({ nft, marketplace }: SellNftProps) => {
+const ListingNew = ({ nft, marketplace, nftQuery }: SellNftProps) => {
   const wallet = useWallet()
   const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
@@ -318,9 +319,9 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
     await runActions(newActions, {
       onActionSuccess: async () => {
         toast.success('The transaction was confirmed.')
-        router.push(`/nfts/${nft.address}`)
       },
       onComplete: async () => {
+        await nftQuery.refetch()
         router.push(`/nfts/${nft.address}`)
       },
       onActionFailure: async (err) => {
@@ -351,6 +352,7 @@ const ListingNew = ({ nft, marketplace }: SellNftProps) => {
       console.log('sell nft txn error', e)
       toast.error(e.message)
     } finally {
+      await nftQuery.refetch()
       router.push(`/nfts/${nft.address}`)
     }
   }

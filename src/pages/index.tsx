@@ -469,7 +469,8 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     nftsQuery.loading ||
     nftCountsQuery.loading ||
     walletCountsQuery.loading ||
-    priceChartDataQuery.loading
+    priceChartDataQuery.loading ||
+    loadingTokens
 
   return (
     <>
@@ -795,7 +796,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                     <li key={token?.address}>
                       <Controller
                         control={control}
-                        name={`tokens[${index}]`}
+                        name={`tokens.${index}`}
                         render={({ field: { value, onChange } }) => (
                           <label
                             htmlFor={token?.address}
