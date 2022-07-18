@@ -27,7 +27,6 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Build, tag, and push image to Amazon ECR (dev)
-      if: github.ref == 'refs/heads/dev'
       id: build-image-dev
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -39,24 +38,4 @@ jobs:
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$git_branch-$git_hash --build-arg GRAPHQL_URI=https://graph-test.holaplex.com/v1 .
         echo "Pushing $git_branch image to ECR..."
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$git_branch-$git_hash
-        git_branch=canary
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$git_branch-$git_hash"
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:canary-$git_hash --build-arg GRAPHQL_URI=https://graph-test.holaplex.tools/v1 .
-        echo "Pushing $git_branch image to ECR..."
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$git_branch-$git_hash
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$git_branch-$git_hash"
-
-
-    - name: Build, tag, and push image to Amazon ECR (prod)
-      if: github.ref == 'refs/heads/main'
-      id: build-image-prod
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ github.event.repository.name }}
-
-      run: |
-        git_hash=$(git rev-parse --short "$GITHUB_SHA")
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_REF##*/}-$git_hash --build-arg GRAPHQL_URI=https://graph.holaplex.com/v1 .
-        echo "Pushing image to ECR..."
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_REF##*/}-$git_hash
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_REF##*/}-$git_hash"
