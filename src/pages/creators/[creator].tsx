@@ -106,7 +106,7 @@ const GET_NFTS = gql`
         twitterHandle
         profile {
           handle
-          profileImageUrl
+          profileImageUrlLowres
           bannerImageUrl
         }
       }

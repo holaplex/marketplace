@@ -31,7 +31,7 @@ const GET_CREATORS_PREVIEW = gql`
         }
         profile {
           handle
-          profileImageUrl
+          profileImageUrlLowres
         }
       }
     }
@@ -183,7 +183,7 @@ const Creators: NextPage<CreatorsPageProps> = ({ marketplace }) => {
                           always(
                             addressAvatar(new PublicKey(creator.creatorAddress))
                           )
-                        )(creator.profile?.profileImageUrl) as string
+                        )(creator.profile?.profileImageUrlLowres) as string
                       }
                       className="object-cover bg-gray-900 rounded-full w-16 h-16 user-avatar"
                     />

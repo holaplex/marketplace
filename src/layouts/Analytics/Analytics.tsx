@@ -396,7 +396,7 @@ export const AnalyticsLayout = ({
                                     )
                                   )
                                 )(
-                                  a.wallets[0].profile?.profileImageUrl
+                                  a.wallets[0].profile?.profileImageUrlLowres
                                 ) as string
                               }
                             />
@@ -421,7 +421,7 @@ export const AnalyticsLayout = ({
                                       )
                                     )
                                   )(
-                                    a.wallets[1].profile?.profileImageUrl
+                                    a.wallets[1].profile?.profileImageUrlLowres
                                   ) as string
                                 }
                               />
