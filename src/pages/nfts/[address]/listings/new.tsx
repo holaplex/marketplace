@@ -75,7 +75,7 @@ const GET_NFT = gql`
         twitterHandle
         profile {
           handle
-          profileImageUrl
+          profileImageUrlLowres
         }
       }
       attributes {
@@ -87,7 +87,7 @@ const GET_NFT = gql`
         twitterHandle
         profile {
           handle
-          profileImageUrl
+          profileImageUrlLowres
         }
       }
       offers {
@@ -102,7 +102,7 @@ const GET_NFT = gql`
         }
       }
       activities {
-        address
+        id
         metadata
         auctionHouse {
           address
@@ -114,7 +114,7 @@ const GET_NFT = gql`
           address
           profile {
             handle
-            profileImageUrl
+            profileImageUrlLowres
           }
         }
         activityType

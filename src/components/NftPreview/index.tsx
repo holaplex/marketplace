@@ -35,7 +35,7 @@ export const NftPreview = ({ nft }: NftPreviewProps) => {
                     when(
                       isNil,
                       always(addressAvatar(new PublicKey(creator.address)))
-                    )(creator.profile?.profileImageUrl) as string
+                    )(creator.profile?.profileImageUrlLowres) as string
                   }
                 />
               </a>

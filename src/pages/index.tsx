@@ -92,7 +92,7 @@ const GET_NFTS = gql`
         twitterHandle
         profile {
           handle
-          profileImageUrl
+          profileImageUrlLowres
           bannerImageUrl
         }
       }
@@ -169,7 +169,7 @@ const GET_CREATORS_PREVIEW = gql`
         }
         profile {
           handle
-          profileImageUrl
+          profileImageUrlLowres
         }
       }
     }
@@ -645,7 +645,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
                                   new PublicKey(creator.creatorAddress)
                                 )
                               )
-                            )(creator.profile?.profileImageUrl) as string
+                            )(creator.profile?.profileImageUrlLowres) as string
                           }
                           className="object-cover bg-gray-900 rounded-full w-10 h-10"
                         />
