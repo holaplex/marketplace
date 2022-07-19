@@ -1,25 +1,42 @@
-import React, { useEffect, ReactElement } from 'react'
-import { any, map, intersection, or, isEmpty, isNil, pipe, prop } from 'ramda'
+import React, { useEffect, useMemo } from 'react'
+import {
+  any,
+  map,
+  intersection,
+  or,
+  isEmpty,
+  isNil,
+  pipe,
+  prop,
+  find,
+  equals,
+} from 'ramda'
 import { NextPageContext } from 'next'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { useRouter } from 'next/router'
-import Link from 'next/link'
-import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
-import { MetadataProgram } from '@metaplex-foundation/mpl-token-metadata'
-import { gql, useQuery } from '@apollo/client'
-import {
-  Transaction,
-  PublicKey,
-  LAMPORTS_PER_SOL,
-  SYSVAR_INSTRUCTIONS_PUBKEY,
-} from '@solana/web3.js'
+import { gql } from '@apollo/client'
+import { useQuery, QueryResult, OperationVariables } from '@apollo/client'
 import { toast } from 'react-toastify'
-import { NftLayout } from './../../../../layouts/Nft'
 import client from './../../../../client'
-import { Nft, Marketplace, GetNftData } from './../../../../types'
-import Button, { ButtonType } from './../../../../components/Button'
+import Button from './../../../../components/Button'
 import { useLogin } from '../../../../hooks/login'
+import { NftLayout } from './../../../../layouts/Nft'
+import { Wallet } from '@metaplex/js'
+import {
+  initMarketplaceSDK,
+  Marketplace,
+  Nft,
+  GetNftData,
+  AuctionHouse,
+} from '@holaplex/marketplace-js-sdk'
+import { Modal } from 'src/layouts/Modal'
+import { NftPreview } from 'src/components/NftPreview'
+import { isSol } from 'src/modules/sol'
+import cx from 'classnames'
+import Select from 'react-select'
+import { useTokenList } from './../../../../hooks/tokenList'
+import { getPriceWithMantissa } from '../../../../modules/token'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -44,7 +61,7 @@ const GET_NFT = gql`
         twitterHandle
         profile {
           handle
-          profileImageUrl
+          profileImageUrlLowres
         }
       }
       attributes {
@@ -56,42 +73,60 @@ const GET_NFT = gql`
         twitterHandle
         profile {
           handle
-          profileImageUrl
+          profileImageUrlLowres
         }
       }
       offers {
-        address
+        id
         tradeState
         price
         buyer
         createdAt
-        auctionHouse
+        auctionHouse {
+          address
+          treasuryMint
+          auctionHouseTreasury
+          treasuryWithdrawalDestination
+          feeWithdrawalDestination
+          authority
+          creator
+          auctionHouseFeeAccount
+          bump
+          treasuryBump
+          feePayerBump
+          sellerFeeBasisPoints
+          requiresSignOff
+          canChangeSalePrice
+        }
       }
       activities {
-        address
+        id
         metadata
-        auctionHouse
+        auctionHouse {
+          address
+          treasuryMint
+        }
         price
         createdAt
         wallets {
           address
           profile {
             handle
-            profileImageUrl
+            profileImageUrlLowres
           }
         }
         activityType
       }
       listings {
-        address
-        auctionHouse
-        bookkeeper
+        id
+        auctionHouse {
+          address
+          treasuryMint
+        }
         seller
         metadata
-        purchaseReceipt
         price
         tokenSize
-        bump
         tradeState
         tradeStateBump
         createdAt
@@ -100,6 +135,8 @@ const GET_NFT = gql`
     }
   }
 `
+
+type OptionType = { label: string; value: number }
 
 interface GetNftPage {
   marketplace: Marketplace | null
@@ -126,7 +163,7 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             address
             treasuryMint
             auctionHouseTreasury
@@ -187,33 +224,52 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
   }
 }
 
-const {
-  createPublicBuyInstruction,
-  createPrintBidReceiptInstruction,
-  createDepositInstruction,
-} = AuctionHouseProgram.instructions
-
 interface OfferForm {
   amount: string
+  token: ValueType<OptionType>
 }
 
 interface OfferProps {
-  nft?: Nft
+  nft: Nft
   marketplace: Marketplace
+  nftQuery: QueryResult<GetNftData, OperationVariables>
 }
 
-const OfferNew = ({ nft, marketplace }: OfferProps) => {
-  const {
-    handleSubmit,
-    register,
-    formState: { isSubmitting },
-  } = useForm<OfferForm>({})
-  const { publicKey, signTransaction } = useWallet()
+const OfferNew = ({ nft, marketplace, nftQuery }: OfferProps) => {
+  const wallet = useWallet()
+  const { publicKey, signTransaction } = wallet
   const { connection } = useConnection()
   const router = useRouter()
   const login = useLogin()
+  const sdk = useMemo(
+    () => initMarketplaceSDK(connection, wallet as Wallet),
+    [connection, wallet]
+  )
+  const [tokenMap, _loadingTokens] = useTokenList()
+  const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
+    tokenMap.get(treasuryMint)
+  )
+  const defaultToken = tokens?.filter((token) => isSol(token?.address || ''))[0]
 
-  const placeOfferTransaction = async ({ amount }: OfferForm) => {
+  const {
+    control,
+    handleSubmit,
+    getValues,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<OfferForm>({})
+  useWatch({ name: 'token', control })
+
+  const selectedToken = getValues().token
+  const selectedAuctionHouse = find(
+    pipe(prop('treasuryMint'), equals(selectedToken?.value))
+  )(marketplace.auctionHouses || []) as AuctionHouse
+
+  const goBack = () => {
+    router.push(`/nfts/${nft.address}`)
+  }
+
+  const placeOfferTransaction = async ({ amount, token }: OfferForm) => {
     if (!publicKey || !signTransaction) {
       login()
       return
@@ -223,122 +279,34 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
       return
     }
 
-    const buyerPrice = Number(amount) * LAMPORTS_PER_SOL
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
-    const authority = new PublicKey(marketplace.auctionHouse.authority)
-    const auctionHouseFeeAccount = new PublicKey(
-      marketplace.auctionHouse.auctionHouseFeeAccount
+    let adjustedAmount = getPriceWithMantissa(
+      +amount,
+      tokenMap.get(token.value)!
     )
-    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
-    const tokenMint = new PublicKey(nft.mintAddress)
-    const tokenAccount = new PublicKey(nft.owner.associatedTokenAccountAddress)
-
-    const [escrowPaymentAccount, escrowPaymentBump] =
-      await AuctionHouseProgram.findEscrowPaymentAccountAddress(
-        auctionHouse,
-        publicKey
-      )
-
-    const [buyerTradeState, tradeStateBump] =
-      await AuctionHouseProgram.findPublicBidTradeStateAddress(
-        publicKey,
-        auctionHouse,
-        treasuryMint,
-        tokenMint,
-        buyerPrice,
-        1
-      )
-
-    const [metadata] = await MetadataProgram.findMetadataAccount(tokenMint)
-
-    const txt = new Transaction()
-
-    const depositInstructionAccounts = {
-      wallet: publicKey,
-      paymentAccount: publicKey,
-      transferAuthority: publicKey,
-      treasuryMint,
-      escrowPaymentAccount,
-      authority,
-      auctionHouse,
-      auctionHouseFeeAccount,
-    }
-    const depositInstructionArgs = {
-      escrowPaymentBump,
-      amount: buyerPrice,
-    }
-
-    const depositInstruction = createDepositInstruction(
-      depositInstructionAccounts,
-      depositInstructionArgs
-    )
-
-    const publicBuyInstruction = createPublicBuyInstruction(
-      {
-        wallet: publicKey,
-        paymentAccount: publicKey,
-        transferAuthority: publicKey,
-        treasuryMint,
-        tokenAccount,
-        metadata,
-        escrowPaymentAccount,
-        authority,
-        auctionHouse,
-        auctionHouseFeeAccount,
-        buyerTradeState,
-      },
-      {
-        escrowPaymentBump,
-        tradeStateBump,
-        tokenSize: 1,
-        buyerPrice,
-      }
-    )
-
-    const [receipt, receiptBump] =
-      await AuctionHouseProgram.findBidReceiptAddress(buyerTradeState)
-
-    const printBidReceiptInstruction = createPrintBidReceiptInstruction(
-      {
-        receipt,
-        bookkeeper: publicKey,
-        instruction: SYSVAR_INSTRUCTIONS_PUBKEY,
-      },
-      {
-        receiptBump,
-      }
-    )
-
-    txt
-      .add(depositInstruction)
-      .add(publicBuyInstruction)
-      .add(printBidReceiptInstruction)
-
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
-    txt.feePayer = publicKey
-
-    let signed: Transaction | undefined = undefined
-
-    try {
-      signed = await signTransaction(txt)
-    } catch (e: any) {
-      toast.error(e.message)
-      return
-    }
-
-    let signature: string | undefined = undefined
 
     try {
       toast('Sending the transaction to Solana.')
 
-      signature = await connection.sendRawTransaction(signed.serialize())
-
-      await connection.confirmTransaction(signature, 'confirmed')
-
+      await sdk
+        .transaction()
+        .add(
+          sdk.escrow(selectedAuctionHouse).desposit({
+            amount: adjustedAmount,
+          })
+        )
+        .add(
+          sdk.offers(selectedAuctionHouse).make({
+            amount: adjustedAmount,
+            nft: nft,
+          })
+        )
+        .send()
       toast.success('The transaction was confirmed.')
     } catch (e: any) {
+      console.log('Place Offer Error', e)
       toast.error(e.message)
     } finally {
+      await nftQuery.refetch()
       router.push(`/nfts/${nft.address}`)
     }
   }
@@ -354,45 +322,102 @@ const OfferNew = ({ nft, marketplace }: OfferProps) => {
     }
   }, [publicKey, nft, router])
 
+  useEffect(() => {
+    reset({
+      token: { value: defaultToken?.address, label: defaultToken?.symbol },
+    })
+  }, [defaultToken, reset])
+
   return (
-    <form
-      className="text-left grow mt-6"
-      onSubmit={handleSubmit(placeOfferTransaction)}
-    >
-      <h3 className="mb-6 text-xl font-bold md:text-2xl">Make an offer</h3>
-      <div className="mb-4 sol-input">
-        <input
-          {...register('amount', { required: true })}
-          autoFocus
-          className="input"
-          placeholder="Price in SOL"
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <Link href={`/nfts/${nft?.address}`} passHref>
-          <Button type={ButtonType.Secondary} block>
-            Cancel
-          </Button>
-        </Link>
-        <Button htmlType="submit" loading={isSubmitting} block>
-          Place offer
-        </Button>
-      </div>
-    </form>
+    <>
+      <Modal title={'Make an offer'} open={true} setOpen={goBack}>
+        <div className="mt-8 flex w-full justify-start">
+          <NftPreview nft={nft} />
+        </div>
+        <form
+          className="text-left grow mt-6"
+          onSubmit={handleSubmit(placeOfferTransaction)}
+        >
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block mb-1">Price</label>
+              <Controller
+                control={control}
+                name="amount"
+                render={({ field: { onChange, value } }) => {
+                  if (!nft) {
+                    return <></>
+                  }
+
+                  return (
+                    <>
+                      <div
+                        className={cx('mb-4', {
+                          'sol-input': isSol(selectedToken?.value || ''),
+                        })}
+                      >
+                        <input
+                          autoFocus
+                          value={value}
+                          className="input"
+                          onChange={(e: any) => {
+                            onChange(e.target.value)
+                          }}
+                        />
+                      </div>
+                    </>
+                  )
+                }}
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Token</label>
+              <Controller
+                control={control}
+                name="token"
+                render={({ field }) => {
+                  return (
+                    <Select
+                      className="select-base-theme w-full"
+                      classNamePrefix="base"
+                      value={field.value}
+                      options={
+                        tokens.map((token) => ({
+                          value: token?.address,
+                          label: token?.symbol,
+                        })) as OptionsType<OptionType>
+                      }
+                      onChange={(next: ValueType<OptionType>) => {
+                        field.onChange(next)
+                      }}
+                    />
+                  )
+                }}
+              />
+            </div>
+          </div>
+          <div className="mt-14">
+            <Button htmlType="submit" loading={isSubmitting} block>
+              Make offer
+            </Button>
+          </div>
+        </form>
+      </Modal>
+    </>
   )
 }
 
-interface NftShowLayoutProps {
+interface NftOfferLayoutProps {
   marketplace: Marketplace
   nft: Nft
-  children: ReactElement
+  children: React.ReactElement
 }
 
 OfferNew.getLayout = function NftShowLayout({
   marketplace,
   nft,
   children,
-}: NftShowLayoutProps) {
+}: NftOfferLayoutProps) {
   const router = useRouter()
 
   const nftQuery = useQuery<GetNftData>(GET_NFT, {

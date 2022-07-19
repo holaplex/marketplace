@@ -1,19 +1,21 @@
-import { ReactElement, useState } from 'react'
+import { ReactElement, useEffect, useMemo, useState } from 'react'
 import { NextPageContext } from 'next'
 import { gql } from '@apollo/client'
-import { isNil } from 'ramda'
+import { isNil, not, pipe } from 'ramda'
+import { isSol } from 'src/modules/sol'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { toast } from 'react-toastify'
 import { AppProps } from 'next/app'
 import client from './../../../client'
-import Button, { ButtonSize, ButtonType } from '../../../components/Button'
-import { Marketplace } from './../../../types.d'
-import { useLogin } from '../../../hooks/login'
-
-import { Transaction, PublicKey } from '@solana/web3.js'
+import { Marketplace } from '@holaplex/marketplace-js-sdk'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 import { AdminLayout } from '../../../layouts/Admin'
+import { Connection, Wallet } from '@metaplex/js'
+import { AuctionHouse } from '@holaplex/marketplace-js-sdk/dist/types'
+import { PublicKey } from '@solana/web3.js'
+import { useTokenList } from 'src/hooks/tokenList'
+import Price from 'src/components/Price'
+import { EmptyTreasuryWalletForm } from './../../../components/EmptyTreasuryWalletForm'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -43,7 +45,7 @@ export async function getServerSideProps({ req }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             address
             treasuryMint
             auctionHouseTreasury
@@ -84,87 +86,41 @@ interface AdminEditFinancialsProps extends AppProps {
   marketplace: Marketplace
 }
 
+const getTreasuryBalance = async (ah: AuctionHouse, connection: Connection) => {
+  const auctionHouseTreasury = new PublicKey(ah.auctionHouseTreasury)
+  const auctionHouseTreasuryBalance = await connection.getBalance(
+    auctionHouseTreasury
+  )
+  return auctionHouseTreasuryBalance
+}
+
 const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
-  const wallet = useWallet()
   const { connection } = useConnection()
-  const { publicKey, signTransaction } = wallet
+  const [tokenMap, loadingTokens] = useTokenList()
 
-  const login = useLogin()
+  const tokens = marketplace.auctionHouses?.map(({ treasuryMint }) =>
+    tokenMap.get(treasuryMint)
+  )
 
-  const [withdrawlLoading, setWithdrawlLoading] = useState(false)
+  const [treasuryBalances, setTreasuryBalances] = useState(new Map())
+  useEffect(() => {
+    if (!marketplace.auctionHouses) return
 
-  const payoutFunds = async () => {
-    if (!publicKey || !signTransaction || !wallet) {
-      toast.error('Wallet not connected')
+    const promises = marketplace.auctionHouses.map(async (ah) => {
+      const balance = await getTreasuryBalance(ah, connection)
+      return { [ah.treasuryMint]: balance }
+    })
 
-      login()
-
-      return
-    }
-
-    const auctionHouse = new PublicKey(marketplace.auctionHouse.address)
-    const authority = new PublicKey(marketplace.auctionHouse.authority)
-    const treasuryMint = new PublicKey(marketplace.auctionHouse.treasuryMint)
-    const auctionHouseTreasury = new PublicKey(
-      marketplace.auctionHouse.auctionHouseTreasury
-    )
-
-    const treasuryWithdrawalDestination = new PublicKey(
-      marketplace.auctionHouse.treasuryWithdrawalDestination
-    )
-
-    const auctionHouseTreasuryBalance = await connection.getBalance(
-      auctionHouseTreasury
-    )
-
-    const withdrawFromTreasuryInstructionAccounts = {
-      treasuryMint,
-      authority,
-      treasuryWithdrawalDestination,
-      auctionHouseTreasury,
-      auctionHouse,
-    }
-    const withdrawFromTreasuryInstructionArgs = {
-      amount: auctionHouseTreasuryBalance,
-    }
-
-    const withdrawFromTreasuryInstruction =
-      createWithdrawFromTreasuryInstruction(
-        withdrawFromTreasuryInstructionAccounts,
-        withdrawFromTreasuryInstructionArgs
-      )
-
-    const txt = new Transaction()
-
-    txt.add(withdrawFromTreasuryInstruction)
-
-    txt.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
-    txt.feePayer = publicKey
-
-    let signed: Transaction | undefined = undefined
-
-    try {
-      signed = await signTransaction(txt)
-    } catch (e: any) {
-      toast.error(e.message)
-      return
-    }
-
-    let signature: string | undefined = undefined
-
-    try {
-      toast('Sending the transaction to Solana.')
-      setWithdrawlLoading(true)
-      signature = await connection.sendRawTransaction(signed.serialize())
-
-      await connection.confirmTransaction(signature, 'confirmed')
-
-      toast.success('The transaction was confirmed.')
-    } catch (e) {
-      toast.error(e.message)
-    }
-    setWithdrawlLoading(false)
-  }
+    const map = new Map()
+    Promise.all(promises).then((balances) => {
+      balances.forEach((b) => {
+        Object.entries(b).forEach(([k, v]) => {
+          map.set(k, v)
+        })
+      })
+      setTreasuryBalances(map)
+    })
+  }, [connection, marketplace.auctionHouses])
 
   return (
     <div className="w-full">
@@ -190,24 +146,38 @@ const AdminEditFinancials = ({ marketplace }: AdminEditFinancialsProps) => {
           </div>
           <div className="flex flex-col items-center w-full pb-16 grow">
             <div className="w-full max-w-3xl">
-              <div className="grid items-start grid-cols-12 mb-10 md:mb-0 md:flex-row md:justify-between">
-                <div className="w-full mb-4 col-span-full md:col-span-6 lg:col-span-8">
-                  <h2>Financials</h2>
-                  <p className="text-gray-300">
-                    Manage the finances of this marketplace.
-                  </p>
+              <div className="flex-col mb-10 md:mb-0">
+                <div className="w-full mb-4">
+                  <h2>Transaction fees collected</h2>
                 </div>
-                <div className="flex justify-end col-span-full md:col-span-6 lg:col-span-4">
-                  <Button
-                    block
-                    onClick={payoutFunds}
-                    type={ButtonType.Primary}
-                    size={ButtonSize.Small}
-                    loading={withdrawlLoading}
-                  >
-                    Claim Funds
-                  </Button>
-                  &nbsp;&nbsp;
+                <div className="grid grid-cols-12 gap-4">
+                  {tokens?.map((token) => {
+                    if (pipe(isSol, not)(token?.address || '')) {
+                      return <div />
+                    }
+
+                    return (
+                      <div
+                        className="col-span-12 flex justify-between"
+                        key={token?.address}
+                      >
+                        <div>
+                          <span className="text-gray-300 uppercase font-semibold text-xs">
+                            {token?.symbol} Unredeemed
+                          </span>
+                          <Price
+                            price={treasuryBalances.get(token?.address) || 0}
+                            token={token}
+                            style="text-lg font-semibold"
+                          />
+                        </div>
+                        <EmptyTreasuryWalletForm
+                          token={token}
+                          marketplace={marketplace}
+                        />
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             </div>

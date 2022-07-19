@@ -1,10 +1,15 @@
 import { gql, useQuery } from '@apollo/client'
 import { NextPageContext, NextPage } from 'next'
-import { isNil } from 'ramda'
+import { isNil, map, prop } from 'ramda'
 import { subDays } from 'date-fns'
 import client from '../../client'
-import { Marketplace, PriceChart, GetActivities } from 'src/types'
 import { AnalyticsLayout } from './../../layouts/Analytics'
+import {
+  Marketplace,
+  GetActivities,
+  GetPriceChartData,
+} from '@holaplex/marketplace-js-sdk'
+import { isSol } from '../../modules/sol'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -40,14 +45,17 @@ const GET_ACTIVITIES = gql`
     activities(auctionHouses: $auctionHouses) {
       address
       metadata
-      auctionHouse
+      auctionHouse {
+        address
+        treasuryMint
+      }
       price
       createdAt
       wallets {
         address
         profile {
           handle
-          profileImageUrl
+          profileImageUrlLowres
         }
       }
       activityType
@@ -73,9 +81,10 @@ export async function getServerSideProps({ req }: NextPageContext) {
           description
           logoUrl
           bannerUrl
-          auctionHouse {
+          auctionHouses {
             authority
             address
+            treasuryMint
           }
         }
       }
@@ -102,16 +111,8 @@ export async function getServerSideProps({ req }: NextPageContext) {
   }
 }
 
-interface GetMarketplaceInfo {
-  marketplace: Marketplace
-}
-
 interface GetMarketplace {
   marketplace: Marketplace | null
-}
-
-export interface GetPriceChartData {
-  charts: PriceChart
 }
 
 interface AnalyticsProps {
@@ -122,10 +123,13 @@ const startDate = subDays(new Date(), 6).toISOString()
 const endDate = new Date().toISOString()
 
 const Analytics: NextPage<AnalyticsProps> = ({ marketplace }) => {
+  const solAH =
+    marketplace.auctionHouses.filter((ah) => isSol(ah.treasuryMint))[0]
+      .address || ''
+
   const priceChartQuery = useQuery<GetPriceChartData>(GET_PRICE_CHART_DATA, {
-    fetchPolicy: 'network-only',
     variables: {
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: [solAH],
       startDate,
       endDate,
     },
@@ -133,7 +137,7 @@ const Analytics: NextPage<AnalyticsProps> = ({ marketplace }) => {
 
   const activitiesQuery = useQuery<GetActivities>(GET_ACTIVITIES, {
     variables: {
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: [solAH],
     },
   })
 

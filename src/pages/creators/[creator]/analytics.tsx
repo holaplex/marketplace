@@ -3,10 +3,15 @@ import { NextPageContext, NextPage } from 'next'
 import { isNil, or, any, equals, not, map, prop } from 'ramda'
 import { subDays } from 'date-fns'
 import client from '../../../client'
-import { Marketplace, PriceChart, GetActivities } from './../../../types'
 import { AnalyticsLayout } from './../../../layouts/Analytics'
 import { truncateAddress } from './../../../modules/address'
 import { useRouter } from 'next/router'
+import {
+  Marketplace,
+  PriceChart,
+  GetActivities,
+  GetPriceChartData,
+} from '@holaplex/marketplace-js-sdk'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -17,14 +22,17 @@ const GET_ACTIVITIES = gql`
     activities(auctionHouses: $auctionHouses, creators: $creators) {
       address
       metadata
-      auctionHouse
+      auctionHouse {
+        address
+        treasuryMint
+      }
       price
       createdAt
       wallets {
         address
         profile {
           handle
-          profileImageUrl
+          profileImageUrlLowres
         }
       }
       activityType
@@ -83,9 +91,10 @@ export async function getServerSideProps({ req, query }: NextPageContext) {
             creatorAddress
             storeConfigAddress
           }
-          auctionHouse {
+          auctionHouses {
             authority
             address
+            treasuryMint
           }
         }
       }
@@ -123,10 +132,6 @@ interface GetMarketplace {
   marketplace: Marketplace | null
 }
 
-export interface GetPriceChartData {
-  charts: PriceChart
-}
-
 interface CreatorAnalyticsProps {
   marketplace: Marketplace
 }
@@ -135,11 +140,13 @@ const startDate = subDays(new Date(), 6).toISOString()
 const endDate = new Date().toISOString()
 
 const CreatorAnalytics: NextPage<CreatorAnalyticsProps> = ({ marketplace }) => {
+  const auctionHouses = map(prop('address'))(marketplace.auctionHouses || [])
+
   const router = useRouter()
   const priceChartQuery = useQuery<GetPriceChartData>(GET_PRICE_CHART_DATA, {
     fetchPolicy: 'network-only',
     variables: {
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: auctionHouses,
       creators: [router.query.creator],
       startDate,
       endDate,
@@ -148,7 +155,7 @@ const CreatorAnalytics: NextPage<CreatorAnalyticsProps> = ({ marketplace }) => {
 
   const activitiesQuery = useQuery<GetActivities>(GET_ACTIVITIES, {
     variables: {
-      auctionHouses: [marketplace.auctionHouse.address],
+      auctionHouses: auctionHouses,
       creators: [router.query.creator],
     },
   })

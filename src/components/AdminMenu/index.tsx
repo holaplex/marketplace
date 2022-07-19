@@ -1,4 +1,5 @@
 import { DollarSign, User, Image as ImageIcon, Circle } from 'react-feather'
+
 import cx from 'classnames'
 import Link from 'next/link'
 
@@ -6,6 +7,7 @@ export enum AdminMenuItemType {
   Marketplace,
   Creators,
   Financials,
+  Tokens,
 }
 
 export interface AdminMenuItem {
@@ -33,6 +35,12 @@ export const ADMIN_MENU_ITEMS: AdminMenuItem[] = [
     name: 'Financials',
     url: '/admin/financials/edit',
     icon: <DollarSign color="white" size="1rem" />,
+  },
+  {
+    type: AdminMenuItemType.Tokens,
+    name: 'Supported Tokens',
+    url: '/admin/tokens/edit',
+    icon: <Circle color="white" size="1rem" />,
   },
 ]
 

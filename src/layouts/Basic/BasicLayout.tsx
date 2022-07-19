@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react'
-import { Marketplace } from '../../types'
+import { Marketplace } from '@holaplex/marketplace-js-sdk'
 import Link from 'next/link'
 import { equals } from 'ramda'
 import cx from 'classnames'
@@ -15,6 +15,7 @@ interface BasicLayoutProps {
 
 export enum NavigationLink {
   Creators,
+  Activity,
   Admin,
 }
 
@@ -50,9 +51,18 @@ export const BasicLayout = ({
                 Creators
               </a>
             </Link>
+            <Link href="/analytics" passHref>
+              <a
+                className={cx('text-sm cursor-pointer mr-6 hover:underline', {
+                  underline: active === NavigationLink.Activity,
+                })}
+              >
+                Activity
+              </a>
+            </Link>
             {equals(
               publicKey?.toBase58(),
-              marketplace.auctionHouse.authority
+              marketplace.auctionHouses[0].authority
             ) && (
               <Link href="/admin/marketplace/edit" passHref>
                 <a
