@@ -35,7 +35,7 @@ import { MultiTransactionProvider } from '../modules/multi-transaction'
 
 const network = WalletAdapterNetwork.Mainnet
 
-const CLUSTER_API_URL = 'https://holaplex.rpcpool.com' //'http://api.devnet.solana.com'
+const CLUSTER_API_URL = process.env.NEXT_PUBLIC_SOLANA_ENDPOINT || ''
 
 const clusterApiUrl = (cluster: Cluster): string => CLUSTER_API_URL
 
@@ -49,14 +49,14 @@ type AppPropsWithLayout = AppProps & {
 
 function App({ Component, pageProps }: AppPropsWithLayout) {
   const endpoint = useMemo(() => clusterApiUrl(network), [])
+
   const wallets = useMemo(
     () => [
       new GlowWalletAdapter(),
       new PhantomWalletAdapter(),
       new SlopeWalletAdapter(),
       new SolflareWalletAdapter(),
-      new TorusWalletAdapter(),
-      new LedgerWalletAdapter(),
+      new TorusWalletAdapter({ params: { network } }),
       new SolletWalletAdapter({ network }),
       new SolletExtensionWalletAdapter({ network }),
     ],

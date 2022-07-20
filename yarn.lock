@@ -644,10 +644,10 @@
   resolved "https://registry.npmjs.org/@heroicons/react/-/react-1.0.6.tgz#35dd26987228b39ef2316db3b1245c42eb19e324"
   integrity sha512-JJCXydOFWMDpCP4q13iEplA503MQO3xLoZiKum+955ZCtHINWnx26CUxVxxFQu/uLb4LW3ge15ZpzIkXKkJ8oQ==
 
-"@holaplex/marketplace-js-sdk@^0.2.3":
-  version "0.2.3"
-  resolved "https://registry.npmjs.org/@holaplex/marketplace-js-sdk/-/marketplace-js-sdk-0.2.3.tgz#34b1e0b2914dbc8959702f74cf8237816dc2402d"
-  integrity sha512-QG/Guvqvy0hW6sQg1Z4aOXWUo8+MUifXgvf8z6snCZzE+gajmuBtQW41eH4Pd6atEMvWC6hrSIOMEUOKxXwQOw==
+"@holaplex/marketplace-js-sdk@^0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@holaplex/marketplace-js-sdk/-/marketplace-js-sdk-0.2.4.tgz#e5493aa30c7e5c66fb5c4f62f9a667f79a759542"
+  integrity sha512-FRFbHYbQVraHFwKCfRZD8lbtZXAvOTyk1bN2FbynZnrr/60NYt4BTsNEenxyVbEhKl+3royEFXU6iInfEpSCbw==
   dependencies:
     "@metaplex-foundation/mpl-auction-house" "^1.1.1"
     "@metaplex/js" "^4.12.0"
@@ -805,7 +805,7 @@
 
 "@metaplex-foundation/beet-solana@^0.1.1":
   version "0.1.1"
-  resolved "https://registry.npmjs.org/@metaplex-foundation/beet-solana/-/beet-solana-0.1.1.tgz#85deec5d3354ee1da868bd6bb0de5ae1ea92d209"
+  resolved "https://registry.yarnpkg.com/@metaplex-foundation/beet-solana/-/beet-solana-0.1.1.tgz#85deec5d3354ee1da868bd6bb0de5ae1ea92d209"
   integrity sha512-QV2DbxjaJWLkMvn12OC09g+r7a6R0uNwf8msYuOUSw4cG7amXzvFb7s0bh4IxY3Rk8/0ma0PfKi/FEdC7Hi4Pg==
   dependencies:
     "@metaplex-foundation/beet" ">=0.1.0"
@@ -822,7 +822,7 @@
 
 "@metaplex-foundation/beet@>=0.1.0":
   version "0.4.0"
-  resolved "https://registry.npmjs.org/@metaplex-foundation/beet/-/beet-0.4.0.tgz#eb2a0a6eb084bb25d67dd9bed2f7387ee7e63a55"
+  resolved "https://registry.yarnpkg.com/@metaplex-foundation/beet/-/beet-0.4.0.tgz#eb2a0a6eb084bb25d67dd9bed2f7387ee7e63a55"
   integrity sha512-2OAKJnLatCc3mBXNL0QmWVQKAWK2C7XDfepgL0p/9+8oSx4bmRAFHFqptl1A/C0U5O3dxGwKfmKluW161OVGcA==
   dependencies:
     ansicolors "^0.3.2"
@@ -840,27 +840,16 @@
 
 "@metaplex-foundation/beet@^0.1.0":
   version "0.1.4"
-  resolved "https://registry.npmjs.org/@metaplex-foundation/beet/-/beet-0.1.4.tgz#888dfd68fbbb027c045a4b6649bfc85b04610e26"
+  resolved "https://registry.yarnpkg.com/@metaplex-foundation/beet/-/beet-0.1.4.tgz#888dfd68fbbb027c045a4b6649bfc85b04610e26"
   integrity sha512-gUlgl4h9XzSvSx7lUDvYQuy1eMxu4UXbt5MSR9K/dYIHHd3gcCxm8/6vn0VnUXMvpwVHS8tezxlsaKu+TIu6zQ==
   dependencies:
     ansicolors "^0.3.2"
     bn.js "^5.2.0"
     debug "^4.3.3"
 
-"@metaplex-foundation/mpl-auction-house@1.1.1":
-  version "1.1.1"
-  resolved "https://registry.npmjs.org/@metaplex-foundation/mpl-auction-house/-/mpl-auction-house-1.1.1.tgz#9c4ef47d13ff766bf9606868099dc1489477f77c"
-  integrity sha512-47dGB74A+VB0cmzfzfrIUTn7cScKkbHzPioUR+YSC+4jkNW+d5OjNJWaE5lIP8JrzZUfPRfuzCxOyvwNtNM1Tg==
-  dependencies:
-    "@metaplex-foundation/beet" "^0.0.8"
-    "@metaplex-foundation/beet-solana" "^0.0.6"
-    "@metaplex-foundation/mpl-core" "0.0.4"
-    "@solana/web3.js" "^1.35.1"
-    bn.js "^5.2.0"
-
 "@metaplex-foundation/mpl-auction-house@^1.1.1":
   version "1.3.0"
-  resolved "https://registry.npmjs.org/@metaplex-foundation/mpl-auction-house/-/mpl-auction-house-1.3.0.tgz#3338eb4dec4ae7a70afe2a9301a7110b0e85e62e"
+  resolved "https://registry.yarnpkg.com/@metaplex-foundation/mpl-auction-house/-/mpl-auction-house-1.3.0.tgz#3338eb4dec4ae7a70afe2a9301a7110b0e85e62e"
   integrity sha512-6ANimqf2x0eByWLe7qp0DtWYPD+XX59xZD9wla6n320nu6vUpuX/wVZR87E5B6iu5igH5AnFcMwN8uumldQ8jA==
   dependencies:
     "@metaplex-foundation/beet" "^0.1.0"
@@ -896,7 +885,7 @@
 
 "@metaplex-foundation/mpl-core@^0.0.5":
   version "0.0.5"
-  resolved "https://registry.npmjs.org/@metaplex-foundation/mpl-core/-/mpl-core-0.0.5.tgz#0504ad49b6d2e6d2321700edf549804f343c86c6"
+  resolved "https://registry.yarnpkg.com/@metaplex-foundation/mpl-core/-/mpl-core-0.0.5.tgz#0504ad49b6d2e6d2321700edf549804f343c86c6"
   integrity sha512-3nVRxcwju/A9oU3VtBfrH9kLECUdp6Y+xmZ6ADOOLFSQ2FDxeESTrlcBJNPi582vEROEUyE4efXD6EvO4EZZyA==
   dependencies:
     "@solana/spl-token" "^0.1.8"
@@ -1618,7 +1607,7 @@
 
 "@solana/wallet-adapter-base@^0.9.9":
   version "0.9.9"
-  resolved "https://registry.npmjs.org/@solana/wallet-adapter-base/-/wallet-adapter-base-0.9.9.tgz#110f99bc9eee18af2625fd6170264e4363e25ffd"
+  resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-base/-/wallet-adapter-base-0.9.9.tgz#110f99bc9eee18af2625fd6170264e4363e25ffd"
   integrity sha512-Z0zB+36JWRytE2OzMiB2DACRyVwiUdEg2Xy1nPR0rESCTXKI8wQGTb4g6ELjmTTU7+elKqsPE+fhFsJykn76pQ==
   dependencies:
     eventemitter3 "^4.0.0"
@@ -1729,7 +1718,7 @@
 
 "@solana/wallet-adapter-react@^0.15.4":
   version "0.15.8"
-  resolved "https://registry.npmjs.org/@solana/wallet-adapter-react/-/wallet-adapter-react-0.15.8.tgz#88b78446bbadbba50ea05b3f1e38d4ec5a5898dc"
+  resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-react/-/wallet-adapter-react-0.15.8.tgz#88b78446bbadbba50ea05b3f1e38d4ec5a5898dc"
   integrity sha512-/0Kbnt/HqdlfGMaI7/BXpQYsfBmfTPPLkR6xBcVITcPa6WKytkap/d4gwmY3skum/naoCP8Bof9uXynZNO8/SA==
   dependencies:
     "@solana/wallet-adapter-base" "^0.9.9"
