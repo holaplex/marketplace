@@ -40,97 +40,42 @@ spec:
     targetPort: 3000
     protocol: TCP
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
+  name: marketplace
   annotations:
-    reloader.stakater.com/auto: "true"
-  name: nginx-marketplace
+    nginx.ingress.kubernetes.io/server-snippet: |
+      server_name ~^(?<subdomain>\w+)\.${HOSTNAME}$;
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      if ($subdomain = '') {
+        set $subdomain haus;
+      }
+      proxy_set_header X-Holaplex-Subdomain $subdomain;
 spec:
-  replicas: 3
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
-  selector:
-    matchLabels:
-      app: nginx-marketplace
-  template:
-    metadata:
-      labels:
-        app: nginx-marketplace
-    spec:
-      containers:
-      - name: nginx
-        image: nginx:1.21.6-alpine
-        env:
-        - name: HOSTNAME
-          value: holaplex.market
-        - name: PORT
-          value: "80"
-        - name: WEB_PORT
-          value: "3000"
-        - name: PROXY_HOST
-          value: app-marketplace.prod-marketplace.svc.cluster.local
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - mountPath: /etc/nginx/templates
-          readOnly: true
-          name: nginx-conf
-      volumes:
-        - name: nginx-conf
-          configMap:
-            name: nginx-conf
-            items:
-              - key: default.conf.template
-                path: default.conf.template
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-marketplace
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
-    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: '300'
-    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-east-1:011737333588:certificate/6ebaf763-e2e2-4afd-a697-ddd4618dd251
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: https
-spec:
-  selector:
-    app: nginx-marketplace
-  ports:
-  - name: http
-    port: 80
-    targetPort: 80
-  - name: https
-    port: 443
-    targetPort: 8080
-  type: LoadBalancer
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nginx-conf
-data:
-  default.conf.template: |
-   upstream marketplace {
-     server ${PROXY_HOST}:${WEB_PORT};
-   }
-   server {
-     listen ${PORT};
-     server_name ~^(?<subdomain>\w+)\.${HOSTNAME}$;
-     return 301 https://$subdomain.${HOSTNAME}$request_uri;
-   }
-   server {
-     listen 8080;
-     server_name ~^(?<subdomain>\w+)\.${HOSTNAME}$;
-
-     location / {
-     proxy_set_header X-Holaplex-Subdomain $subdomain;
-
-     proxy_pass http://marketplace;
-     }
-   }
+  ingressClassName: nginx
+  rules:
+  - host: holaplex.market
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-marketplace
+            port:
+              number: 3000
+  - host: "*.holaplex.market"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-marketplace
+            port:
+              number: 3000
+  tls:
+  - hosts:
+    - "*.holaplex.market"
+    - holaplex.market

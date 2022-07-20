@@ -55,7 +55,7 @@ const GET_ACTIVITIES = gql`
         address
         profile {
           handle
-          profileImageUrl
+          profileImageUrlLowres
         }
       }
       activityType

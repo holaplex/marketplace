@@ -482,7 +482,8 @@ export const NftLayout = ({
                                         )
                                       )
                                     )(
-                                      a.wallets[0].profile?.profileImageUrl
+                                      a.wallets[0].profile
+                                        ?.profileImageUrlLowres
                                     ) as string
                                   }
                                 />
@@ -507,7 +508,8 @@ export const NftLayout = ({
                                           )
                                         )
                                       )(
-                                        a.wallets[1].profile?.profileImageUrl
+                                        a.wallets[1].profile
+                                          ?.profileImageUrlLowres
                                       ) as string
                                     }
                                   />
