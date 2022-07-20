@@ -1,6 +1,6 @@
 import { ReactElement, useMemo, useState } from 'react'
 import { NextPageContext } from 'next'
-import { gql } from '@apollo/client'
+import { gql, useQuery } from '@apollo/client'
 import { isNil } from 'ramda'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { toast } from 'react-toastify'
@@ -15,11 +15,16 @@ import { AdminLayout } from '../../../layouts/Admin'
 import { Wallet } from '@metaplex/js'
 import { PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js'
 import { NATIVE_MINT } from '@solana/spl-token'
-import { initMarketplaceSDK, Marketplace } from '@holaplex/marketplace-js-sdk'
+import {
+  AuctionHouse,
+  initMarketplaceSDK,
+  Marketplace,
+} from '@holaplex/marketplace-js-sdk'
 import { createCreateAuctionHouseInstruction } from '@metaplex-foundation/mpl-auction-house/dist/src/generated/instructions'
 import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { useTokenList } from './../../../hooks/tokenList'
-import { PendingTransaction } from '@holaplex/marketplace-js-sdk/dist/transaction'
+import { Trash2 } from 'react-feather'
+import { isSol } from '../../../modules/sol'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -84,6 +89,18 @@ export async function getServerSideProps({ req }: NextPageContext) {
   }
 }
 
+interface GetAuctionHouse {
+  auctionHouse: AuctionHouse | null
+}
+
+const GET_AUCTION_HOUSE = gql`
+  query GetAuctionHouse($address: String!) {
+    auctionHouse(address: $address) {
+      address
+      treasuryMint
+    }
+  }
+`
 interface AdminEditTokensProps extends AppProps {
   marketplace: Marketplace
 }
@@ -142,33 +159,45 @@ async function assembleAuctionHouses(
     const [auctionHouse, bump] =
       await AuctionHouseProgram.findAuctionHouseAddress(publicKey, tMintKey)
 
-    const [feeAccount, feePayerBump] =
-      await AuctionHouseProgram.findAuctionHouseFeeAddress(auctionHouse)
-
-    const [treasuryAccount, treasuryBump] =
-      await AuctionHouseProgram.findAuctionHouseTreasuryAddress(auctionHouse)
-
-    const auctionHouseCreateInstruction = createCreateAuctionHouseInstruction(
-      {
-        treasuryMint: tMintKey,
-        payer: wallet.publicKey,
-        authority: wallet.publicKey,
-        feeWithdrawalDestination: fwdKey,
-        treasuryWithdrawalDestination: twdAta,
-        treasuryWithdrawalDestinationOwner: twdKey,
-        auctionHouse,
-        auctionHouseFeeAccount: feeAccount,
-        auctionHouseTreasury: treasuryAccount,
+    // Check if auctionHouse already exists, if exist dont add createInstruction, just return auctionHouse
+    const ahQuery = useQuery<GetAuctionHouse>(GET_AUCTION_HOUSE, {
+      variables: {
+        address: auctionHouse.toBase58(),
       },
-      {
-        bump,
-        feePayerBump,
-        treasuryBump,
-        sellerFeeBasisPoints,
-        requiresSignOff,
-        canChangeSalePrice,
-      }
-    )
+    })
+    const ahData = ahQuery.data?.auctionHouse
+
+    let auctionHouseCreateInstruction
+
+    if (!ahData) {
+      const [feeAccount, feePayerBump] =
+        await AuctionHouseProgram.findAuctionHouseFeeAddress(auctionHouse)
+
+      const [treasuryAccount, treasuryBump] =
+        await AuctionHouseProgram.findAuctionHouseTreasuryAddress(auctionHouse)
+
+      auctionHouseCreateInstruction = createCreateAuctionHouseInstruction(
+        {
+          treasuryMint: tMintKey,
+          payer: wallet.publicKey,
+          authority: wallet.publicKey,
+          feeWithdrawalDestination: fwdKey,
+          treasuryWithdrawalDestination: twdAta,
+          treasuryWithdrawalDestinationOwner: twdKey,
+          auctionHouse,
+          auctionHouseFeeAccount: feeAccount,
+          auctionHouseTreasury: treasuryAccount,
+        },
+        {
+          bump,
+          feePayerBump,
+          treasuryBump,
+          sellerFeeBasisPoints,
+          requiresSignOff,
+          canChangeSalePrice,
+        }
+      )
+    }
     return { auctionHouseCreateInstruction, address: auctionHouse.toBase58() }
   })
 
@@ -179,7 +208,9 @@ async function assembleAuctionHouses(
 
   result.forEach((r) => {
     auctionHouses.push({ address: r.address })
-    instructions.push(r.auctionHouseCreateInstruction)
+    if (r.auctionHouseCreateInstruction) {
+      instructions.push(r.auctionHouseCreateInstruction)
+    }
   })
 
   return { auctionHouses, instructions }
@@ -410,6 +441,18 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
                         tokenInfo={tokenMap.get(field.address)}
                         loading={loadingTokens}
                       />
+                      {!isSol(field.address) && (
+                        <div className="flex gap-4 items-center">
+                          {/* <span className="font-medium text-gray-100">
+-                          Make default
+-                        </span> */}
+                          <Trash2
+                            className="rounded-full bg-gray-700 p-1.5 text-white"
+                            onClick={() => remove(index)}
+                            size="2rem"
+                          />
+                        </div>
+                      )}
                     </li>
                   )
                 })}
