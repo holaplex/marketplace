@@ -4,7 +4,8 @@ metadata:
   annotations:
   name: app-marketplace
 spec:
-  replicas: 3
+  revisionHistoryLimit: 3
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -21,9 +22,9 @@ spec:
       containers:
       - name: marketplace
         image: 011737333588.dkr.ecr.us-east-1.amazonaws.com/marketplace:dev-75c328e
-        env:
-        - name: NEXT_PUBLIC_GRAPHQL_ENDPOINT
-          value: https://graph-test.holaplex.com/v1
+        envFrom:
+        - configMapRef:
+            name: marketplace-config
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000
