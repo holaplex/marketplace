@@ -255,9 +255,11 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
       }))
 
     // Add auction houses corresponding to new tokens
-    const newTokens = tokens.filter(
+    let newTokens = tokens.filter(
       (token) => !originalTokens?.some((ot) => ot.address === token.address)
     )
+    // Re-Check if new tokens are valid
+    newTokens = newTokens.filter((token) => tokenMap.has(token.address))
 
     const newAuctionHousesInstructions: TransactionInstruction[] = []
 
@@ -383,6 +385,10 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
                           autoFocus
                           onKeyPress={(e) => {
                             if (e.key !== 'Enter') {
+                              return
+                            }
+                            if (!tokenMap.has(value)) {
+                              toast.error('Token not found')
                               return
                             }
                             append({ address: value })
