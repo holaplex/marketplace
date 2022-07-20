@@ -391,6 +391,12 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
                               toast.error('Token not found')
                               return
                             }
+                            if (
+                              fields.some((token) => token.address === value)
+                            ) {
+                              toast.error('Token already added')
+                              return
+                            }
                             append({ address: value })
                             onChange('')
                           }}
