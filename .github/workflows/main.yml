@@ -1,10 +1,9 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
+name: Kubernetes deployment
 
 on:
   push:
-    branches: [ main, dev, mpw/runner ]
+    branches: [ dev, main ]
+
 jobs:
   build:
     name: Building and Pushing Image
@@ -12,30 +11,67 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push image to Amazon ECR (dev)
-      id: build-image-dev
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ github.event.repository.name }}
+      - name: Build, tag, and push Frontend to Amazon ECR
+        id: build-frontend-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ github.event.repository.name }}
 
-      run: |
-        git_hash=$(git rev-parse --short "$GITHUB_SHA")
-        git_branch=${GITHUB_REF##*/}
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$git_branch-$git_hash --build-arg GRAPHQL_URI=https://graph-test.holaplex.com/v1 .
-        echo "Pushing $git_branch image to ECR..."
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$git_branch-$git_hash
-        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$git_branch-$git_hash"
+        run: |
+          git_hash=$(git rev-parse --short "$GITHUB_SHA")
+          git_branch=${GITHUB_REF##*/}
+          solana_endpoint="https://holaplex-main-9e4a.mainnet.rpcpool.com"
+
+          if [ $git_branch == 'main' ];then
+            graphql_endpoint="https://graph.holaplex.com/v1"
+            node_env=production
+          else
+            graphql_endpoint="https://graph-test.holaplex.com/v1"
+            node_env=development
+          fi
+          image_tag="$ECR_REGISTRY/$ECR_REPOSITORY:$app-$git_branch-$git_hash"
+          #build
+          docker build -t $image_tag \
+          --build-arg GRAPHQL_URI=${graphql_endpoint} \
+          --build-arg SOLANA_ENDPOINT=${solana_endpoint} \
+          --build-arg NEXT_ENVIRONMENT=$node_env \
+          .
+
+          echo "Pushing image to ECR..."
+          docker push $image_tag
+          echo "::set-output name=image::$image_tag"
+
+      - name: Update deployment image version (dev)
+        if: github.ref == 'refs/heads/dev'
+        run: |
+            git_hash=$(git rev-parse --short "$GITHUB_SHA")
+            git_branch=${GITHUB_REF##*/}
+            version=$(cat ./k8s/$git_branch/app/marketplace-deploy.yaml | grep -i image | awk {'print $2'} | head -n1 | cut -d: -f2)
+            sed -i "s/$version/$git_branch-$git_hash/" ./k8s/$git_branch/app/marketplace-deploy.yaml
+
+      - name: Update deployment image version (prod)
+        if: github.ref == 'refs/heads/main'
+        run: |
+            git_hash=$(git rev-parse --short "$GITHUB_SHA")
+            version=$(cat ./k8s/prod/app/marketplace-deploy.yaml | grep -i image | awk {'print $2'} | head -n1 | cut -d: -f2)
+            sed -i "s/$version/${GITHUB_REF##*/}-$git_hash/" ./k8s/prod/app/marketplace-deploy.yaml
+
+      - name: Commit and push changes
+        uses: devops-infra/action-commit-push@master
+        with:
+          github_token: ${{ secrets.ACTIONS_TOKEN}}
+          commit_message: Updated deployment image version
