@@ -160,7 +160,8 @@ async function assembleAuctionHouses(
       await AuctionHouseProgram.findAuctionHouseAddress(publicKey, tMintKey)
 
     // Check if auctionHouse already exists, if exist dont add createInstruction, just return auctionHouse
-    const ahQuery = useQuery<GetAuctionHouse>(GET_AUCTION_HOUSE, {
+    const ahQuery = await client.query<GetAuctionHouse>({
+      query: GET_AUCTION_HOUSE,
       variables: {
         address: auctionHouse.toBase58(),
       },
