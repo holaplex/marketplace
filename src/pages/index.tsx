@@ -309,6 +309,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const creators = map(prop('creatorAddress'))(marketplace.creators || [])
   const auctionHouses = map(prop('address'))(marketplace.auctionHouses || [])
   const client = useApolloClient()
+
   const [listedCountQueryMap, setListedCountQueryMap] = useState<
     Map<String, QueryResult<GetNftCounts, OperationVariables>>
   >(new Map())
@@ -328,6 +329,10 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   })
 
   useEffect(() => {
+    if (!marketplace.auctionHouses) {
+      return
+    }
+
     ;(async () => {
       const nextListedCountQueryMap = new Map()
 
@@ -352,7 +357,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
 
       setListedCountQueryMap(nextListedCountQueryMap)
     })()
-  }, [marketplace.auctionHouses, client, creators])
+  }, [marketplace.auctionHouses])
 
   const [getWalletCounts, walletCountsQuery] = useLazyQuery<GetWalletCounts>(
     GET_WALLET_COUNTS,
@@ -518,7 +523,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               <div className="block bg-gray-800 w-20 h-6 rounded" />
             ) : (
               <span className="sol-amount text-xl font-semibold">
-                {toSOL((stats?.floor.toNumber() || 0) as number)}
+                {toSOL((stats?.floor?.toNumber() || 0) as number)}
               </span>
             )}
           </div>
@@ -530,7 +535,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
               <div className="block bg-gray-800 w-20 h-6 rounded" />
             ) : (
               <span className="sol-amount text-xl font-semibold">
-                {toSOL((stats?.volume24hr.toNumber() || 0) as number)}
+                {toSOL((stats?.volume24hr?.toNumber() || 0) as number)}
               </span>
             )}
           </div>
@@ -616,91 +621,92 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
           </div>
         </div>
       ) : (
-        <Slider
-          className="mb-20"
-          responsive={{
-            superLargeDesktop: {
-              breakpoint: { max: 4000, min: 3000 },
-              items: 5,
-            },
-            desktop: {
-              breakpoint: { max: 3000, min: 1024 },
-              items: 3,
-            },
-            tablet: {
-              breakpoint: { max: 1024, min: 620 },
-              items: 2,
-            },
-            mobile: {
-              breakpoint: { max: 620, min: 0 },
-              items: 1,
-            },
-          }}
-        >
-          {creatorsQuery.data?.marketplace.creators.map((creator) => {
-            return (
-              <Link
-                key={creator.creatorAddress}
-                href={`/creators/${creator.creatorAddress}`}
-                passHref
-              >
-                <a className="flex transition-transform hover:scale-[1.02] snap-start z-0 mr-4">
-                  <div className="flex flex-col">
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center">
-                        <img
-                          src={
-                            when(
-                              isNil,
-                              always(
-                                addressAvatar(
-                                  new PublicKey(creator.creatorAddress)
-                                )
-                              )
-                            )(creator.profile?.profileImageUrlLowres) as string
-                          }
-                          className="object-cover bg-gray-900 rounded-full w-10 h-10"
-                        />
-                        <div className="text-sm ml-3">
-                          {creator.twitterHandle ? (
-                            <span className="font-semibold">{`@${creator.twitterHandle}`}</span>
-                          ) : (
-                            <span className="pubkey">
-                              {truncateAddress(creator.creatorAddress)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-gray-300 text-sm">NFTs</span>
-                        <span className="text-sm">{creator.nftCount}</span>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 mb-2 gap-4">
-                      {creator.preview.map((nft, index) => {
-                        return (
-                          <div
-                            key={nft.address}
-                            className={cx('w-full', {
-                              'hidden md:block':
-                                index === creator.preview.length - 1,
-                            })}
-                          >
-                            <img
-                              className="object-cover rounded-md grow aspect-square"
-                              src={nft.image}
-                              alt={nft.name}
-                            />
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </a>
-              </Link>
-            )
-          })}
-        </Slider>
+        <div />
+        // <Slider
+        //   className="mb-20"
+        //   responsive={{
+        //     superLargeDesktop: {
+        //       breakpoint: { max: 4000, min: 3000 },
+        //       items: 5,
+        //     },
+        //     desktop: {
+        //       breakpoint: { max: 3000, min: 1024 },
+        //       items: 3,
+        //     },
+        //     tablet: {
+        //       breakpoint: { max: 1024, min: 620 },
+        //       items: 2,
+        //     },
+        //     mobile: {
+        //       breakpoint: { max: 620, min: 0 },
+        //       items: 1,
+        //     },
+        //   }}
+        // >
+        //   {creatorsQuery.data?.marketplace.creators.map((creator) => {
+        //     return (
+        //       <Link
+        //         key={creator.creatorAddress}
+        //         href={`/creators/${creator.creatorAddress}`}
+        //         passHref
+        //       >
+        //         <a className="flex transition-transform hover:scale-[1.02] snap-start z-0 mr-4">
+        //           <div className="flex flex-col">
+        //             <div className="flex justify-between items-center mb-3">
+        //               <div className="flex items-center">
+        //                 <img
+        //                   src={
+        //                     when(
+        //                       isNil,
+        //                       always(
+        //                         addressAvatar(
+        //                           new PublicKey(creator.creatorAddress)
+        //                         )
+        //                       )
+        //                     )(creator.profile?.profileImageUrlLowres) as string
+        //                   }
+        //                   className="object-cover bg-gray-900 rounded-full w-10 h-10"
+        //                 />
+        //                 <div className="text-sm ml-3">
+        //                   {creator.twitterHandle ? (
+        //                     <span className="font-semibold">{`@${creator.twitterHandle}`}</span>
+        //                   ) : (
+        //                     <span className="pubkey">
+        //                       {truncateAddress(creator.creatorAddress)}
+        //                     </span>
+        //                   )}
+        //                 </div>
+        //               </div>
+        //               <div className="flex flex-col items-end">
+        //                 <span className="text-gray-300 text-sm">NFTs</span>
+        //                 <span className="text-sm">{creator.nftCount}</span>
+        //               </div>
+        //             </div>
+        //             <div className="grid grid-cols-2 md:grid-cols-3 mb-2 gap-4">
+        //               {creator.preview.map((nft, index) => {
+        //                 return (
+        //                   <div
+        //                     key={nft.address}
+        //                     className={cx('w-full', {
+        //                       'hidden md:block':
+        //                         index === creator.preview.length - 1,
+        //                     })}
+        //                   >
+        //                     <img
+        //                       className="object-cover rounded-md grow aspect-square"
+        //                       src={nft.image}
+        //                       alt={nft.name}
+        //                     />
+        //                   </div>
+        //                 )
+        //               })}
+        //             </div>
+        //           </div>
+        //         </a>
+        //       </Link>
+        //     )
+        //   })}
+        // </Slider>
       )}
       <div className="flex">
         <div className="relative">

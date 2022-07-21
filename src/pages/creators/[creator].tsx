@@ -300,6 +300,10 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   })
 
   useEffect(() => {
+    if (!marketplace.auctionHouses) {
+      return
+    }
+
     ;(async () => {
       const nextListedCountQueryMap = new Map()
 
@@ -324,7 +328,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
 
       setListedCountQueryMap(nextListedCountQueryMap)
     })()
-  }, [marketplace.auctionHouses, client])
+  }, [marketplace.auctionHouses])
 
   const [getWalletCounts, walletCountsQuery] = useLazyQuery<GetWalletCounts>(
     GET_WALLET_COUNTS,
