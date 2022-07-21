@@ -12,6 +12,7 @@ module.exports = {
   reactStrictMode: false,
   env: {
     NEXT_PUBLIC_GRAPH_ENDPOINT: process.env.NEXT_PUBLIC_GRAPH_ENDPOINT,
+    NEXT_PUBLIC_SOLANA_ENDPOINT: process.env.NEXT_PUBLIC_SOLANA_ENDPOINT,
   },
   eslint: {
     ignoreDuringBuilds: true,

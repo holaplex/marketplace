@@ -15,11 +15,14 @@ import { AdminLayout } from '../../../layouts/Admin'
 import { Wallet } from '@metaplex/js'
 import { PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js'
 import { NATIVE_MINT } from '@solana/spl-token'
-import { initMarketplaceSDK, Marketplace } from '@holaplex/marketplace-js-sdk'
-import { createCreateAuctionHouseInstruction } from '@metaplex-foundation/mpl-auction-house/dist/src/generated/instructions'
-import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
+import {
+  initMarketplaceSDK,
+  Marketplace,
+  AuctionHouseProgram,
+} from '@holaplex/marketplace-js-sdk'
 import { useTokenList } from './../../../hooks/tokenList'
-import { PendingTransaction } from '@holaplex/marketplace-js-sdk/dist/transaction'
+
+const { createCreateAuctionHouseInstruction } = AuctionHouseProgram.instructions
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 

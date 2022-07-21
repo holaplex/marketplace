@@ -24,7 +24,6 @@ import {
   Marketplace,
   GetActivities,
   GetPriceChartData,
-  MintStats,
   AuctionHouse,
   PriceChart,
 } from '@holaplex/marketplace-js-sdk'
@@ -39,7 +38,6 @@ import { useTokenList } from '../../hooks/tokenList'
 import Price from '../../components/Price'
 import { isSol } from '../../modules/sol'
 import { subDays } from 'date-fns'
-import { NATIVE_MINT_ADDRESS } from './../../modules/sol'
 
 const moreThanOne = pipe(length, (len) => gt(len, 1))
 
@@ -254,28 +252,28 @@ export const AnalyticsLayout = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 py-12">
         <PriceData
           token={tokenMap.get(selectedToken?.value)}
-          price={stats?.floor.toNumber() || 0}
+          price={stats?.floor?.toNumber() || 0}
           priceType="Floor Price"
           loading={loading}
         />
 
         <PriceData
           token={tokenMap.get(selectedToken?.value)}
-          price={stats?.average.toNumber() || 0}
+          price={stats?.average?.toNumber() || 0}
           priceType="Avg Price"
           loading={loading}
         />
 
         <PriceData
           token={tokenMap.get(selectedToken?.value)}
-          price={stats?.volume24hr.toNumber() || 0}
+          price={stats?.volume24hr?.toNumber() || 0}
           priceType="Vol Last 24h"
           loading={loading}
         />
 
         <PriceData
           token={tokenMap.get(selectedToken?.value)}
-          price={stats?.volumeTotal.toNumber() || 0}
+          price={stats?.volumeTotal?.toNumber() || 0}
           priceType="Vol All Time"
           loading={loading}
         />
@@ -335,7 +333,7 @@ export const AnalyticsLayout = ({
                   const hasWallets = moreThanOne(a.wallets)
                   return (
                     <article
-                      key={a.address}
+                      key={a.id}
                       className="grid grid-cols-5 p-4 mb-4 border border-gray-700 rounded"
                     >
                       <Link href={`/nfts/${a.nft.address}`} passHref>

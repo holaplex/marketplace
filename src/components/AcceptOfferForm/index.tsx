@@ -46,9 +46,10 @@ const AcceptOfferForm = ({
   } = useForm()
 
   const onAcceptOffer = async () => {
-    if (!offer || !nft) {
+    if (!offer || !nft || !offer.auctionHouse) {
       return
     }
+
     toast('Sending the transaction to Solana.')
     await sdk
       .transaction()
@@ -62,7 +63,7 @@ const AcceptOfferForm = ({
   }
 
   const onCancelListing = (listing: AhListing) => async () => {
-    if (!listing || !nft) {
+    if (!offer || !nft || !offer.auctionHouse) {
       return
     }
 
@@ -76,6 +77,7 @@ const AcceptOfferForm = ({
     if (!publicKey || !signTransaction || !offer || !nft) {
       return
     }
+
     let newActions: Action[] = [
       {
         name: 'Accepting offer...',

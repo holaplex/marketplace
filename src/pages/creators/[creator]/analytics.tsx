@@ -20,7 +20,7 @@ const pluckCreatorAddresses = map(prop('creatorAddress'))
 const GET_ACTIVITIES = gql`
   query GetActivities($auctionHouses: [PublicKey!]!, $creators: [PublicKey!]) {
     activities(auctionHouses: $auctionHouses, creators: $creators) {
-      address
+      id
       metadata
       auctionHouse {
         address

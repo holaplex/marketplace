@@ -4,6 +4,7 @@ import {
   useLazyQuery,
   QueryResult,
   OperationVariables,
+  useApolloClient,
 } from '@apollo/client'
 import { useWallet } from '@solana/wallet-adapter-react'
 import cx from 'classnames'
@@ -22,8 +23,10 @@ import {
   not,
   partial,
   pipe,
+  zip,
   prop,
   when,
+  forEach,
 } from 'ramda'
 import React, { ReactElement, useEffect, useState } from 'react'
 import { toSOL } from '../modules/sol'
@@ -305,6 +308,10 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const { publicKey, connected } = useWallet()
   const creators = map(prop('creatorAddress'))(marketplace.creators || [])
   const auctionHouses = map(prop('address'))(marketplace.auctionHouses || [])
+  const client = useApolloClient()
+  const [listedCountQueryMap, setListedCountQueryMap] = useState<
+    Map<String, QueryResult<GetNftCounts, OperationVariables>>
+  >(new Map())
   const [tokenMap, loadingTokens] = useTokenList()
 
   const marketplaceQuery = useQuery<GetMarketplaceInfo>(GET_MARKETPLACE_INFO, {
@@ -320,21 +327,32 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     },
   })
 
-  const listedCountQueryMap = new Map<
-    String,
-    QueryResult<GetNftCounts, OperationVariables>
-  >()
+  useEffect(() => {
+    ;(async () => {
+      const nextListedCountQueryMap = new Map()
 
-  marketplace.auctionHouses?.forEach((auctionHouse) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const query = useQuery<GetNftCounts>(GET_LISTED_TOKEN_NFT_COUNT, {
-      variables: {
-        creators,
-        auctionHouse: auctionHouse.address,
-      },
-    })
-    listedCountQueryMap.set(auctionHouse.treasuryMint, query)
-  })
+      const tokenCounts = await Promise.all(
+        marketplace.auctionHouses.map(({ address }) =>
+          client.query<GetNftCounts>({
+            query: GET_LISTED_TOKEN_NFT_COUNT,
+            variables: {
+              creators,
+              auctionHouse: address,
+            },
+          })
+        )
+      )
+
+      pipe(
+        zip(marketplace.auctionHouses),
+        forEach(([auctionHouse, queryResult]) => {
+          nextListedCountQueryMap.set(auctionHouse.treasuryMint, queryResult)
+        })
+      )(tokenCounts)
+
+      setListedCountQueryMap(nextListedCountQueryMap)
+    })()
+  }, [marketplace.auctionHouses, client, creators])
 
   const [getWalletCounts, walletCountsQuery] = useLazyQuery<GetWalletCounts>(
     GET_WALLET_COUNTS,
@@ -383,12 +401,6 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
     tokenMap.get(treasuryMint)
   )
-
-  // DUMMY TOKENS FOR TESTING
-  // const tokens = [
-  //   tokenMap.get('So11111111111111111111111111111111111111112'),
-  //   tokenMap.get('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  // ]
 
   const { watch, control, getValues } = useForm<NftFilterForm>({
     defaultValues: {
