@@ -24,6 +24,8 @@ import {
   length,
   map,
   modify,
+  zip,
+  forEach,
   not,
   or,
   partial,
@@ -262,6 +264,9 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const [hasMore, setHasMore] = useState(true)
   const { sidebarOpen, toggleSidebar } = useSidebar()
   const router = useRouter()
+  const [listedCountQueryMap, setListedCountQueryMap] = useState<
+    Map<String, QueryResult<GetNftCounts, OperationVariables>>
+  >(new Map())
   const auctionHouses = map(prop('address'))(marketplace.auctionHouses || [])
 
   const {
@@ -294,21 +299,32 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     },
   })
 
-  const listedCountQueryMap = new Map<
-    String,
-    QueryResult<GetNftCounts, OperationVariables>
-  >()
+  useEffect(() => {
+    ;(async () => {
+      const nextListedCountQueryMap = new Map()
 
-  marketplace.auctionHouses?.forEach((auctionHouse) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const query = useQuery<GetNftCounts>(GET_LISTED_TOKEN_NFT_COUNT, {
-      variables: {
-        creators: [router.query.creator],
-        auctionHouse: auctionHouse.address,
-      },
-    })
-    listedCountQueryMap.set(auctionHouse.treasuryMint, query)
-  })
+      const tokenCounts = await Promise.all(
+        marketplace.auctionHouses.map(({ address }) =>
+          client.query<GetNftCounts>({
+            query: GET_LISTED_TOKEN_NFT_COUNT,
+            variables: {
+              creators: [router.query.creator],
+              auctionHouse: address,
+            },
+          })
+        )
+      )
+
+      pipe(
+        zip(marketplace.auctionHouses),
+        forEach(([auctionHouse, queryResult]) => {
+          nextListedCountQueryMap.set(auctionHouse.treasuryMint, queryResult)
+        })
+      )(tokenCounts)
+
+      setListedCountQueryMap(nextListedCountQueryMap)
+    })()
+  }, [marketplace.auctionHouses, client])
 
   const [getWalletCounts, walletCountsQuery] = useLazyQuery<GetWalletCounts>(
     GET_WALLET_COUNTS,

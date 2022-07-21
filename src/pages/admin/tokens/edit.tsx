@@ -1,6 +1,6 @@
 import { ReactElement, useMemo, useState } from 'react'
 import { NextPageContext } from 'next'
-import { gql, useQuery } from '@apollo/client'
+import { gql } from '@apollo/client'
 import { isNil } from 'ramda'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { toast } from 'react-toastify'
@@ -16,15 +16,16 @@ import { Wallet } from '@metaplex/js'
 import { PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js'
 import { NATIVE_MINT } from '@solana/spl-token'
 import {
-  AuctionHouse,
   initMarketplaceSDK,
   Marketplace,
+  AuctionHouseProgram,
+  AuctionHouse,
 } from '@holaplex/marketplace-js-sdk'
-import { createCreateAuctionHouseInstruction } from '@metaplex-foundation/mpl-auction-house/dist/src/generated/instructions'
-import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import { useTokenList } from './../../../hooks/tokenList'
 import { Trash2 } from 'react-feather'
 import { isSol } from '../../../modules/sol'
+
+const { createCreateAuctionHouseInstruction } = AuctionHouseProgram.instructions
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 

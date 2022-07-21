@@ -43,7 +43,7 @@ const GET_PRICE_CHART_DATA = gql`
 const GET_ACTIVITIES = gql`
   query GetActivities($auctionHouses: [PublicKey!]!) {
     activities(auctionHouses: $auctionHouses) {
-      address
+      id
       metadata
       auctionHouse {
         address

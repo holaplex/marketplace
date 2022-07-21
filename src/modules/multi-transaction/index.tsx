@@ -146,6 +146,7 @@ export const MultiTransactionProvider: React.FC<Props> = ({ children }) => {
         setHasRemainingActions(false)
       } catch (err: any) {
         const errorMsg: string = err.message
+
         if (
           errorMsg.includes(`User rejected the request`) ||
           errorMsg.includes(`was not confirmed`) ||
