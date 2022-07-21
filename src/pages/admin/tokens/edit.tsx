@@ -254,12 +254,12 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
         address,
       }))
 
-    // Add auction houses corresponding to new tokens
-    let newTokens = tokens.filter(
-      (token) => !originalTokens?.some((ot) => ot.address === token.address)
+    // Filter new tokens and Re-Check if new tokens are valid
+    const newTokens = tokens.filter(
+      (token) =>
+        !originalTokens?.some((ot) => ot.address === token.address) &&
+        tokenMap.has(token.address)
     )
-    // Re-Check if new tokens are valid
-    newTokens = newTokens.filter((token) => tokenMap.has(token.address))
 
     const newAuctionHousesInstructions: TransactionInstruction[] = []
 
