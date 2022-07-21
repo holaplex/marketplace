@@ -49,6 +49,7 @@ const AcceptOfferForm = ({
     if (!offer || !nft || !offer.auctionHouse) {
       return
     }
+
     toast('Sending the transaction to Solana.')
     await sdk
       .transaction()

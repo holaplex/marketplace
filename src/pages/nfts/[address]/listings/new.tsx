@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from 'react'
+import React, { useContext, useEffect, useState, useMemo } from 'react'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { useRouter } from 'next/router'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
@@ -239,6 +239,7 @@ interface SellNftForm {
 interface SellNftProps {
   nft: Nft
   marketplace: Marketplace
+  nftQuery: QueryResult<GetNftData, OperationVariables>
 }
 
 const ListingNew = ({ nft, marketplace, nftQuery }: SellNftProps) => {
@@ -252,7 +253,7 @@ const ListingNew = ({ nft, marketplace, nftQuery }: SellNftProps) => {
   )
   const { runActions } = useContext(MultiTransactionContext)
 
-  const [tokenMap, _loadingTokens] = useTokenList()
+  const [tokenMap, loadingTokens] = useTokenList()
   const tokens = marketplace?.auctionHouses?.map(({ treasuryMint }) =>
     tokenMap.get(treasuryMint)
   )
@@ -272,16 +273,21 @@ const ListingNew = ({ nft, marketplace, nftQuery }: SellNftProps) => {
     pipe(prop('treasuryMint'), equals(selectedToken?.value))
   )(marketplace.auctionHouses || []) as AuctionHouse
 
-  let highestOffer: Offer | undefined
-  if (nft.offers && nft.offers?.length > 0) {
-    highestOffer = nft.offers.reduce((a, b) => {
-      if (b.auctionHouse.address != auctionHouse.address) {
+  const highestOffer = useMemo(() => {
+    if (!auctionHouse || !nft.offers || nft.offers?.length == 0) {
+      return undefined
+    }
+
+    const highestOffer = nft.offers.reduce((a, b) => {
+      if (b?.auctionHouse?.address != auctionHouse.address) {
         return a
       }
 
       return a.price > b.price ? a : b
     })
-  }
+
+    return highestOffer
+  }, [nft.offers, auctionHouse])
 
   const goBack = () => {
     router.push(`/nfts/${nft.address}`)
@@ -352,7 +358,6 @@ const ListingNew = ({ nft, marketplace, nftQuery }: SellNftProps) => {
       console.log('sell nft txn error', e)
       toast.error(e.message)
     } finally {
-      await nftQuery.refetch()
       router.push(`/nfts/${nft.address}`)
     }
   }
@@ -384,7 +389,9 @@ const ListingNew = ({ nft, marketplace, nftQuery }: SellNftProps) => {
               <div className="text-gray-300">Highest offer</div>
               <Price
                 price={new BN(highestOffer.price).toNumber()}
-                token={tokenMap.get(highestOffer.auctionHouse.treasuryMint)}
+                token={tokenMap.get(
+                  highestOffer?.auctionHouse?.treasuryMint || ''
+                )}
               />
             </div>
             <div>
