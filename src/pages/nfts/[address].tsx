@@ -249,40 +249,43 @@ const NftShow: NextPage<NftPageProps> = ({
   const { runActions } = useContext(MultiTransactionContext)
 
   const onMakeOffer = async () => {
-    if (listing && nft) {
-      toast('Sending the transaction to Solana.')
+    const auctionHouse = listing.auctionHouse
 
-      await sdk
-        .transaction()
-        .add(
-          sdk
-            .escrow(listing.auctionHouse)
-            .desposit({ amount: listing.price.toNumber() })
-        )
-        .add(
-          sdk.offers(listing.auctionHouse).make({
-            amount: listing.price.toNumber(),
-            nft,
-          })
-        )
-        .send()
+    if (!listing || !nft || !auctionHouse) {
+      return
     }
+
+    toast('Sending the transaction to Solana.')
+
+    await sdk
+      .transaction()
+      .add(
+        sdk.escrow(auctionHouse).desposit({ amount: listing.price.toNumber() })
+      )
+      .add(
+        sdk.offers(auctionHouse).make({
+          amount: listing.price.toNumber(),
+          nft,
+        })
+      )
+      .send()
   }
 
   const onBuy = async () => {
-    if (listing && nft) {
-      toast('Sending the transaction to Solana.')
-
-      await sdk
-        .transaction()
-        .add(
-          sdk.listings(listing.auctionHouse).buy({
-            listing,
-            nft,
-          })
-        )
-        .send()
+    if (!listing || !listing.auctionHouse || !nft) {
+      return
     }
+
+    toast('Sending the transaction to Solana.')
+    await sdk
+      .transaction()
+      .add(
+        sdk.listings(listing.auctionHouse).buy({
+          listing,
+          nft,
+        })
+      )
+      .send()
   }
 
   const buyNftTransaction = async () => {

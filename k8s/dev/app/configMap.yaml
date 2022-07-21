@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: marketplace-config
+data:
+  NODE_ENV: development
+  NEXT_PUBLIC_ENVIRONMENT: development
+  NEXT_PUBLIC_SOLANA_ENDPOINT: https://holaplex-main-9e4a.mainnet.rpcpool.com
+  NEXT_PUBLIC_INDEXER_GRAPHQL_URL: https://graph-test.holaplex.com/v1

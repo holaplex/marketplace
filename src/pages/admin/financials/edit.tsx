@@ -7,7 +7,6 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { AppProps } from 'next/app'
 import client from './../../../client'
 import { Marketplace } from '@holaplex/marketplace-js-sdk'
-import { AuctionHouseProgram } from '@metaplex-foundation/mpl-auction-house'
 import AdminMenu, { AdminMenuItemType } from '../../../components/AdminMenu'
 import { AdminLayout } from '../../../layouts/Admin'
 import { Connection, Wallet } from '@metaplex/js'
@@ -19,8 +18,6 @@ import { EmptyTreasuryWalletForm } from './../../../components/EmptyTreasuryWall
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
-const { createWithdrawFromTreasuryInstruction } =
-  AuctionHouseProgram.instructions
 interface GetMarketplace {
   marketplace: Marketplace | null
 }
