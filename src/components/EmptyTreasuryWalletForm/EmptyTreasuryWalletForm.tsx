@@ -2,20 +2,19 @@ import { useMemo, useState } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { toast } from 'react-toastify'
 import Button, { ButtonSize, ButtonType } from './../Button'
-import { initMarketplaceSDK, Marketplace } from '@holaplex/marketplace-js-sdk'
+import { initMarketplaceSDK, AuctionHouse } from '@holaplex/marketplace-js-sdk'
 import { useLogin } from './../../hooks/login'
 import { Connection, Wallet } from '@metaplex/js'
-import { AuctionHouse } from '@holaplex/marketplace-js-sdk/dist/types'
 import { useTokenList } from './../../hooks/tokenList'
 import { TokenInfo } from '@solana/spl-token-registry'
 
 interface EmptyTreasuryWalletFormProps {
-  marketplace: Marketplace
+  onEmpty: () => Promise<void>
   token?: TokenInfo
 }
 
 export const EmptyTreasuryWalletForm = ({
-  marketplace,
+  onEmpty,
   token,
 }: EmptyTreasuryWalletFormProps) => {
   const wallet = useWallet()
@@ -28,7 +27,7 @@ export const EmptyTreasuryWalletForm = ({
   const login = useLogin()
   const [withdrawlLoading, setWithdrawlLoading] = useState(false)
 
-  const claimFunds = async (ah: AuctionHouse) => {
+  const claimFunds = async () => {
     if (!publicKey || !signTransaction || !wallet) {
       login()
       return
@@ -37,7 +36,7 @@ export const EmptyTreasuryWalletForm = ({
     try {
       toast.info('Please approve the transaction.')
       setWithdrawlLoading(true)
-      await sdk.claimFunds(ah)
+      await onEmpty()
       toast.success('The transaction was confirmed.')
     } catch (e: any) {
       toast.error(e.message)
@@ -50,13 +49,7 @@ export const EmptyTreasuryWalletForm = ({
     <Button
       className="px-4"
       disabled={withdrawlLoading}
-      onClick={async () =>
-        await claimFunds(
-          marketplace.auctionHouses?.filter(
-            (ah) => ah.treasuryMint === token?.address
-          )[0]!
-        )
-      }
+      onClick={async () => await claimFunds()}
       type={ButtonType.Primary}
       size={ButtonSize.Small}
       loading={withdrawlLoading}

@@ -28,6 +28,7 @@ import {
   Offer,
   GetNftData,
   AuctionHouse,
+  MarketplaceClient,
 } from '@holaplex/marketplace-js-sdk'
 import { Wallet } from '@metaplex/js'
 import { Modal } from './../../../../layouts/Modal'
@@ -37,7 +38,6 @@ import { isSol } from './../../../../modules/sol'
 import { NftPreview } from './../../../../components/NftPreview'
 import { useTokenList } from './../../../../hooks/tokenList'
 import Price from './../../../../components/Price'
-import { getPriceWithMantissa } from '../../../../modules/token'
 import {
   Action,
   MultiTransactionContext,
@@ -347,7 +347,10 @@ const ListingNew = ({ nft, marketplace, nftQuery }: SellNftProps) => {
         .transaction()
         .add(
           sdk.listings(auctionHouse).post({
-            amount: getPriceWithMantissa(+amount, tokenMap.get(token.value)!),
+            amount: MarketplaceClient.mantissa(
+              +amount,
+              tokenMap.get(token.value)!
+            ),
             nft,
           })
         )

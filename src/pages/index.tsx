@@ -371,7 +371,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   )
 
   const nftsQuery = useQuery<GetNftsData>(GET_NFTS, {
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-first',
     variables: {
       creators,
       auctionHouses: auctionHouses,
@@ -389,7 +389,6 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const priceChartDataQuery = useQuery<GetPriceChartData>(
     GET_PRICE_CHART_DATA,
     {
-      fetchPolicy: 'network-only',
       variables: {
         auctionHouses: auctionHouses,
         creators: creators,
@@ -483,11 +482,19 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
   const loading =
     creatorsQuery.loading ||
     marketplaceQuery.loading ||
-    nftsQuery.loading ||
     nftCountsQuery.loading ||
     walletCountsQuery.loading ||
     priceChartDataQuery.loading ||
     loadingTokens
+
+  console.log('creators query: ', creatorsQuery.loading)
+  console.log('marketplace query: ', marketplaceQuery.loading)
+  console.log('nfts query: ', nftsQuery.loading)
+  console.log('nft counts query: ', nftCountsQuery.loading)
+  console.log('wallet counts query: ', walletCountsQuery.loading)
+  console.log('price charts query: ', priceChartDataQuery.loading)
+  console.log('loading token: ', loadingTokens)
+  console.log('-----------------------------')
 
   return (
     <>
@@ -955,7 +962,7 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
         <div className="grow">
           <List
             data={nftsQuery.data?.nfts}
-            loading={loading}
+            loading={loading || nftsQuery.loading}
             loadingComponent={<NftCard.Skeleton />}
             hasMore={hasMore}
             onLoadMore={async (inView) => {
