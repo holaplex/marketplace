@@ -276,7 +276,6 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
     fetchMore,
     variables,
   } = useQuery<GetNftsData>(GET_NFTS, {
-    fetchPolicy: 'network-only',
     variables: {
       creators: [router.query.creator],
       auctionHouses: auctionHouses,
@@ -292,7 +291,6 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   })
 
   const nftCountsQuery = useQuery<GetNftCounts>(GET_NFT_COUNTS, {
-    fetchPolicy: 'network-only',
     variables: {
       creators: [router.query.creator],
       auctionHouses: auctionHouses,
@@ -344,7 +342,6 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const priceChartDataQuery = useQuery<GetPriceChartData>(
     GET_PRICE_CHART_DATA,
     {
-      fetchPolicy: 'network-only',
       variables: {
         auctionHouses: auctionHouses,
         creators: [router.query.creator],
@@ -366,7 +363,6 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
   const loading =
     loadingNfts ||
     collectionQuery.loading ||
-    nftCountsQuery.loading ||
     walletCountsQuery.loading ||
     loadingTokens
 
@@ -478,7 +474,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
             ) : (
               <span className="sol-amount text-xl font-semibold">
                 {toSOL(
-                  (collectionQuery.data?.creator.stats[0]?.floor.toNumber() ||
+                  (collectionQuery.data?.creator.stats[0]?.floor?.toNumber() ||
                     0) as number
                 )}
               </span>
@@ -493,7 +489,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
             ) : (
               <span className="sol-amount text-xl font-semibold">
                 {toSOL(
-                  (collectionQuery.data?.creator.stats[0]?.volume24hr.toNumber() ||
+                  (collectionQuery.data?.creator.stats[0]?.volume24hr?.toNumber() ||
                     0) as number
                 )}
               </span>
@@ -632,7 +628,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
                     <li key={token?.address}>
                       <Controller
                         control={control}
-                        name={`tokens[${index}]`}
+                        name={`tokens.${index}`}
                         render={({ field: { value, onChange } }) => (
                           <label
                             htmlFor={token?.address}
@@ -831,7 +827,7 @@ const CreatorShow: NextPage<CreatorPageProps> = ({ marketplace, creator }) => {
         <div className="grow">
           <List
             data={data?.nfts}
-            loading={loading}
+            loading={loading || nftCountsQuery.loading}
             hasMore={hasMore}
             onLoadMore={async (inView) => {
               if (not(inView)) {

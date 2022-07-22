@@ -1,7 +1,7 @@
-import { isSol, toSOL } from 'src/modules/sol'
+import { isSol } from 'src/modules/sol'
 import cx from 'classnames'
 import { TokenInfo } from '@solana/spl-token-registry'
-import { getPrice } from '../../modules/token'
+import { MarketplaceClient } from '@holaplex/marketplace-js-sdk'
 
 interface PriceProps {
   price: number
@@ -18,7 +18,7 @@ const Price = ({ price, token, style }: PriceProps) => (
             'sol-amount': isSol(token.address),
           })}
         >
-          {getPrice(price, token)}
+          {MarketplaceClient.price(price, token)}
         </span>
         {!isSol(token.address) && (
           <span className="text-sm mb-1">{token.symbol}</span>

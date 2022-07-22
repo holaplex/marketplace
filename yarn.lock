@@ -644,15 +644,16 @@
   resolved "https://registry.npmjs.org/@heroicons/react/-/react-1.0.6.tgz#35dd26987228b39ef2316db3b1245c42eb19e324"
   integrity sha512-JJCXydOFWMDpCP4q13iEplA503MQO3xLoZiKum+955ZCtHINWnx26CUxVxxFQu/uLb4LW3ge15ZpzIkXKkJ8oQ==
 
-"@holaplex/marketplace-js-sdk@^0.2.5":
-  version "0.2.5"
-  resolved "https://registry.yarnpkg.com/@holaplex/marketplace-js-sdk/-/marketplace-js-sdk-0.2.5.tgz#24e91cf4656cf87bfe94aa9f394a17be18cdba45"
-  integrity sha512-Q4O7n65L28tnia5vliADbqjbd5L9H5ZY1EWtxW21it+Sfrc1/lErNvpDMNsJBpfu6SaeJkuBedcsmHwXAVJVCw==
+"@holaplex/marketplace-js-sdk@^0.2.6":
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/@holaplex/marketplace-js-sdk/-/marketplace-js-sdk-0.2.6.tgz#f55fd8ad6bde6c9232541cbf3fe8c3099010f979"
+  integrity sha512-Q0peuJmCbvWbl7WGh4Op08kZcwKqrz4XTTo39WlZtnxat1eY87+Rp5lYiuibQHdR61led7YLthKX0zhvK0QNAg==
   dependencies:
     "@metaplex-foundation/beet" "^0.4.0"
     "@metaplex-foundation/mpl-auction-house" "^1.1.1"
     "@metaplex/js" "^4.12.0"
     "@solana/spl-token" "0.1.8"
+    "@solana/spl-token-registry" "^0.2.4574"
     "@solana/wallet-adapter-react" "^0.15.4"
     "@solana/web3.js" "1.37.1"
     bn.js "^5.2.0"
@@ -1535,7 +1536,7 @@
   dependencies:
     buffer "~6.0.3"
 
-"@solana/spl-token-registry@^0.2.3692":
+"@solana/spl-token-registry@^0.2.3692", "@solana/spl-token-registry@^0.2.4574":
   version "0.2.4574"
   resolved "https://registry.npmjs.org/@solana/spl-token-registry/-/spl-token-registry-0.2.4574.tgz#13f4636b7bec90d2bb43bbbb83512cd90d2ce257"
   integrity sha512-JzlfZmke8Rxug20VT/VpI2XsXlsqMlcORIUivF+Yucj7tFi7A0dXG7h+2UnD0WaZJw8BrUz2ABNkUnv89vbv1A==
@@ -1824,9 +1825,9 @@
     tweetnacl "^1.0.0"
 
 "@solana/web3.js@^1.35.1":
-  version "1.48.0"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.48.0.tgz#331281b2d80640431fb3b6fdc6b704ec325917aa"
-  integrity sha512-Gb6XvdhGjGI7CdAXLmlMIEvEYvrwqc78JOtwCsSrTqzz7Ek/BhJpZ/Cv89gxRDrWxf6kHegAfaN2FxwuYMmDZQ==
+  version "1.50.0"
+  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.50.0.tgz#afc01b0fdeb86b571eefd243567a7dc9a281f236"
+  integrity sha512-9KCuF3QLHd/dkYlffYPSHPbPFaBKqiwwDqWR+C/z1CZZbQybu+NCydWvwHHqrrlG50wn15L/6zYLb5Tjr6tOkA==
   dependencies:
     "@babel/runtime" "^7.12.5"
     "@ethersproject/sha2" "^5.5.0"
