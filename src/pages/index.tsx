@@ -487,15 +487,6 @@ const Home: NextPage<HomePageProps> = ({ marketplace }) => {
     priceChartDataQuery.loading ||
     loadingTokens
 
-  console.log('creators query: ', creatorsQuery.loading)
-  console.log('marketplace query: ', marketplaceQuery.loading)
-  console.log('nfts query: ', nftsQuery.loading)
-  console.log('nft counts query: ', nftCountsQuery.loading)
-  console.log('wallet counts query: ', walletCountsQuery.loading)
-  console.log('price charts query: ', priceChartDataQuery.loading)
-  console.log('loading token: ', loadingTokens)
-  console.log('-----------------------------')
-
   return (
     <>
       <Head>
