@@ -78,18 +78,10 @@ const AcceptOfferForm = ({
       return
     }
 
-    let newActions: Action[] = [
-      {
-        name: 'Accepting offer...',
-        id: 'acceptOffer',
-        action: onAcceptOffer,
-        param: undefined,
-      },
-    ]
+    let newActions: Action[] = []
 
     if (listing) {
       newActions = [
-        ...newActions,
         {
           name: 'Cancel previous listing...',
           id: 'cancelListing',
@@ -98,6 +90,16 @@ const AcceptOfferForm = ({
         },
       ]
     }
+
+    newActions = [
+      ...newActions,
+      {
+        name: 'Accepting offer...',
+        id: 'acceptOffer',
+        action: onAcceptOffer,
+        param: undefined,
+      },
+    ]
 
     await runActions(newActions, {
       onActionSuccess: async () => {
