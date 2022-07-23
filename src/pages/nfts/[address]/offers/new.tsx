@@ -29,6 +29,7 @@ import {
   Nft,
   GetNftData,
   AuctionHouse,
+  MarketplaceClient,
 } from '@holaplex/marketplace-js-sdk'
 import { Modal } from 'src/layouts/Modal'
 import { NftPreview } from 'src/components/NftPreview'
@@ -36,7 +37,6 @@ import { isSol } from 'src/modules/sol'
 import cx from 'classnames'
 import Select from 'react-select'
 import { useTokenList } from './../../../../hooks/tokenList'
-import { getPriceWithMantissa } from '../../../../modules/token'
 
 const SUBDOMAIN = process.env.MARKETPLACE_SUBDOMAIN
 
@@ -279,7 +279,7 @@ const OfferNew = ({ nft, marketplace, nftQuery }: OfferProps) => {
       return
     }
 
-    let adjustedAmount = getPriceWithMantissa(
+    let adjustedAmount = MarketplaceClient.mantissa(
       +amount,
       tokenMap.get(token.value)!
     )
