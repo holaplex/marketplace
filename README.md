@@ -12,7 +12,7 @@ Tech Stack:
 
 Marketplaces is very easy to setup for local use or to be deployed on your own infrastructure. 
 
-0. Create a Marketplace at https://holaplex.dev/marketplace/new
+0. Create a Marketplace at https://holaplex.com/marketplace/new
 1. Clone the repo
 2. `cd` into the folder
 3. Install dependencies with `yarn install`
