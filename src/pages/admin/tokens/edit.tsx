@@ -19,8 +19,11 @@ import {
   initMarketplaceSDK,
   Marketplace,
   AuctionHouseProgram,
+  AuctionHouse,
 } from '@holaplex/marketplace-js-sdk'
 import { useTokenList } from './../../../hooks/tokenList'
+import { Trash2 } from 'react-feather'
+import { isSol } from '../../../modules/sol'
 
 const { createCreateAuctionHouseInstruction } = AuctionHouseProgram.instructions
 
@@ -87,6 +90,18 @@ export async function getServerSideProps({ req }: NextPageContext) {
   }
 }
 
+interface GetAuctionHouse {
+  auctionHouse: AuctionHouse | null
+}
+
+const GET_AUCTION_HOUSE = gql`
+  query GetAuctionHouse($address: String!) {
+    auctionHouse(address: $address) {
+      address
+      treasuryMint
+    }
+  }
+`
 interface AdminEditTokensProps extends AppProps {
   marketplace: Marketplace
 }
@@ -145,33 +160,46 @@ async function assembleAuctionHouses(
     const [auctionHouse, bump] =
       await AuctionHouseProgram.findAuctionHouseAddress(publicKey, tMintKey)
 
-    const [feeAccount, feePayerBump] =
-      await AuctionHouseProgram.findAuctionHouseFeeAddress(auctionHouse)
-
-    const [treasuryAccount, treasuryBump] =
-      await AuctionHouseProgram.findAuctionHouseTreasuryAddress(auctionHouse)
-
-    const auctionHouseCreateInstruction = createCreateAuctionHouseInstruction(
-      {
-        treasuryMint: tMintKey,
-        payer: wallet.publicKey,
-        authority: wallet.publicKey,
-        feeWithdrawalDestination: fwdKey,
-        treasuryWithdrawalDestination: twdAta,
-        treasuryWithdrawalDestinationOwner: twdKey,
-        auctionHouse,
-        auctionHouseFeeAccount: feeAccount,
-        auctionHouseTreasury: treasuryAccount,
+    // Check if auctionHouse already exists, if exist dont add createInstruction, just return auctionHouse
+    const ahQuery = await client.query<GetAuctionHouse>({
+      query: GET_AUCTION_HOUSE,
+      variables: {
+        address: auctionHouse.toBase58(),
       },
-      {
-        bump,
-        feePayerBump,
-        treasuryBump,
-        sellerFeeBasisPoints,
-        requiresSignOff,
-        canChangeSalePrice,
-      }
-    )
+    })
+    const ahData = ahQuery.data?.auctionHouse
+
+    let auctionHouseCreateInstruction
+
+    if (!ahData) {
+      const [feeAccount, feePayerBump] =
+        await AuctionHouseProgram.findAuctionHouseFeeAddress(auctionHouse)
+
+      const [treasuryAccount, treasuryBump] =
+        await AuctionHouseProgram.findAuctionHouseTreasuryAddress(auctionHouse)
+
+      auctionHouseCreateInstruction = createCreateAuctionHouseInstruction(
+        {
+          treasuryMint: tMintKey,
+          payer: wallet.publicKey,
+          authority: wallet.publicKey,
+          feeWithdrawalDestination: fwdKey,
+          treasuryWithdrawalDestination: twdAta,
+          treasuryWithdrawalDestinationOwner: twdKey,
+          auctionHouse,
+          auctionHouseFeeAccount: feeAccount,
+          auctionHouseTreasury: treasuryAccount,
+        },
+        {
+          bump,
+          feePayerBump,
+          treasuryBump,
+          sellerFeeBasisPoints,
+          requiresSignOff,
+          canChangeSalePrice,
+        }
+      )
+    }
     return { auctionHouseCreateInstruction, address: auctionHouse.toBase58() }
   })
 
@@ -182,7 +210,9 @@ async function assembleAuctionHouses(
 
   result.forEach((r) => {
     auctionHouses.push({ address: r.address })
-    instructions.push(r.auctionHouseCreateInstruction)
+    if (r.auctionHouseCreateInstruction) {
+      instructions.push(r.auctionHouseCreateInstruction)
+    }
   })
 
   return { auctionHouses, instructions }
@@ -425,6 +455,18 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
                         tokenInfo={tokenMap.get(field.address)}
                         loading={loadingTokens}
                       />
+                      {!isSol(field.address) && (
+                        <div className="flex gap-4 items-center">
+                          {/* <span className="font-medium text-gray-100">
+-                          Make default
+-                        </span> */}
+                          <Trash2
+                            className="rounded-full bg-gray-700 p-1.5 text-white"
+                            onClick={() => remove(index)}
+                            size="2rem"
+                          />
+                        </div>
+                      )}
                     </li>
                   )
                 })}
