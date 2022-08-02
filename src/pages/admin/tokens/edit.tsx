@@ -354,7 +354,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
             <div className="w-full max-w-3xl">
               <div className="grid items-start grid-cols-12 mb-10 md:mb-0 md:flex-row md:justify-between">
                 <div className="w-full mb-4 col-span-full md:col-span-8 lg:col-span-10">
-                  <h2>Suppoted tokens</h2>
+                  <h2>Supported tokens</h2>
                   <p className="text-gray-300">
                     This is a list of all tokens supported by your marketplace.
                     Users will be able to list NFTs for sale in any of the
