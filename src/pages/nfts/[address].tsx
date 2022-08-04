@@ -341,7 +341,7 @@ const NftShow: NextPage<NftPageProps> = ({
       await sdk
         .transaction()
         .add(
-          sdk.listings(listing.auctionHouse).cancel({
+          sdk.listings(listing?.auctionHouse).cancel({
             listing,
             nft,
           })

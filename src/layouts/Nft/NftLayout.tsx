@@ -25,9 +25,10 @@ import {
   lensPath,
   includes,
   flip,
+  cond,
 } from 'ramda'
 import { PublicKey } from '@solana/web3.js'
-import { DollarSign, Tag } from 'react-feather'
+import { DollarSign, Tag, Zap } from 'react-feather'
 import { format } from 'timeago.js'
 import AcceptOfferForm from '../../components/AcceptOfferForm'
 import CancelOfferForm from '../../components/CancelOfferForm'
@@ -428,28 +429,29 @@ export const NftLayout = ({
                   ) : (
                     activities.map((a: Activity) => {
                       const hasWallets = moreThanOne(a.wallets)
+                      const activityType = cond([
+                        [equals('purchase'), always('Sold')],
+                        [equals('listing'), always('Listed')],
+                        [equals('offer'), always('Offer')],
+                      ])(a.activityType)
+                      const Icon = cond([
+                        [equals('purchase'), always(DollarSign)],
+                        [equals('listing'), always(Tag)],
+                        [equals('offer'), always(Zap)],
+                      ])(a.activityType)
                       return (
                         <article
-                          key={a.address}
+                          key={a.id}
                           className="grid grid-cols-4 p-4 mb-4 border border-gray-700 rounded"
                         >
                           <div className="flex flex-col justify-center flex-start gap-1">
                             <div className="flex">
-                              {a.activityType === 'purchase' ? (
-                                <DollarSign
-                                  className="mr-2 self-center text-gray-300"
-                                  size="16"
-                                />
-                              ) : (
-                                <Tag
-                                  className="mr-2 self-center text-gray-300"
-                                  size="16"
-                                />
-                              )}
+                              <Icon
+                                className="mr-2 self-center text-gray-300"
+                                size="16"
+                              />
                               <div className="text-xs -ml-1">
-                                {a.activityType === 'purchase'
-                                  ? 'Sold'
-                                  : 'Listed'}
+                                {activityType}
                               </div>
                             </div>
                           </div>
