@@ -257,9 +257,11 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
         address,
       }))
 
-    // Add auction houses corresponding to new tokens
+    // Filter new tokens and Re-Check if new tokens are valid
     const newTokens = tokens.filter(
-      (token) => !originalTokens?.some((ot) => ot.address === token.address)
+      (token) =>
+        !originalTokens?.some((ot) => ot.address === token.address) &&
+        tokenMap.has(token.address)
     )
 
     const newAuctionHousesInstructions: TransactionInstruction[] = []
@@ -354,7 +356,7 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
             <div className="w-full max-w-3xl">
               <div className="grid items-start grid-cols-12 mb-10 md:mb-0 md:flex-row md:justify-between">
                 <div className="w-full mb-4 col-span-full md:col-span-8 lg:col-span-10">
-                  <h2>Suppoted tokens</h2>
+                  <h2>Supported tokens</h2>
                   <p className="text-gray-300">
                     This is a list of all tokens supported by your marketplace.
                     Users will be able to list NFTs for sale in any of the
@@ -386,6 +388,16 @@ const AdminEditTokens = ({ marketplace }: AdminEditTokensProps) => {
                           autoFocus
                           onKeyPress={(e) => {
                             if (e.key !== 'Enter') {
+                              return
+                            }
+                            if (!tokenMap.has(value)) {
+                              toast.error('Token not found')
+                              return
+                            }
+                            if (
+                              fields.some((token) => token.address === value)
+                            ) {
+                              toast.error('Token already added')
                               return
                             }
                             append({ address: value })
