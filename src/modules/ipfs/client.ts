@@ -14,7 +14,7 @@ const ipfsSDK = {
     const body = new FormData()
     body.append(file.name, file, file.name)
     try {
-      const resp = await fetch('https://www.holaplex.com/api/ipfs/upload', {
+      const resp = await fetch('https://market.holaplex.com/api/ipfs/upload', {
         method: 'POST',
         body,
       })
