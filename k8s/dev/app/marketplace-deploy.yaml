@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: marketplace
-        image: 011737333588.dkr.ecr.us-east-1.amazonaws.com/marketplace:dev-9e126a1
+        image: 011737333588.dkr.ecr.us-east-1.amazonaws.com/marketplace:dev-a000275
         envFrom:
         - configMapRef:
             name: marketplace-config
