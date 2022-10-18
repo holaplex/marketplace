@@ -12,5 +12,7 @@ export const truncateAddress = pipe(
 
 export const addressAvatar = (publicKey: PublicKey) => {
   const gradient = publicKey.toBytes().reduce(add, 0) % 8
-  return `https://holaplex.com/images/gradients/gradient-${gradient + 1}.png`
+  return `https://market.holaplex.com/images/gradients/gradient-${
+    gradient + 1
+  }.png`
 }
